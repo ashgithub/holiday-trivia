@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-Hands Quiz Game - Participant</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🎄 All-Hands Quiz Game 🎄</h1>
+            <div id="status">Connecting...</div>
+        </header>
+
+        <main>
+            <!-- Participant Screen -->
+            <div id="participant-screen">
+                <div id="waiting-message">
+                    <h2>Welcome!</h2>
+                    <p>Waiting for the quiz to start...</p>
+                    <div class="snowflake">❄️</div>
+                </div>
+
+                <div id="question-container" class="hidden">
+                    <div id="question-content"></div>
+                    <div id="timer">Time remaining: <span id="time-remaining">30</span>s</div>
+                    <div id="answer-inputs">
+                        <input type="text" id="text-answer" placeholder="Type your answer...">
+                        <button id="voice-btn" class="btn btn-secondary">🎤 Voice</button>
+                        <button id="submit-btn" class="btn btn-primary">Submit</button>
+                    </div>
+                    <div id="multiple-choice-options" class="hidden"></div>
+                </div>
+
+                <div id="drawing-canvas" class="hidden">
+                    <canvas id="draw-canvas" width="800" height="600"></canvas>
+                    <div id="drawing-guess-input">
+                        <input type="text" id="drawing-guess" placeholder="What is being drawn?">
+                        <button id="submit-drawing-guess" class="btn btn-primary">Guess!</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/app.js"></script>
+</body>
+</html>

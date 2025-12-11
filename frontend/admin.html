@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All-Hands Quiz Game - Admin</title>
+    <link rel="stylesheet" href="/assets/styles.css">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🎄 Quiz Master Control Panel 🎄</h1>
+            <div id="status">Connecting...</div>
+        </header>
+
+        <!-- Password Protection -->
+        <div id="login-screen">
+            <div class="login-container">
+                <h2>Quiz Master Login</h2>
+                <input type="password" id="password-input" placeholder="Enter password">
+                <button id="login-btn" class="btn btn-primary">Login</button>
+                <div id="login-error" class="error hidden">Incorrect password</div>
+            </div>
+        </div>
+
+        <!-- Quiz Master Interface -->
+        <main id="admin-interface" class="hidden">
+            <div class="admin-controls">
+                <button id="start-quiz-btn" class="btn btn-success">Start Quiz</button>
+                <button id="next-question-btn" class="btn btn-primary" disabled>Push Next Question</button>
+                <button id="end-quiz-btn" class="btn btn-danger" disabled>End Quiz</button>
+            </div>
+
+            <div class="admin-content">
+                <div class="question-setup">
+                    <h3>Question Setup</h3>
+                    <select id="question-type">
+                        <option value="fill_blank">Fill in the Blank</option>
+                        <option value="word_cloud">Word Cloud</option>
+                        <option value="drawing">Drawing</option>
+                        <option value="wheel_fortune">Wheel of Fortune</option>
+                        <option value="multiple_choice">Multiple Choice</option>
+                    </select>
+                    <textarea id="question-content" placeholder="Enter question content..."></textarea>
+                    <input type="text" id="correct-answer" placeholder="Correct answer">
+                    <button id="add-question-btn" class="btn btn-secondary">Add Question</button>
+                </div>
+
+                <div class="live-quiz">
+                    <div id="current-question-display">
+                        <h3>Current Question</h3>
+                        <div id="question-text">No question active</div>
+                    </div>
+
+                    <div id="answers-display">
+                        <h3>Live Answers</h3>
+                        <div id="answers-list">Waiting for answers...</div>
+                    </div>
+
+                    <div id="leaderboard">
+                        <h3>Leaderboard</h3>
+                        <div id="scores-list">No scores yet</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drawing Canvas for Quiz Master -->
+            <div id="drawing-area" class="hidden">
+                <canvas id="admin-draw-canvas" width="800" height="600"></canvas>
+                <div class="drawing-tools">
+                    <button id="clear-canvas" class="btn btn-secondary">Clear</button>
+                    <button id="finish-drawing" class="btn btn-primary">Push Drawing</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/assets/admin.js"></script>
+</body>
+</html>
