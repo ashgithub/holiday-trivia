@@ -15,7 +15,7 @@ Core WebSocket functionality and participant name entry are implemented. The qui
 - **Participant Identification**: Custom name entry system implemented - participants enter names before joining quiz
 - **Database Design**: SQLAlchemy models for User, Question, Game, and Answer with proper relationships
 - **Frontend Architecture**: Pure JavaScript classes for participant and admin interfaces with real-time updates
-- **Authentication**: Simple password-based admin access (quizmaster2024)
+- **Authentication**: Simple password-based admin access (quizzer)
 - **Voice Integration**: Browser-native Web Speech API for voice-to-text input
 - **UI Theme**: Christmas-themed design with red/green color scheme and animations
 

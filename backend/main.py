@@ -256,6 +256,50 @@ async def admin_websocket(websocket: WebSocket):
                     db.add(question)
                     db.commit()
 
+                    # Notify admin that question was added
+                    await admin_manager.send_personal_message({
+                        "type": "question_added"
+                    }, connection_id)
+
+                elif data["type"] == "get_questions":
+                    questions = db.query(Question).all()
+                    questions_data = [{
+                        "id": q.id,
+                        "type": q.type,
+                        "content": q.content,
+                        "correct_answer": q.correct_answer,
+                        "category": q.category
+                    } for q in questions]
+
+                    await admin_manager.send_personal_message({
+                        "type": "questions_loaded",
+                        "questions": questions_data
+                    }, connection_id)
+
+                elif data["type"] == "delete_question":
+                    question_index = data["index"]
+                    # Get all questions ordered by ID
+                    questions = db.query(Question).order_by(Question.id).all()
+                    if 0 <= question_index < len(questions):
+                        question_to_delete = questions[question_index]
+                        db.delete(question_to_delete)
+                        db.commit()
+
+                        # Notify admin that question was deleted
+                        await admin_manager.send_personal_message({
+                            "type": "question_deleted"
+                        }, connection_id)
+
+                elif data["type"] == "save_settings":
+                    # For now, just acknowledge the settings save
+                    # In a real implementation, you'd save these to database/config
+                    settings = data["settings"]
+                    print(f"Settings saved: {settings}")
+
+                    await admin_manager.send_personal_message({
+                        "type": "settings_saved"
+                    }, connection_id)
+
                 elif data["type"] == "drawing_stroke":
                     await participant_manager.broadcast({
                         "type": "drawing_update",
@@ -337,7 +381,8 @@ async def get_current_answers(db):
     return [{
         "user": user.name,
         "content": answer.content,
-        "correct": answer.is_correct
+        "correct": answer.is_correct,
+        "timestamp": answer.created_at.isoformat() if answer.created_at else None
     } for answer, user in answers]
 
 # Periodic status updates for admin

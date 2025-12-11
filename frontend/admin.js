@@ -6,13 +6,48 @@ class QuizAdmin {
         this.drawingCanvas = null;
         this.isDrawing = false;
         this.lastPos = { x: 0, y: 0 };
+        this.questions = [];
+        this.currentTab = 'quiz-control';
 
         this.init();
     }
 
     init() {
         this.setupLogin();
+        this.setupTabs();
         this.updateStatus('Ready to login');
+    }
+
+    setupTabs() {
+        // Tab switching
+        document.getElementById('quiz-control-tab').addEventListener('click', () => {
+            this.switchTab('quiz-control');
+        });
+
+        document.getElementById('question-management-tab').addEventListener('click', () => {
+            this.switchTab('question-management');
+        });
+
+        document.getElementById('settings-tab').addEventListener('click', () => {
+            this.switchTab('settings');
+        });
+
+        // Settings
+        document.getElementById('save-settings-btn').addEventListener('click', () => {
+            this.saveSettings();
+        });
+    }
+
+    switchTab(tabName) {
+        // Remove active class from all tabs
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        // Add active class to selected tab
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        document.getElementById(`${tabName}-content`).classList.add('active');
+
+        this.currentTab = tabName;
     }
 
     setupLogin() {
@@ -32,7 +67,7 @@ class QuizAdmin {
 
     attemptLogin() {
         const password = document.getElementById('password-input').value;
-        const correctPassword = 'quizmaster2024'; // Hardcoded password
+        const correctPassword = 'quizzer'; // Hardcoded password
 
         if (password === correctPassword) {
             this.isAuthenticated = true;
@@ -63,6 +98,9 @@ class QuizAdmin {
             const data = JSON.parse(event.data);
             this.handleMessage(data);
         };
+
+        // Load existing questions
+        this.loadQuestions();
 
         this.ws.onclose = () => {
             this.updateStatus('Disconnected from server');
@@ -280,28 +318,57 @@ class QuizAdmin {
                 document.getElementById('end-quiz-btn').disabled = true;
                 this.updateStatus('Quiz ended');
                 break;
+
+            case 'questions_loaded':
+                this.updateQuestionsList(data.questions);
+                break;
+
+            case 'question_added':
+                this.loadQuestions(); // Refresh the question list
+                break;
+
+            case 'question_deleted':
+                this.loadQuestions(); // Refresh the question list
+                break;
         }
     }
 
     updateAnswersList(answers) {
-        const container = document.getElementById('answers-list');
-        container.innerHTML = '';
+        const tbody = document.getElementById('answers-tbody');
+        tbody.innerHTML = '';
 
         if (answers.length === 0) {
-            container.textContent = 'No answers yet...';
+            const row = tbody.insertRow();
+            row.className = 'no-answers';
+            const cell = row.insertCell();
+            cell.colSpan = 4;
+            cell.textContent = 'Waiting for answers...';
             return;
         }
 
+        // Sort answers by timestamp (newest first)
+        answers.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
         answers.forEach(answer => {
-            const div = document.createElement('div');
-            div.className = 'answer-item';
-            div.innerHTML = `
-                <strong>${answer.user}:</strong> ${answer.content}
-                <span class="${answer.correct ? 'correct' : 'incorrect'}">
-                    ${answer.correct ? '✓' : '✗'}
-                </span>
-            `;
-            container.appendChild(div);
+            const row = tbody.insertRow();
+
+            // Time column
+            const timeCell = row.insertCell();
+            timeCell.className = 'time';
+            timeCell.textContent = new Date(answer.timestamp).toLocaleTimeString();
+
+            // Participant column
+            const participantCell = row.insertCell();
+            participantCell.textContent = answer.user;
+
+            // Answer column
+            const answerCell = row.insertCell();
+            answerCell.textContent = answer.content;
+
+            // Status column
+            const statusCell = row.insertCell();
+            statusCell.className = answer.correct ? 'correct' : 'incorrect';
+            statusCell.textContent = answer.correct ? '✓ Correct' : '✗ Incorrect';
         });
     }
 
@@ -349,6 +416,77 @@ class QuizAdmin {
                 data.current_question) :
             'None';
         document.getElementById('current-question-status').textContent = questionStatus;
+    }
+
+    loadQuestions() {
+        // Send request to load existing questions
+        this.sendMessage({ type: 'get_questions' });
+    }
+
+    updateQuestionsList(questions) {
+        const container = document.getElementById('questions-list');
+        container.innerHTML = '';
+
+        if (!questions || questions.length === 0) {
+            container.textContent = 'No questions added yet...';
+            return;
+        }
+
+        questions.forEach((question, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.innerHTML = `
+                <div class="question-header">
+                    <strong>${question.type.replace('_', ' ').toUpperCase()}</strong>
+                    <button class="btn btn-danger btn-small delete-btn" data-index="${index}">Delete</button>
+                </div>
+                <div class="question-content">${question.content}</div>
+                <div class="question-answer">Answer: ${question.correct_answer}</div>
+            `;
+            container.appendChild(div);
+        });
+
+        // Add event listeners for delete buttons
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const index = parseInt(e.target.dataset.index);
+                this.deleteQuestion(index);
+            });
+        });
+    }
+
+    deleteQuestion(index) {
+        if (confirm('Are you sure you want to delete this question?')) {
+            this.sendMessage({
+                type: 'delete_question',
+                index: index
+            });
+        }
+    }
+
+    saveSettings() {
+        const questionTimer = parseInt(document.getElementById('question-timer').value);
+        const maxParticipants = parseInt(document.getElementById('max-participants').value);
+
+        if (questionTimer < 10 || questionTimer > 120) {
+            alert('Question timer must be between 10 and 120 seconds');
+            return;
+        }
+
+        if (maxParticipants < 1 || maxParticipants > 500) {
+            alert('Max participants must be between 1 and 500');
+            return;
+        }
+
+        this.sendMessage({
+            type: 'save_settings',
+            settings: {
+                question_timer: questionTimer,
+                max_participants: maxParticipants
+            }
+        });
+
+        alert('Settings saved successfully!');
     }
 
     updateStatus(status) {

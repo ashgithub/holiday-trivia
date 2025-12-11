@@ -50,7 +50,7 @@ An interactive real-time quiz game for Zoom all-hands meetings with up to 150 pa
 ### Usage
 
 1. **For Participants**: Open http://localhost:8000 in web browser
-2. **For Quiz Master**: Open http://localhost:8000/admin and login with password `quizmaster2024`
+2. **For Quiz Master**: Open http://localhost:8000/admin and login with password `quizzer`
 
 ### During Zoom Meeting
 

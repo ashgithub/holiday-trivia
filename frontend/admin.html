@@ -40,42 +40,91 @@
                     <span id="current-question-status" class="status-value">None</span>
                 </div>
             </div>
-            <div class="admin-controls">
-                <button id="start-quiz-btn" class="btn btn-success">Start Quiz</button>
-                <button id="next-question-btn" class="btn btn-primary" disabled>Push Next Question</button>
-                <button id="end-quiz-btn" class="btn btn-danger" disabled>End Quiz</button>
+
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button id="quiz-control-tab" class="tab-btn active">Quiz Control</button>
+                <button id="question-management-tab" class="tab-btn">Question Management</button>
+                <button id="settings-tab" class="tab-btn">Settings</button>
             </div>
 
-            <div class="admin-content">
-                <div class="question-setup">
-                    <h3>Question Setup</h3>
-                    <select id="question-type">
-                        <option value="fill_blank">Fill in the Blank</option>
-                        <option value="word_cloud">Word Cloud</option>
-                        <option value="drawing">Drawing</option>
-                        <option value="wheel_fortune">Wheel of Fortune</option>
-                        <option value="multiple_choice">Multiple Choice</option>
-                    </select>
-                    <textarea id="question-content" placeholder="Enter question content..."></textarea>
-                    <input type="text" id="correct-answer" placeholder="Correct answer">
-                    <button id="add-question-btn" class="btn btn-secondary">Add Question</button>
+            <!-- Tab Content -->
+            <div id="quiz-control-content" class="tab-content active">
+                <div class="admin-controls">
+                    <button id="start-quiz-btn" class="btn btn-success">Start Quiz</button>
+                    <button id="next-question-btn" class="btn btn-primary" disabled>Push Next Question</button>
+                    <button id="end-quiz-btn" class="btn btn-danger" disabled>End Quiz</button>
                 </div>
 
-                <div class="live-quiz">
-                    <div id="current-question-display">
+                <div class="quiz-control-content">
+                    <div id="current-question-display" class="control-section">
                         <h3>Current Question</h3>
                         <div id="question-text">No question active</div>
                     </div>
 
-                    <div id="answers-display">
+                    <div id="answers-display" class="control-section">
                         <h3>Live Answers</h3>
-                        <div id="answers-list">Waiting for answers...</div>
+                        <div id="answers-table-container">
+                            <table id="answers-table">
+                                <thead>
+                                    <tr>
+                                        <th>Time</th>
+                                        <th>Participant</th>
+                                        <th>Answer</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="answers-tbody">
+                                    <tr class="no-answers">
+                                        <td colspan="4">Waiting for answers...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
-                    <div id="leaderboard">
+                    <div id="leaderboard" class="control-section">
                         <h3>Leaderboard</h3>
                         <div id="scores-list">No scores yet</div>
                     </div>
+                </div>
+            </div>
+
+            <div id="question-management-content" class="tab-content">
+                <div class="question-management">
+                    <div class="question-setup">
+                        <h3>Add New Question</h3>
+                        <select id="question-type">
+                            <option value="fill_blank">Fill in the Blank</option>
+                            <option value="word_cloud">Word Cloud</option>
+                            <option value="drawing">Drawing</option>
+                            <option value="wheel_fortune">Wheel of Fortune</option>
+                            <option value="multiple_choice">Multiple Choice</option>
+                        </select>
+                        <textarea id="question-content" placeholder="Enter question content..."></textarea>
+                        <input type="text" id="correct-answer" placeholder="Correct answer">
+                        <button id="add-question-btn" class="btn btn-secondary">Add Question</button>
+                    </div>
+
+                    <div class="question-library">
+                        <h3>Question Library</h3>
+                        <div id="questions-list">No questions added yet...</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-content" class="tab-content">
+                <div class="settings-section">
+                    <h3>Quiz Settings</h3>
+                    <div class="setting-item">
+                        <label for="question-timer">Question Timer (seconds):</label>
+                        <input type="number" id="question-timer" value="30" min="10" max="120">
+                    </div>
+                    <div class="setting-item">
+                        <label for="max-participants">Max Participants:</label>
+                        <input type="number" id="max-participants" value="150" min="1" max="500">
+                    </div>
+                    <button id="save-settings-btn" class="btn btn-primary">Save Settings</button>
                 </div>
             </div>
 
