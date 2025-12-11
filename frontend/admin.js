@@ -248,6 +248,10 @@ class QuizAdmin {
 
     handleMessage(data) {
         switch (data.type) {
+            case 'status_update':
+                this.updateStatusDashboard(data);
+                break;
+
             case 'quiz_started':
                 document.getElementById('start-quiz-btn').disabled = true;
                 document.getElementById('next-question-btn').disabled = false;
@@ -328,6 +332,23 @@ class QuizAdmin {
         } else {
             console.error('WebSocket not connected');
         }
+    }
+
+    updateStatusDashboard(data) {
+        // Update participant count
+        document.getElementById('participant-count').textContent = data.participant_count;
+
+        // Update quiz status
+        const quizStatus = data.quiz_active ? 'Active' : 'Waiting';
+        document.getElementById('quiz-status').textContent = quizStatus;
+
+        // Update current question status
+        const questionStatus = data.current_question ?
+            (data.current_question.length > 20 ?
+                data.current_question.substring(0, 20) + '...' :
+                data.current_question) :
+            'None';
+        document.getElementById('current-question-status').textContent = questionStatus;
     }
 
     updateStatus(status) {

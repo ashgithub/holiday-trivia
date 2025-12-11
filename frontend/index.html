@@ -14,8 +14,21 @@
         </header>
 
         <main>
+            <!-- Name Entry Screen -->
+            <div id="name-entry-screen">
+                <div class="name-entry-container">
+                    <h2>🎄 Welcome to All-Hands Quiz! 🎄</h2>
+                    <p>Enter your name to join the quiz:</p>
+                    <div class="name-input-group">
+                        <input type="text" id="participant-name" placeholder="Your name" maxlength="50">
+                        <button id="join-btn" class="btn btn-primary">Join Quiz</button>
+                    </div>
+                    <div id="name-error" class="error-message hidden">Please enter your name</div>
+                </div>
+            </div>
+
             <!-- Participant Screen -->
-            <div id="participant-screen">
+            <div id="participant-screen" class="hidden">
                 <div id="waiting-message">
                     <h2>Welcome!</h2>
                     <p>Waiting for the quiz to start...</p>

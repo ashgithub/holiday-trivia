@@ -2,10 +2,82 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi import WebSocket, WebSocketDisconnect
 import uvicorn
 import os
+import json
+import asyncio
+from contextlib import asynccontextmanager
+from typing import Dict, List, Optional
+from datetime import datetime
+import uuid
+from pathlib import Path
 
-app = FastAPI(title="All-Hands Quiz Game", version="0.1.0")
+from models import SessionLocal, User, Question, Game, Answer
+
+# Connection managers
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Dict[str, WebSocket] = {}
+        self.user_sessions: Dict[str, str] = {}  # websocket_id -> user_id
+
+    async def connect(self, websocket: WebSocket, user_type: str, user_id: Optional[str] = None):
+        await websocket.accept()
+        connection_id = str(uuid.uuid4())
+        self.active_connections[connection_id] = websocket
+
+        if user_id:
+            self.user_sessions[connection_id] = user_id
+
+        print(f"New {user_type} connection: {connection_id}")
+        return connection_id
+
+    def disconnect(self, connection_id: str):
+        if connection_id in self.active_connections:
+            del self.active_connections[connection_id]
+        if connection_id in self.user_sessions:
+            del self.user_sessions[connection_id]
+        print(f"Connection disconnected: {connection_id}")
+
+    async def send_personal_message(self, message: dict, connection_id: str):
+        if connection_id in self.active_connections:
+            await self.active_connections[connection_id].send_json(message)
+
+    async def broadcast(self, message: dict, exclude_connection: str = None):
+        for connection_id, connection in self.active_connections.items():
+            if connection_id != exclude_connection:
+                try:
+                    await connection.send_json(message)
+                except Exception as e:
+                    print(f"Error broadcasting to {connection_id}: {e}")
+
+    def get_participant_count(self):
+        return len(self.active_connections)
+
+# Global connection managers
+participant_manager = ConnectionManager()
+admin_manager = ConnectionManager()
+
+# Game state
+current_game: Optional[Game] = None
+current_question: Optional[Question] = None
+question_timer: Optional[asyncio.Task] = None
+
+# Lifespan event handler for startup/shutdown
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Start background status updates
+    status_task = asyncio.create_task(send_admin_status_updates())
+    yield
+    # Shutdown: Cancel background task
+    status_task.cancel()
+    try:
+        await status_task
+    except asyncio.CancelledError:
+        pass
+
+# Update FastAPI app with lifespan
+app = FastAPI(title="All-Hands Quiz Game", version="0.1.0", lifespan=lifespan)
 
 # CORS middleware for frontend communication
 app.add_middleware(
@@ -17,7 +89,8 @@ app.add_middleware(
 )
 
 # Mount static files for frontend assets (CSS, JS)
-app.mount("/assets", StaticFiles(directory="../frontend"), name="assets")
+frontend_dir = Path(__file__).parent.parent / "frontend"
+app.mount("/assets", StaticFiles(directory=str(frontend_dir)), name="assets")
 
 # API routes under /api/
 @app.get("/api/")
@@ -30,6 +103,12 @@ async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
 
+# Debug route
+@app.get("/debug")
+async def debug():
+    """Debug endpoint"""
+    return {"working": True}
+
 # Serve HTML pages at root level
 @app.get("/")
 async def participant_page():
@@ -40,6 +119,245 @@ async def participant_page():
 async def admin_page():
     """Serve admin page"""
     return FileResponse("../frontend/admin.html")
+
+# WebSocket endpoints
+@app.websocket("/ws/participant")
+async def participant_websocket(websocket: WebSocket):
+    # Accept the WebSocket connection and get connection ID
+    connection_id = await participant_manager.connect(websocket, "participant")
+
+    # THEN wait for initial join message with participant name
+    try:
+        initial_data = await websocket.receive_json()
+        if initial_data.get("type") != "join":
+            await websocket.close(code=4000, reason="Expected join message")
+            return
+
+        participant_name = initial_data.get("name", "").strip()
+        if not participant_name:
+            await websocket.close(code=4000, reason="Name is required")
+            return
+
+    except Exception as e:
+        print(f"Error receiving join message: {e}")
+        return
+
+    # Create or get user session
+    db = SessionLocal()
+    try:
+        # Create a participant user
+        participant = User(
+            name=participant_name,
+            role="participant",
+            session_id=connection_id
+        )
+        db.add(participant)
+        db.commit()
+        db.refresh(participant)
+
+        # Send current game state if quiz is active
+        if current_game and current_game.status == "active":
+            await participant_manager.send_personal_message({
+                "type": "quiz_started"
+            }, connection_id)
+
+            if current_question:
+                await participant_manager.send_personal_message({
+                    "type": "question",
+                    "question": {
+                        "id": current_question.id,
+                        "type": current_question.type,
+                        "content": current_question.content,
+                        "options": json.loads(current_question.answers) if current_question.answers else None
+                    }
+                }, connection_id)
+
+        try:
+            while True:
+                data = await websocket.receive_json()
+
+                if data["type"] == "answer":
+                    # Save answer to database
+                    answer = Answer(
+                        user_id=participant.id,
+                        question_id=data["question_id"],
+                        game_id=current_game.id if current_game else None,
+                        content=data["answer"]
+                    )
+                    db.add(answer)
+                    db.commit()
+
+                    # Check if correct
+                    if current_question and data["answer"].strip().lower() == current_question.correct_answer.strip().lower():
+                        answer.is_correct = True
+                        db.commit()
+
+                    # Notify admin of new answer
+                    await admin_manager.broadcast({
+                        "type": "answer_received",
+                        "answers": await get_current_answers(db)
+                    })
+
+        except WebSocketDisconnect:
+            participant_manager.disconnect(connection_id)
+            db.close()
+
+    except Exception as e:
+        print(f"Error in participant websocket: {e}")
+        db.close()
+
+@app.websocket("/ws/admin")
+async def admin_websocket(websocket: WebSocket):
+    connection_id = await admin_manager.connect(websocket, "admin")
+
+    try:
+        while True:
+            data = await websocket.receive_json()
+            db = SessionLocal()
+
+            try:
+                if data["type"] == "start_quiz":
+                    await start_quiz(db)
+                    await admin_manager.send_personal_message({"type": "quiz_started"}, connection_id)
+                    await participant_manager.broadcast({"type": "quiz_started"})
+
+                elif data["type"] == "next_question":
+                    await next_question(db)
+                    if current_question:
+                        question_data = {
+                            "type": "question",
+                            "question": {
+                                "id": current_question.id,
+                                "type": current_question.type,
+                                "content": current_question.content,
+                                "options": json.loads(current_question.answers) if current_question.answers else None
+                            }
+                        }
+                        await admin_manager.broadcast({"type": "question_pushed", "question": question_data["question"]})
+                        await participant_manager.broadcast(question_data)
+
+                        # Start timer
+                        await start_question_timer()
+
+                elif data["type"] == "end_quiz":
+                    await end_quiz(db)
+                    await admin_manager.broadcast({"type": "quiz_ended"})
+                    await participant_manager.broadcast({"type": "quiz_ended"})
+
+                elif data["type"] == "add_question":
+                    question_data = data["question"]
+                    question = Question(
+                        type=question_data["type"],
+                        content=question_data["content"],
+                        correct_answer=question_data["correct_answer"],
+                        category=question_data.get("category", "general"),
+                        answers=json.dumps(question_data.get("options", [])) if "options" in question_data else None
+                    )
+                    db.add(question)
+                    db.commit()
+
+                elif data["type"] == "drawing_stroke":
+                    await participant_manager.broadcast({
+                        "type": "drawing_update",
+                        "stroke": data["stroke"]
+                    })
+
+            finally:
+                db.close()
+
+    except WebSocketDisconnect:
+        admin_manager.disconnect(connection_id)
+    except Exception as e:
+        print(f"Error in admin websocket: {e}")
+
+# Game management functions
+async def start_quiz(db):
+    global current_game
+    current_game = Game(status="active")
+    db.add(current_game)
+    db.commit()
+    db.refresh(current_game)
+
+async def next_question(db):
+    global current_question, question_timer
+
+    # Cancel existing timer
+    if question_timer:
+        question_timer.cancel()
+
+    # Get next question
+    question = db.query(Question).first()  # For now, just get first question
+    if question:
+        current_question = question
+
+async def end_quiz(db):
+    global current_game, current_question, question_timer
+
+    if current_game:
+        current_game.status = "finished"
+        current_game.finished_at = datetime.utcnow()
+        db.commit()
+
+    current_game = None
+    current_question = None
+
+    if question_timer:
+        question_timer.cancel()
+        question_timer = None
+
+async def start_question_timer():
+    global question_timer
+
+    async def timer_task():
+        time_left = 30
+        while time_left > 0:
+            await asyncio.sleep(1)
+            time_left -= 1
+            await participant_manager.broadcast({
+                "type": "timer_update",
+                "time_left": time_left
+            })
+
+        # Time's up - auto-submit empty answers or something
+        await participant_manager.broadcast({
+            "type": "timer_update",
+            "time_left": 0
+        })
+
+    question_timer = asyncio.create_task(timer_task())
+
+async def get_current_answers(db):
+    if not current_question:
+        return []
+
+    answers = db.query(Answer, User).join(User).filter(
+        Answer.question_id == current_question.id
+    ).all()
+
+    return [{
+        "user": user.name,
+        "content": answer.content,
+        "correct": answer.is_correct
+    } for answer, user in answers]
+
+# Periodic status updates for admin
+async def send_admin_status_updates():
+    while True:
+        try:
+            # Send participant count and quiz status to all admins
+            status_update = {
+                "type": "status_update",
+                "participant_count": participant_manager.get_participant_count(),
+                "quiz_active": current_game is not None and current_game.status == "active",
+                "current_question": current_question.content if current_question else None,
+                "question_type": current_question.type if current_question else None
+            }
+
+            await admin_manager.broadcast(status_update)
+        except Exception as e:
+            print(f"Error sending status update: {e}")
+
+        await asyncio.sleep(2)  # Update every 2 seconds
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

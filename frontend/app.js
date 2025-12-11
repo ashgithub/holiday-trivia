@@ -7,14 +7,51 @@ class QuizParticipant {
         this.timeLeft = 30;
         this.recognition = null;
         this.isListening = false;
+        this.participantName = null;
 
         this.init();
     }
 
     init() {
+        this.setupNameEntry();
+        this.setupVoiceRecognition();
+        this.updateStatus('Ready to join quiz');
+    }
+
+    setupNameEntry() {
+        const joinBtn = document.getElementById('join-btn');
+        const nameInput = document.getElementById('participant-name');
+
+        joinBtn.addEventListener('click', () => {
+            this.attemptJoin();
+        });
+
+        nameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.attemptJoin();
+            }
+        });
+    }
+
+    attemptJoin() {
+        const name = document.getElementById('participant-name').value.trim();
+        const errorDiv = document.getElementById('name-error');
+
+        if (!name) {
+            errorDiv.classList.remove('hidden');
+            return;
+        }
+
+        errorDiv.classList.add('hidden');
+        this.participantName = name;
+
+        // Hide name entry, show quiz interface
+        document.getElementById('name-entry-screen').classList.add('hidden');
+        document.getElementById('participant-screen').classList.remove('hidden');
+
+        // Now connect to WebSocket
         this.setupWebSocket();
         this.setupEventListeners();
-        this.setupVoiceRecognition();
         this.updateStatus('Connecting to quiz server...');
     }
 
@@ -25,6 +62,11 @@ class QuizParticipant {
         this.ws = new WebSocket(wsUrl);
 
         this.ws.onopen = () => {
+            // Send join message with participant name
+            this.ws.send(JSON.stringify({
+                type: 'join',
+                name: this.participantName
+            }));
             this.updateStatus('Connected - Waiting for quiz to start');
         };
 

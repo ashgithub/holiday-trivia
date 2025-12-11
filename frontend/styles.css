@@ -103,6 +103,73 @@ header h1 {
     transform: translateY(-2px);
 }
 
+.btn.listening {
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Name Entry Screen */
+#name-entry-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 60vh;
+}
+
+.name-entry-container {
+    background: var(--snow-white);
+    padding: 40px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px var(--shadow);
+    text-align: center;
+    min-width: 400px;
+    max-width: 500px;
+}
+
+.name-entry-container h2 {
+    color: var(--christmas-red);
+    margin-bottom: 20px;
+    font-size: 2rem;
+}
+
+.name-entry-container p {
+    margin-bottom: 30px;
+    color: var(--text-dark);
+    font-size: 1.1rem;
+}
+
+.name-input-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+#participant-name {
+    flex: 1;
+    padding: 15px;
+    border: 2px solid var(--christmas-green);
+    border-radius: 8px;
+    font-size: 1.1rem;
+    transition: border-color 0.3s ease;
+}
+
+#participant-name:focus {
+    outline: none;
+    border-color: var(--christmas-red);
+}
+
+.error-message {
+    color: #ff4444;
+    font-weight: bold;
+    margin-top: 10px;
+}
+
 /* Screens */
 .screen {
     background: var(--snow-white);
@@ -227,6 +294,39 @@ canvas {
     font-size: 1rem;
     flex: 1;
     max-width: 300px;
+}
+
+/* Status Dashboard */
+.status-dashboard {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: var(--snow-white);
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 2px solid var(--christmas-green);
+}
+
+.status-item {
+    text-align: center;
+    flex: 1;
+}
+
+.status-label {
+    display: block;
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.status-value {
+    display: block;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--christmas-red);
 }
 
 /* Admin Styles */

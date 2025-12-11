@@ -20,11 +20,20 @@
 - [x] Initialize FastAPI backend with basic endpoints
 - [x] Create HTML/CSS/JS frontend skeleton
 - [x] Create README.md with setup and usage instructions
+- [x] Implement WebSocket connections for real-time communication
+- [x] Build quiz master configuration interface (basic structure done)
+- [x] Develop participant response interface (basic structure done)
+- [x] Add participant name entry before quiz
+- [x] Update backend to handle custom participant names
+- [x] Implement admin interface improvements (participant count, status dashboard)
+- [x] Fix server architecture issues (FastAPI lifespan, route registration, file serving)
 
 ## In Progress
-- [ ] Implement WebSocket connections for real-time communication
-- [ ] Build quiz master configuration interface (basic structure done)
-- [ ] Develop participant response interface (basic structure done)
+- [ ] Add proper question sequencing and management
+- [ ] Implement scoring and leaderboard functionality
+- [ ] Add comprehensive error handling and reconnection logic
+- [ ] Test with multiple users and performance optimization
+- [ ] Implement tabbed admin interface (question management separate from live quiz)
 
 ## Upcoming Milestones
 - [ ] Complete WebSocket server implementation in FastAPI

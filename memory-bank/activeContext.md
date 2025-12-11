@@ -1,35 +1,56 @@
 # Active Context
 
 ## Current Work Focus
-Initializing the memory bank and refining the project brief for the All-Hands Quiz Game. Establishing foundational documentation and planning the technical implementation.
+Core WebSocket functionality and participant name entry are implemented. The quiz game has functional real-time communication between participants and quiz masters. Next priorities include enhancing question management, scoring system, and testing with multiple users.
 
 ## Immediate Priorities
-1. **Memory Bank Setup**: Complete all core memory bank files with comprehensive project information
-2. **Project Brief Cleanup**: Edit the original project-brief.md to incorporate corrections and add missing details
-3. **Streaming Technology Decision**: Evaluate and select appropriate streaming technologies for real-time functionality (WebSockets recommended)
-4. **Architecture Planning**: Design the FastAPI backend and JavaScript frontend structure
+1. **Question Sequencing**: Improve the question selection logic to cycle through questions properly instead of always using the first question
+2. **Scoring & Leaderboard**: Implement point calculation and real-time leaderboard updates for participants
+3. **Testing**: Test the complete quiz flow with multiple browser tabs simulating 150 concurrent users
+4. **Error Handling**: Add comprehensive reconnection logic and better error recovery
+5. **Performance Optimization**: Optimize WebSocket connections and server resources for scalability
 
 ## Key Decisions Made
-- **Tech Stack Confirmed**: FastAPI backend, pure JS/HTML/CSS frontend
-- **Streaming Approach**: HTTP streaming (likely WebSockets for bidirectional real-time communication)
-- **Theme**: Christmas-themed UI
-- **Scalability Target**: Support 150 concurrent participants
+- **WebSocket Implementation**: Full real-time bidirectional communication implemented using FastAPI WebSockets
+- **Participant Identification**: Custom name entry system implemented - participants enter names before joining quiz
+- **Database Design**: SQLAlchemy models for User, Question, Game, and Answer with proper relationships
+- **Frontend Architecture**: Pure JavaScript classes for participant and admin interfaces with real-time updates
+- **Authentication**: Simple password-based admin access (quizmaster2024)
+- **Voice Integration**: Browser-native Web Speech API for voice-to-text input
+- **UI Theme**: Christmas-themed design with red/green color scheme and animations
+
+## Recently Completed
+- ✅ WebSocket connections for real-time quiz communication
+- ✅ Participant name entry and validation system
+- ✅ Basic quiz flow (start/end quiz, question serving, answer submission)
+- ✅ Drawing collaboration features for admin-controlled drawing questions
+- ✅ Answer storage and correctness validation
+- ✅ 30-second question timer with real-time countdown
+- ✅ Admin interface for quiz control and question management
+- ✅ Real-time participant count display in admin dashboard
+- ✅ Status dashboard header with quiz state and current question
+- ✅ FastAPI server architecture fixes (lifespan handlers, route registration)
+- ✅ File serving resolution for HTML pages and static assets
+- ✅ Background task management for periodic status updates
 
 ## Open Questions
-- Specific streaming implementation details (WebSockets vs SSE vs hybrid)
-- Database requirements for questions, answers, and scoring
-- Authentication/identification of participants in Zoom environment
-- Voice-to-text integration specifics (browser APIs vs third-party services)
-- Drawing implementation for real-time collaborative drawing
+- Question sequencing strategy (random, ordered, categories)
+- Scoring algorithm and point distribution
+- Leaderboard display and real-time updates
+- Performance testing with 150 concurrent connections
+- Browser compatibility testing for voice and WebSocket features
 
 ## Next Steps
-- Complete memory bank initialization
-- Create initial project structure (backend/frontend directories)
-- Implement basic WebSocket connection for real-time communication
-- Build quiz master configuration UI
-- Develop participant response interface
+- Implement proper question cycling instead of always using first question
+- Add scoring system with points for correct answers and speed bonuses
+- Create real-time leaderboard that updates as answers are submitted
+- Add question management features (edit, delete, reorder questions)
+- Test complete flow with multiple participants
+- Implement reconnection logic for network interruptions
+- Add comprehensive error handling and user feedback
 
 ## Risks and Mitigations
-- **Real-time Performance**: With 150 users, optimize WebSocket connections and server resources
-- **Browser Compatibility**: Test voice-to-text APIs across major browsers
-- **Network Issues**: Implement reconnection logic and offline handling for Zoom environments
+- **Real-time Performance**: Monitor WebSocket connection efficiency; consider connection pooling and message batching for 150 users
+- **Browser Compatibility**: Voice API and WebSocket support vary; implement graceful fallbacks and clear error messages
+- **Network Issues**: Add automatic reconnection logic with exponential backoff; handle offline scenarios gracefully
+- **Scalability**: Monitor server resource usage; consider horizontal scaling strategies if needed
