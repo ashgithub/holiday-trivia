@@ -28,18 +28,12 @@
         <main id="admin-interface" class="hidden">
             <!-- Status Dashboard -->
             <div id="status-dashboard" class="status-dashboard">
-                <div class="status-item">
-                    <span class="status-label">👥 Participants:</span>
-                    <span id="participant-count" class="status-value">0</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">📊 Quiz Status:</span>
-                    <span id="quiz-status" class="status-value">Waiting</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">❓ Current:</span>
-                    <span id="current-question-status" class="status-value">None</span>
-                </div>
+                <span class="status-label">Status:</span>
+                <span id="quiz-status" class="status-value">Waiting</span>
+                <span class="status-separator">|</span>
+                <span class="status-label">👥</span>
+                <span id="participant-count" class="status-value">0</span>
+                <span class="status-label">participants</span>
             </div>
 
             <!-- Tab Navigation -->
@@ -78,16 +72,15 @@
                             <table id="answers-table">
                                 <thead>
                                     <tr>
-                                        <th>Time</th>
+                                        <th>Rank</th>
                                         <th>Participant</th>
+                                        <th>Score</th>
                                         <th>Answer</th>
-                                        <th>Retry</th>
-                                        <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="answers-tbody">
                                     <tr class="no-answers">
-                                        <td colspan="5">Waiting for answers...</td>
+                                        <td colspan="4">Waiting for answers...</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -95,8 +88,23 @@
                     </div>
 
                     <div id="leaderboard" class="control-section festive-panel">
-                        <h3>Leaderboard</h3>
-                        <div id="scores-list">No scores yet</div>
+                        <h3>🏆 Leaderboard</h3>
+                        <div id="leaderboard-table-container">
+                            <table id="leaderboard-table">
+                                <thead>
+                                    <tr>
+                                        <th class="rank">Rank</th>
+                                        <th class="name">Name</th>
+                                        <th class="points">Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="leaderboard-tbody">
+                                    <tr class="no-scores">
+                                        <td colspan="3">No scores yet...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div>
             </div>

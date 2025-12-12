@@ -1,0 +1,4011 @@
+{
+  "test_info": {
+    "name": "150_User_Load_Test",
+    "user_count": 150,
+    "timestamp": "2025-12-12T13:41:57.621084",
+    "duration": 119.01514410972595
+  },
+  "system_performance": {
+    "collection_duration": 119.01514410972595,
+    "data_points": 115,
+    "cpu": {
+      "average": 20.06695652173913,
+      "max": 56.8,
+      "min": 0.0,
+      "p95": 36.760000000000005
+    },
+    "memory": {
+      "average_percent": 63.21826086956522,
+      "max_percent": 63.6,
+      "average_mb": 15644.820652173914,
+      "max_mb": 15783.21875
+    },
+    "network": {
+      "total_bytes_sent": 6864896,
+      "total_bytes_recv": 1354752,
+      "avg_bytes_sent_per_sec": 59694.747826086954,
+      "avg_bytes_recv_per_sec": 11780.452173913043
+    },
+    "process": {
+      "cpu_average": null,
+      "cpu_max": null,
+      "memory_average_mb": null,
+      "memory_max_mb": null
+    },
+    "raw_metrics": [
+      {
+        "timestamp": 1765571997.5728042,
+        "relative_time": 8.320808410644531e-05,
+        "cpu_percent": 0.0,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15717.3125,
+        "network_bytes_sent": 2253090816,
+        "network_bytes_recv": 987233280,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765571998.6159601,
+        "relative_time": 1.0432391166687012,
+        "cpu_percent": 18.1,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15739.625,
+        "network_bytes_sent": 2253091840,
+        "network_bytes_recv": 987234304,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765571999.657483,
+        "relative_time": 2.0847620964050293,
+        "cpu_percent": 16.6,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15692.203125,
+        "network_bytes_sent": 2253092864,
+        "network_bytes_recv": 987237376,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572000.7035031,
+        "relative_time": 3.130782127380371,
+        "cpu_percent": 13.8,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15608.609375,
+        "network_bytes_sent": 2253092864,
+        "network_bytes_recv": 987237376,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572001.7463171,
+        "relative_time": 4.173596143722534,
+        "cpu_percent": 15.1,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15713.28125,
+        "network_bytes_sent": 2253097984,
+        "network_bytes_recv": 987246592,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572002.7867022,
+        "relative_time": 5.2139811515808105,
+        "cpu_percent": 14.7,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15724.375,
+        "network_bytes_sent": 2253103104,
+        "network_bytes_recv": 987248640,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572003.826324,
+        "relative_time": 6.253602981567383,
+        "cpu_percent": 13.6,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15717.046875,
+        "network_bytes_sent": 2253103104,
+        "network_bytes_recv": 987248640,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572004.87822,
+        "relative_time": 7.305499076843262,
+        "cpu_percent": 15.1,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15721.015625,
+        "network_bytes_sent": 2253444096,
+        "network_bytes_recv": 987260928,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572005.9171178,
+        "relative_time": 8.344396829605103,
+        "cpu_percent": 14.9,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15688.84375,
+        "network_bytes_sent": 2253446144,
+        "network_bytes_recv": 987271168,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572006.9599621,
+        "relative_time": 9.387241125106812,
+        "cpu_percent": 30.2,
+        "memory_percent": 63.6,
+        "memory_used_mb": 15752.734375,
+        "network_bytes_sent": 2253447168,
+        "network_bytes_recv": 987281408,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572008.004598,
+        "relative_time": 10.43187689781189,
+        "cpu_percent": 14.5,
+        "memory_percent": 63.6,
+        "memory_used_mb": 15783.21875,
+        "network_bytes_sent": 2253447168,
+        "network_bytes_recv": 987284480,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572009.0576699,
+        "relative_time": 11.484948873519897,
+        "cpu_percent": 17.5,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15644.15625,
+        "network_bytes_sent": 2253455360,
+        "network_bytes_recv": 987288576,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572010.1068218,
+        "relative_time": 12.534100770950317,
+        "cpu_percent": 14.3,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15724.296875,
+        "network_bytes_sent": 2253455360,
+        "network_bytes_recv": 987291648,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572011.148994,
+        "relative_time": 13.576272964477539,
+        "cpu_percent": 17.1,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15727.0625,
+        "network_bytes_sent": 2253455360,
+        "network_bytes_recv": 987291648,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572012.199893,
+        "relative_time": 14.627171993255615,
+        "cpu_percent": 16.5,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15697.125,
+        "network_bytes_sent": 2253455360,
+        "network_bytes_recv": 987291648,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572013.241157,
+        "relative_time": 15.668436050415039,
+        "cpu_percent": 17.1,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15698.5,
+        "network_bytes_sent": 2253650944,
+        "network_bytes_recv": 987302912,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572014.2798212,
+        "relative_time": 16.70710015296936,
+        "cpu_percent": 18.0,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15619.484375,
+        "network_bytes_sent": 2253675520,
+        "network_bytes_recv": 987321344,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572015.32527,
+        "relative_time": 17.752548933029175,
+        "cpu_percent": 50.9,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15733.984375,
+        "network_bytes_sent": 2253733888,
+        "network_bytes_recv": 987359232,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572016.3536482,
+        "relative_time": 18.780927181243896,
+        "cpu_percent": 29.5,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15705.234375,
+        "network_bytes_sent": 2253900800,
+        "network_bytes_recv": 987367424,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572017.390441,
+        "relative_time": 19.81771993637085,
+        "cpu_percent": 34.8,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15729.3125,
+        "network_bytes_sent": 2254035968,
+        "network_bytes_recv": 987384832,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572018.421346,
+        "relative_time": 20.84862494468689,
+        "cpu_percent": 18.8,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15718.65625,
+        "network_bytes_sent": 2254052352,
+        "network_bytes_recv": 987395072,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572019.459826,
+        "relative_time": 21.887104988098145,
+        "cpu_percent": 16.7,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15609.421875,
+        "network_bytes_sent": 2254056448,
+        "network_bytes_recv": 987397120,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572020.507672,
+        "relative_time": 22.934951066970825,
+        "cpu_percent": 28.9,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15680.578125,
+        "network_bytes_sent": 2254266368,
+        "network_bytes_recv": 987408384,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572021.54245,
+        "relative_time": 23.96972894668579,
+        "cpu_percent": 18.7,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15680.765625,
+        "network_bytes_sent": 2254267392,
+        "network_bytes_recv": 987410432,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572022.582967,
+        "relative_time": 25.01024603843689,
+        "cpu_percent": 16.6,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15710.359375,
+        "network_bytes_sent": 2254268416,
+        "network_bytes_recv": 987413504,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572023.63121,
+        "relative_time": 26.058489084243774,
+        "cpu_percent": 43.5,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15725.53125,
+        "network_bytes_sent": 2254480384,
+        "network_bytes_recv": 987443200,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572024.6677601,
+        "relative_time": 27.095039129257202,
+        "cpu_percent": 24.3,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15694.3125,
+        "network_bytes_sent": 2254688256,
+        "network_bytes_recv": 987451392,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572025.7137449,
+        "relative_time": 28.141023874282837,
+        "cpu_percent": 27.5,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15694.5,
+        "network_bytes_sent": 2254724096,
+        "network_bytes_recv": 987485184,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572026.747746,
+        "relative_time": 29.17502498626709,
+        "cpu_percent": 28.4,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15742.53125,
+        "network_bytes_sent": 2254986240,
+        "network_bytes_recv": 987495424,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572027.7951128,
+        "relative_time": 30.222391843795776,
+        "cpu_percent": 18.6,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15744.796875,
+        "network_bytes_sent": 2255098880,
+        "network_bytes_recv": 987513856,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572028.837864,
+        "relative_time": 31.265142917633057,
+        "cpu_percent": 17.6,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15695.546875,
+        "network_bytes_sent": 2255205376,
+        "network_bytes_recv": 987528192,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572029.887321,
+        "relative_time": 32.31459999084473,
+        "cpu_percent": 18.8,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15688.6875,
+        "network_bytes_sent": 2255312896,
+        "network_bytes_recv": 987539456,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572030.939073,
+        "relative_time": 33.36635208129883,
+        "cpu_percent": 15.8,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15686.53125,
+        "network_bytes_sent": 2255523840,
+        "network_bytes_recv": 987551744,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572031.987692,
+        "relative_time": 34.414971113204956,
+        "cpu_percent": 24.0,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15709.109375,
+        "network_bytes_sent": 2255535104,
+        "network_bytes_recv": 987588608,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572033.0230012,
+        "relative_time": 35.45028018951416,
+        "cpu_percent": 34.9,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15694.859375,
+        "network_bytes_sent": 2255751168,
+        "network_bytes_recv": 987601920,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572034.059366,
+        "relative_time": 36.486644983291626,
+        "cpu_percent": 56.8,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15631.140625,
+        "network_bytes_sent": 2256012288,
+        "network_bytes_recv": 987857920,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572035.0892491,
+        "relative_time": 37.51652812957764,
+        "cpu_percent": 24.6,
+        "memory_percent": 63.6,
+        "memory_used_mb": 15774.46875,
+        "network_bytes_sent": 2256120832,
+        "network_bytes_recv": 987870208,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572036.140471,
+        "relative_time": 38.567749977111816,
+        "cpu_percent": 18.0,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15741.515625,
+        "network_bytes_sent": 2256329728,
+        "network_bytes_recv": 987889664,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572037.1835399,
+        "relative_time": 39.61081886291504,
+        "cpu_percent": 34.6,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15749.140625,
+        "network_bytes_sent": 2256568320,
+        "network_bytes_recv": 987924480,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572038.217973,
+        "relative_time": 40.645251989364624,
+        "cpu_percent": 16.9,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15713.265625,
+        "network_bytes_sent": 2256648192,
+        "network_bytes_recv": 987933696,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572039.262593,
+        "relative_time": 41.68987202644348,
+        "cpu_percent": 38.2,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15556.8125,
+        "network_bytes_sent": 2256719872,
+        "network_bytes_recv": 987947008,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572040.307917,
+        "relative_time": 42.735196113586426,
+        "cpu_percent": 14.7,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15651.015625,
+        "network_bytes_sent": 2256926720,
+        "network_bytes_recv": 987966464,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572041.352988,
+        "relative_time": 43.780267000198364,
+        "cpu_percent": 23.8,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15685.953125,
+        "network_bytes_sent": 2256937984,
+        "network_bytes_recv": 988005376,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572042.387979,
+        "relative_time": 44.81525802612305,
+        "cpu_percent": 29.5,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15694.0625,
+        "network_bytes_sent": 2257273856,
+        "network_bytes_recv": 988025856,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572043.429249,
+        "relative_time": 45.85652804374695,
+        "cpu_percent": 14.5,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15675.515625,
+        "network_bytes_sent": 2257382400,
+        "network_bytes_recv": 988036096,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572044.47136,
+        "relative_time": 46.89863896369934,
+        "cpu_percent": 15.3,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15611.359375,
+        "network_bytes_sent": 2257398784,
+        "network_bytes_recv": 988041216,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572045.514697,
+        "relative_time": 47.94197607040405,
+        "cpu_percent": 13.8,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15680.5,
+        "network_bytes_sent": 2257550336,
+        "network_bytes_recv": 988051456,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572046.559813,
+        "relative_time": 48.98709201812744,
+        "cpu_percent": 16.3,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15638.265625,
+        "network_bytes_sent": 2257657856,
+        "network_bytes_recv": 988063744,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572047.596742,
+        "relative_time": 50.02402091026306,
+        "cpu_percent": 14.5,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15675.015625,
+        "network_bytes_sent": 2257661952,
+        "network_bytes_recv": 988069888,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572048.6416588,
+        "relative_time": 51.0689377784729,
+        "cpu_percent": 14.4,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15670.90625,
+        "network_bytes_sent": 2257870848,
+        "network_bytes_recv": 988082176,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572049.687097,
+        "relative_time": 52.114376068115234,
+        "cpu_percent": 15.7,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15630.75,
+        "network_bytes_sent": 2257872896,
+        "network_bytes_recv": 988087296,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572050.733002,
+        "relative_time": 53.16028094291687,
+        "cpu_percent": 13.5,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15630.75,
+        "network_bytes_sent": 2257872896,
+        "network_bytes_recv": 988087296,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572051.776466,
+        "relative_time": 54.203744888305664,
+        "cpu_percent": 13.6,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15677.078125,
+        "network_bytes_sent": 2257872896,
+        "network_bytes_recv": 988089344,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572052.819633,
+        "relative_time": 55.24691200256348,
+        "cpu_percent": 14.1,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15625.5,
+        "network_bytes_sent": 2257873920,
+        "network_bytes_recv": 988090368,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572053.867413,
+        "relative_time": 56.294692039489746,
+        "cpu_percent": 14.0,
+        "memory_percent": 62.8,
+        "memory_used_mb": 15506.046875,
+        "network_bytes_sent": 2257873920,
+        "network_bytes_recv": 988091392,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572054.916189,
+        "relative_time": 57.34346795082092,
+        "cpu_percent": 13.9,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15540.0,
+        "network_bytes_sent": 2257873920,
+        "network_bytes_recv": 988091392,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572055.958486,
+        "relative_time": 58.385765075683594,
+        "cpu_percent": 13.5,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15579.03125,
+        "network_bytes_sent": 2257873920,
+        "network_bytes_recv": 988091392,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572057.0038521,
+        "relative_time": 59.43113112449646,
+        "cpu_percent": 36.3,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15622.578125,
+        "network_bytes_sent": 2257875968,
+        "network_bytes_recv": 988098560,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572058.0457048,
+        "relative_time": 60.472983837127686,
+        "cpu_percent": 14.3,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15552.515625,
+        "network_bytes_sent": 2257876992,
+        "network_bytes_recv": 988103680,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572059.0873852,
+        "relative_time": 61.51466417312622,
+        "cpu_percent": 14.1,
+        "memory_percent": 62.8,
+        "memory_used_mb": 15510.34375,
+        "network_bytes_sent": 2257876992,
+        "network_bytes_recv": 988106752,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572060.136191,
+        "relative_time": 62.563469886779785,
+        "cpu_percent": 17.7,
+        "memory_percent": 62.6,
+        "memory_used_mb": 15449.875,
+        "network_bytes_sent": 2257878016,
+        "network_bytes_recv": 988108800,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572061.1823502,
+        "relative_time": 63.60962915420532,
+        "cpu_percent": 13.5,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15642.875,
+        "network_bytes_sent": 2257879040,
+        "network_bytes_recv": 988109824,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572062.225909,
+        "relative_time": 64.6531879901886,
+        "cpu_percent": 14.6,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15619.59375,
+        "network_bytes_sent": 2257880064,
+        "network_bytes_recv": 988113920,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572063.276572,
+        "relative_time": 65.70385098457336,
+        "cpu_percent": 13.5,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15581.734375,
+        "network_bytes_sent": 2257880064,
+        "network_bytes_recv": 988114944,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572064.320128,
+        "relative_time": 66.74740695953369,
+        "cpu_percent": 17.3,
+        "memory_percent": 62.7,
+        "memory_used_mb": 15469.359375,
+        "network_bytes_sent": 2257881088,
+        "network_bytes_recv": 988119040,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572065.3691761,
+        "relative_time": 67.7964551448822,
+        "cpu_percent": 13.3,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15558.046875,
+        "network_bytes_sent": 2258221056,
+        "network_bytes_recv": 988130304,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572066.416905,
+        "relative_time": 68.84418392181396,
+        "cpu_percent": 13.5,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15570.28125,
+        "network_bytes_sent": 2258221056,
+        "network_bytes_recv": 988130304,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572067.456964,
+        "relative_time": 69.88424301147461,
+        "cpu_percent": 32.8,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15624.765625,
+        "network_bytes_sent": 2258445312,
+        "network_bytes_recv": 988169216,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572068.489671,
+        "relative_time": 70.9169499874115,
+        "cpu_percent": 16.2,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15598.5625,
+        "network_bytes_sent": 2258447360,
+        "network_bytes_recv": 988174336,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572069.532317,
+        "relative_time": 71.9595959186554,
+        "cpu_percent": 14.4,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15551.0625,
+        "network_bytes_sent": 2258448384,
+        "network_bytes_recv": 988175360,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572070.586224,
+        "relative_time": 73.013503074646,
+        "cpu_percent": 16.6,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15655.59375,
+        "network_bytes_sent": 2258448384,
+        "network_bytes_recv": 988179456,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572071.634677,
+        "relative_time": 74.06195592880249,
+        "cpu_percent": 13.1,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15598.265625,
+        "network_bytes_sent": 2258448384,
+        "network_bytes_recv": 988179456,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572072.683388,
+        "relative_time": 75.11066699028015,
+        "cpu_percent": 13.8,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15545.796875,
+        "network_bytes_sent": 2258457600,
+        "network_bytes_recv": 988181504,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572073.736088,
+        "relative_time": 76.16336703300476,
+        "cpu_percent": 19.4,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15576.515625,
+        "network_bytes_sent": 2258457600,
+        "network_bytes_recv": 988181504,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572074.7836711,
+        "relative_time": 77.21095013618469,
+        "cpu_percent": 22.6,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15539.21875,
+        "network_bytes_sent": 2258458624,
+        "network_bytes_recv": 988184576,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572075.826606,
+        "relative_time": 78.25388503074646,
+        "cpu_percent": 15.0,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15694.4375,
+        "network_bytes_sent": 2258459648,
+        "network_bytes_recv": 988185600,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572076.8720262,
+        "relative_time": 79.29930520057678,
+        "cpu_percent": 14.0,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15661.546875,
+        "network_bytes_sent": 2258460672,
+        "network_bytes_recv": 988193792,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572077.952816,
+        "relative_time": 80.3800950050354,
+        "cpu_percent": 33.5,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15570.9375,
+        "network_bytes_sent": 2258464768,
+        "network_bytes_recv": 988199936,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572078.9959419,
+        "relative_time": 81.42322087287903,
+        "cpu_percent": 14.3,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15529.5625,
+        "network_bytes_sent": 2258464768,
+        "network_bytes_recv": 988205056,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572080.044022,
+        "relative_time": 82.47130107879639,
+        "cpu_percent": 15.7,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15565.890625,
+        "network_bytes_sent": 2258466816,
+        "network_bytes_recv": 988210176,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572081.095266,
+        "relative_time": 83.52254509925842,
+        "cpu_percent": 14.4,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15543.515625,
+        "network_bytes_sent": 2258466816,
+        "network_bytes_recv": 988211200,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572082.140077,
+        "relative_time": 84.56735610961914,
+        "cpu_percent": 13.8,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15620.5625,
+        "network_bytes_sent": 2258466816,
+        "network_bytes_recv": 988212224,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572083.1837661,
+        "relative_time": 85.6110451221466,
+        "cpu_percent": 15.1,
+        "memory_percent": 63.1,
+        "memory_used_mb": 15613.875,
+        "network_bytes_sent": 2258466816,
+        "network_bytes_recv": 988212224,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572084.230384,
+        "relative_time": 86.65766310691833,
+        "cpu_percent": 15.9,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15537.921875,
+        "network_bytes_sent": 2258467840,
+        "network_bytes_recv": 988213248,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572085.2745652,
+        "relative_time": 87.70184421539307,
+        "cpu_percent": 14.5,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15616.359375,
+        "network_bytes_sent": 2258477056,
+        "network_bytes_recv": 988235776,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572086.312573,
+        "relative_time": 88.73985195159912,
+        "cpu_percent": 36.4,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15659.9375,
+        "network_bytes_sent": 2258697216,
+        "network_bytes_recv": 988262400,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572087.349578,
+        "relative_time": 89.77685689926147,
+        "cpu_percent": 17.7,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15702.71875,
+        "network_bytes_sent": 2258700288,
+        "network_bytes_recv": 988264448,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572088.400701,
+        "relative_time": 90.8279800415039,
+        "cpu_percent": 15.1,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15638.0625,
+        "network_bytes_sent": 2258700288,
+        "network_bytes_recv": 988267520,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572089.447309,
+        "relative_time": 91.87458801269531,
+        "cpu_percent": 24.8,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15565.015625,
+        "network_bytes_sent": 2258701312,
+        "network_bytes_recv": 988271616,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572090.490381,
+        "relative_time": 92.91765999794006,
+        "cpu_percent": 26.0,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15672.515625,
+        "network_bytes_sent": 2258701312,
+        "network_bytes_recv": 988271616,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572091.535286,
+        "relative_time": 93.96256494522095,
+        "cpu_percent": 17.3,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15661.6875,
+        "network_bytes_sent": 2258711552,
+        "network_bytes_recv": 988280832,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572092.577019,
+        "relative_time": 95.00429797172546,
+        "cpu_percent": 36.1,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15702.015625,
+        "network_bytes_sent": 2258711552,
+        "network_bytes_recv": 988285952,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572093.6203709,
+        "relative_time": 96.04764986038208,
+        "cpu_percent": 14.6,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15665.71875,
+        "network_bytes_sent": 2258712576,
+        "network_bytes_recv": 988290048,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572094.6720252,
+        "relative_time": 97.09930419921875,
+        "cpu_percent": 17.3,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15569.53125,
+        "network_bytes_sent": 2258713600,
+        "network_bytes_recv": 988291072,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572095.717879,
+        "relative_time": 98.14515805244446,
+        "cpu_percent": 13.6,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15662.03125,
+        "network_bytes_sent": 2258716672,
+        "network_bytes_recv": 988297216,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572096.7620769,
+        "relative_time": 99.18935585021973,
+        "cpu_percent": 16.5,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15570.359375,
+        "network_bytes_sent": 2258717696,
+        "network_bytes_recv": 988304384,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572097.8036458,
+        "relative_time": 100.23092484474182,
+        "cpu_percent": 25.8,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15708.875,
+        "network_bytes_sent": 2258722816,
+        "network_bytes_recv": 988321792,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572098.845407,
+        "relative_time": 101.27268600463867,
+        "cpu_percent": 17.8,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15631.296875,
+        "network_bytes_sent": 2258722816,
+        "network_bytes_recv": 988323840,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572099.894419,
+        "relative_time": 102.32169795036316,
+        "cpu_percent": 14.1,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15567.875,
+        "network_bytes_sent": 2258723840,
+        "network_bytes_recv": 988325888,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572100.948993,
+        "relative_time": 103.3762719631195,
+        "cpu_percent": 15.2,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15554.59375,
+        "network_bytes_sent": 2258723840,
+        "network_bytes_recv": 988327936,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572101.994981,
+        "relative_time": 104.42226004600525,
+        "cpu_percent": 14.1,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15582.578125,
+        "network_bytes_sent": 2258723840,
+        "network_bytes_recv": 988328960,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572103.0425742,
+        "relative_time": 105.4698531627655,
+        "cpu_percent": 13.7,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15565.359375,
+        "network_bytes_sent": 2258723840,
+        "network_bytes_recv": 988329984,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572104.089039,
+        "relative_time": 106.51631808280945,
+        "cpu_percent": 12.8,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15583.140625,
+        "network_bytes_sent": 2258723840,
+        "network_bytes_recv": 988331008,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572105.139738,
+        "relative_time": 107.56701707839966,
+        "cpu_percent": 15.5,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15658.46875,
+        "network_bytes_sent": 2258734080,
+        "network_bytes_recv": 988351488,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572106.178587,
+        "relative_time": 108.60586595535278,
+        "cpu_percent": 34.5,
+        "memory_percent": 63.5,
+        "memory_used_mb": 15730.109375,
+        "network_bytes_sent": 2258955264,
+        "network_bytes_recv": 988374016,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572107.215948,
+        "relative_time": 109.64322710037231,
+        "cpu_percent": 18.9,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15676.265625,
+        "network_bytes_sent": 2258956288,
+        "network_bytes_recv": 988391424,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572108.258205,
+        "relative_time": 110.68548393249512,
+        "cpu_percent": 14.7,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15639.828125,
+        "network_bytes_sent": 2258956288,
+        "network_bytes_recv": 988391424,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572109.3055701,
+        "relative_time": 111.73284912109375,
+        "cpu_percent": 15.3,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15563.671875,
+        "network_bytes_sent": 2258958336,
+        "network_bytes_recv": 988397568,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572110.352978,
+        "relative_time": 112.78025698661804,
+        "cpu_percent": 33.0,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15632.125,
+        "network_bytes_sent": 2259193856,
+        "network_bytes_recv": 988442624,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572111.392906,
+        "relative_time": 113.82018494606018,
+        "cpu_percent": 30.3,
+        "memory_percent": 63.4,
+        "memory_used_mb": 15714.328125,
+        "network_bytes_sent": 2259224576,
+        "network_bytes_recv": 988473344,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572112.431398,
+        "relative_time": 114.85867691040039,
+        "cpu_percent": 22.0,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15662.4375,
+        "network_bytes_sent": 2259444736,
+        "network_bytes_recv": 988481536,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572113.4734879,
+        "relative_time": 115.90076684951782,
+        "cpu_percent": 28.7,
+        "memory_percent": 63.3,
+        "memory_used_mb": 15667.875,
+        "network_bytes_sent": 2259461120,
+        "network_bytes_recv": 988517376,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572114.522354,
+        "relative_time": 116.9496328830719,
+        "cpu_percent": 22.7,
+        "memory_percent": 62.9,
+        "memory_used_mb": 15534.625,
+        "network_bytes_sent": 2259681280,
+        "network_bytes_recv": 988521472,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572115.557164,
+        "relative_time": 117.98444294929504,
+        "cpu_percent": 39.1,
+        "memory_percent": 63.2,
+        "memory_used_mb": 15651.71875,
+        "network_bytes_sent": 2259918848,
+        "network_bytes_recv": 988552192,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      },
+      {
+        "timestamp": 1765572116.587865,
+        "relative_time": 119.01514410972595,
+        "cpu_percent": 21.3,
+        "memory_percent": 63.0,
+        "memory_used_mb": 15586.3125,
+        "network_bytes_sent": 2259955712,
+        "network_bytes_recv": 988588032,
+        "process_cpu_percent": null,
+        "process_memory_mb": null,
+        "process_count": 0
+      }
+    ]
+  },
+  "application_metrics": {
+    "websocket_user_connected": {
+      "count": 150,
+      "values": [
+        {
+          "value": {
+            "user_id": "User_0",
+            "metadata": {}
+          },
+          "timestamp": 1765571997.597099,
+          "relative_time": 0.012623071670532227
+        },
+        {
+          "value": {
+            "user_id": "User_1",
+            "metadata": {}
+          },
+          "timestamp": 1765571997.8021288,
+          "relative_time": 0.2176527976989746
+        },
+        {
+          "value": {
+            "user_id": "User_2",
+            "metadata": {}
+          },
+          "timestamp": 1765571998.007185,
+          "relative_time": 0.42270898818969727
+        },
+        {
+          "value": {
+            "user_id": "User_3",
+            "metadata": {}
+          },
+          "timestamp": 1765571998.210834,
+          "relative_time": 0.6263580322265625
+        },
+        {
+          "value": {
+            "user_id": "User_4",
+            "metadata": {}
+          },
+          "timestamp": 1765571998.415883,
+          "relative_time": 0.8314070701599121
+        },
+        {
+          "value": {
+            "user_id": "User_5",
+            "metadata": {}
+          },
+          "timestamp": 1765571998.615944,
+          "relative_time": 1.0314679145812988
+        },
+        {
+          "value": {
+            "user_id": "User_6",
+            "metadata": {}
+          },
+          "timestamp": 1765571998.8178592,
+          "relative_time": 1.2333831787109375
+        },
+        {
+          "value": {
+            "user_id": "User_7",
+            "metadata": {}
+          },
+          "timestamp": 1765571999.0188758,
+          "relative_time": 1.4343998432159424
+        },
+        {
+          "value": {
+            "user_id": "User_8",
+            "metadata": {}
+          },
+          "timestamp": 1765571999.219149,
+          "relative_time": 1.6346731185913086
+        },
+        {
+          "value": {
+            "user_id": "User_9",
+            "metadata": {}
+          },
+          "timestamp": 1765571999.423383,
+          "relative_time": 1.83890700340271
+        },
+        {
+          "value": {
+            "user_id": "User_10",
+            "metadata": {}
+          },
+          "timestamp": 1765571999.627049,
+          "relative_time": 2.0425729751586914
+        },
+        {
+          "value": {
+            "user_id": "User_11",
+            "metadata": {}
+          },
+          "timestamp": 1765571999.82748,
+          "relative_time": 2.243004083633423
+        },
+        {
+          "value": {
+            "user_id": "User_12",
+            "metadata": {}
+          },
+          "timestamp": 1765572000.0325272,
+          "relative_time": 2.4480512142181396
+        },
+        {
+          "value": {
+            "user_id": "User_13",
+            "metadata": {}
+          },
+          "timestamp": 1765572000.23757,
+          "relative_time": 2.6530940532684326
+        },
+        {
+          "value": {
+            "user_id": "User_14",
+            "metadata": {}
+          },
+          "timestamp": 1765572000.442625,
+          "relative_time": 2.8581490516662598
+        },
+        {
+          "value": {
+            "user_id": "User_15",
+            "metadata": {}
+          },
+          "timestamp": 1765572000.642823,
+          "relative_time": 3.05834698677063
+        },
+        {
+          "value": {
+            "user_id": "User_16",
+            "metadata": {}
+          },
+          "timestamp": 1765572000.847869,
+          "relative_time": 3.263392925262451
+        },
+        {
+          "value": {
+            "user_id": "User_17",
+            "metadata": {}
+          },
+          "timestamp": 1765572001.052036,
+          "relative_time": 3.467560052871704
+        },
+        {
+          "value": {
+            "user_id": "User_18",
+            "metadata": {}
+          },
+          "timestamp": 1765572001.2528481,
+          "relative_time": 3.66837215423584
+        },
+        {
+          "value": {
+            "user_id": "User_19",
+            "metadata": {}
+          },
+          "timestamp": 1765572001.4578419,
+          "relative_time": 3.873365879058838
+        },
+        {
+          "value": {
+            "user_id": "User_20",
+            "metadata": {}
+          },
+          "timestamp": 1765572001.660788,
+          "relative_time": 4.076312065124512
+        },
+        {
+          "value": {
+            "user_id": "User_21",
+            "metadata": {}
+          },
+          "timestamp": 1765572001.8654091,
+          "relative_time": 4.280933141708374
+        },
+        {
+          "value": {
+            "user_id": "User_22",
+            "metadata": {}
+          },
+          "timestamp": 1765572002.06777,
+          "relative_time": 4.4832940101623535
+        },
+        {
+          "value": {
+            "user_id": "User_23",
+            "metadata": {}
+          },
+          "timestamp": 1765572002.268833,
+          "relative_time": 4.684356927871704
+        },
+        {
+          "value": {
+            "user_id": "User_24",
+            "metadata": {}
+          },
+          "timestamp": 1765572002.473902,
+          "relative_time": 4.889425992965698
+        },
+        {
+          "value": {
+            "user_id": "User_25",
+            "metadata": {}
+          },
+          "timestamp": 1765572002.678953,
+          "relative_time": 5.094476938247681
+        },
+        {
+          "value": {
+            "user_id": "User_26",
+            "metadata": {}
+          },
+          "timestamp": 1765572002.88166,
+          "relative_time": 5.297183990478516
+        },
+        {
+          "value": {
+            "user_id": "User_27",
+            "metadata": {}
+          },
+          "timestamp": 1765572003.086696,
+          "relative_time": 5.502219915390015
+        },
+        {
+          "value": {
+            "user_id": "User_28",
+            "metadata": {}
+          },
+          "timestamp": 1765572003.2869198,
+          "relative_time": 5.702443838119507
+        },
+        {
+          "value": {
+            "user_id": "User_29",
+            "metadata": {}
+          },
+          "timestamp": 1765572003.487989,
+          "relative_time": 5.903512954711914
+        },
+        {
+          "value": {
+            "user_id": "User_30",
+            "metadata": {}
+          },
+          "timestamp": 1765572003.690542,
+          "relative_time": 6.106065988540649
+        },
+        {
+          "value": {
+            "user_id": "User_31",
+            "metadata": {}
+          },
+          "timestamp": 1765572003.8917902,
+          "relative_time": 6.307314157485962
+        },
+        {
+          "value": {
+            "user_id": "User_32",
+            "metadata": {}
+          },
+          "timestamp": 1765572004.096832,
+          "relative_time": 6.5123560428619385
+        },
+        {
+          "value": {
+            "user_id": "User_33",
+            "metadata": {}
+          },
+          "timestamp": 1765572004.301877,
+          "relative_time": 6.717401027679443
+        },
+        {
+          "value": {
+            "user_id": "User_34",
+            "metadata": {}
+          },
+          "timestamp": 1765572004.5031538,
+          "relative_time": 6.918677806854248
+        },
+        {
+          "value": {
+            "user_id": "User_35",
+            "metadata": {}
+          },
+          "timestamp": 1765572004.7064981,
+          "relative_time": 7.1220221519470215
+        },
+        {
+          "value": {
+            "user_id": "User_36",
+            "metadata": {}
+          },
+          "timestamp": 1765572004.91253,
+          "relative_time": 7.328053951263428
+        },
+        {
+          "value": {
+            "user_id": "User_37",
+            "metadata": {}
+          },
+          "timestamp": 1765572005.117577,
+          "relative_time": 7.5331010818481445
+        },
+        {
+          "value": {
+            "user_id": "User_38",
+            "metadata": {}
+          },
+          "timestamp": 1765572005.320212,
+          "relative_time": 7.735735893249512
+        },
+        {
+          "value": {
+            "user_id": "User_39",
+            "metadata": {}
+          },
+          "timestamp": 1765572005.523728,
+          "relative_time": 7.939251899719238
+        },
+        {
+          "value": {
+            "user_id": "User_40",
+            "metadata": {}
+          },
+          "timestamp": 1765572005.728773,
+          "relative_time": 8.144297122955322
+        },
+        {
+          "value": {
+            "user_id": "User_41",
+            "metadata": {}
+          },
+          "timestamp": 1765572005.934983,
+          "relative_time": 8.350507020950317
+        },
+        {
+          "value": {
+            "user_id": "User_42",
+            "metadata": {}
+          },
+          "timestamp": 1765572006.1360252,
+          "relative_time": 8.551549196243286
+        },
+        {
+          "value": {
+            "user_id": "User_43",
+            "metadata": {}
+          },
+          "timestamp": 1765572006.34109,
+          "relative_time": 8.756613969802856
+        },
+        {
+          "value": {
+            "user_id": "User_44",
+            "metadata": {}
+          },
+          "timestamp": 1765572006.541892,
+          "relative_time": 8.95741605758667
+        },
+        {
+          "value": {
+            "user_id": "User_45",
+            "metadata": {}
+          },
+          "timestamp": 1765572006.746944,
+          "relative_time": 9.162467956542969
+        },
+        {
+          "value": {
+            "user_id": "User_46",
+            "metadata": {}
+          },
+          "timestamp": 1765572006.9519958,
+          "relative_time": 9.367519855499268
+        },
+        {
+          "value": {
+            "user_id": "User_47",
+            "metadata": {}
+          },
+          "timestamp": 1765572007.156637,
+          "relative_time": 9.572160959243774
+        },
+        {
+          "value": {
+            "user_id": "User_48",
+            "metadata": {}
+          },
+          "timestamp": 1765572007.357574,
+          "relative_time": 9.77309799194336
+        },
+        {
+          "value": {
+            "user_id": "User_49",
+            "metadata": {}
+          },
+          "timestamp": 1765572007.562643,
+          "relative_time": 9.978167057037354
+        },
+        {
+          "value": {
+            "user_id": "User_50",
+            "metadata": {}
+          },
+          "timestamp": 1765572007.7677052,
+          "relative_time": 10.183229207992554
+        },
+        {
+          "value": {
+            "user_id": "User_51",
+            "metadata": {}
+          },
+          "timestamp": 1765572007.972748,
+          "relative_time": 10.388272047042847
+        },
+        {
+          "value": {
+            "user_id": "User_52",
+            "metadata": {}
+          },
+          "timestamp": 1765572008.177802,
+          "relative_time": 10.593326091766357
+        },
+        {
+          "value": {
+            "user_id": "User_53",
+            "metadata": {}
+          },
+          "timestamp": 1765572008.382872,
+          "relative_time": 10.798396110534668
+        },
+        {
+          "value": {
+            "user_id": "User_54",
+            "metadata": {}
+          },
+          "timestamp": 1765572008.583141,
+          "relative_time": 10.99866509437561
+        },
+        {
+          "value": {
+            "user_id": "User_55",
+            "metadata": {}
+          },
+          "timestamp": 1765572008.786657,
+          "relative_time": 11.202181100845337
+        },
+        {
+          "value": {
+            "user_id": "User_56",
+            "metadata": {}
+          },
+          "timestamp": 1765572008.9900942,
+          "relative_time": 11.40561819076538
+        },
+        {
+          "value": {
+            "user_id": "User_57",
+            "metadata": {}
+          },
+          "timestamp": 1765572009.195138,
+          "relative_time": 11.61066198348999
+        },
+        {
+          "value": {
+            "user_id": "User_58",
+            "metadata": {}
+          },
+          "timestamp": 1765572009.4002008,
+          "relative_time": 11.815724849700928
+        },
+        {
+          "value": {
+            "user_id": "User_59",
+            "metadata": {}
+          },
+          "timestamp": 1765572009.602752,
+          "relative_time": 12.01827597618103
+        },
+        {
+          "value": {
+            "user_id": "User_60",
+            "metadata": {}
+          },
+          "timestamp": 1765572009.807528,
+          "relative_time": 12.223052024841309
+        },
+        {
+          "value": {
+            "user_id": "User_61",
+            "metadata": {}
+          },
+          "timestamp": 1765572010.009164,
+          "relative_time": 12.42468810081482
+        },
+        {
+          "value": {
+            "user_id": "User_62",
+            "metadata": {}
+          },
+          "timestamp": 1765572010.210473,
+          "relative_time": 12.625997066497803
+        },
+        {
+          "value": {
+            "user_id": "User_63",
+            "metadata": {}
+          },
+          "timestamp": 1765572010.41519,
+          "relative_time": 12.830713987350464
+        },
+        {
+          "value": {
+            "user_id": "User_64",
+            "metadata": {}
+          },
+          "timestamp": 1765572010.61742,
+          "relative_time": 13.032943964004517
+        },
+        {
+          "value": {
+            "user_id": "User_65",
+            "metadata": {}
+          },
+          "timestamp": 1765572010.822508,
+          "relative_time": 13.238032102584839
+        },
+        {
+          "value": {
+            "user_id": "User_66",
+            "metadata": {}
+          },
+          "timestamp": 1765572011.023067,
+          "relative_time": 13.438591003417969
+        },
+        {
+          "value": {
+            "user_id": "User_67",
+            "metadata": {}
+          },
+          "timestamp": 1765572011.22812,
+          "relative_time": 13.643644094467163
+        },
+        {
+          "value": {
+            "user_id": "User_68",
+            "metadata": {}
+          },
+          "timestamp": 1765572011.4304519,
+          "relative_time": 13.845975875854492
+        },
+        {
+          "value": {
+            "user_id": "User_69",
+            "metadata": {}
+          },
+          "timestamp": 1765572011.630815,
+          "relative_time": 14.04633903503418
+        },
+        {
+          "value": {
+            "user_id": "User_70",
+            "metadata": {}
+          },
+          "timestamp": 1765572011.835878,
+          "relative_time": 14.251401901245117
+        },
+        {
+          "value": {
+            "user_id": "User_71",
+            "metadata": {}
+          },
+          "timestamp": 1765572012.039495,
+          "relative_time": 14.455018997192383
+        },
+        {
+          "value": {
+            "user_id": "User_72",
+            "metadata": {}
+          },
+          "timestamp": 1765572012.2407749,
+          "relative_time": 14.656298875808716
+        },
+        {
+          "value": {
+            "user_id": "User_73",
+            "metadata": {}
+          },
+          "timestamp": 1765572012.4456708,
+          "relative_time": 14.861194849014282
+        },
+        {
+          "value": {
+            "user_id": "User_74",
+            "metadata": {}
+          },
+          "timestamp": 1765572012.6497338,
+          "relative_time": 15.065257787704468
+        },
+        {
+          "value": {
+            "user_id": "User_75",
+            "metadata": {}
+          },
+          "timestamp": 1765572012.854796,
+          "relative_time": 15.270319938659668
+        },
+        {
+          "value": {
+            "user_id": "User_76",
+            "metadata": {}
+          },
+          "timestamp": 1765572013.0587049,
+          "relative_time": 15.474228858947754
+        },
+        {
+          "value": {
+            "user_id": "User_77",
+            "metadata": {}
+          },
+          "timestamp": 1765572013.270033,
+          "relative_time": 15.685556888580322
+        },
+        {
+          "value": {
+            "user_id": "User_78",
+            "metadata": {}
+          },
+          "timestamp": 1765572013.475063,
+          "relative_time": 15.890587091445923
+        },
+        {
+          "value": {
+            "user_id": "User_79",
+            "metadata": {}
+          },
+          "timestamp": 1765572013.675127,
+          "relative_time": 16.090651035308838
+        },
+        {
+          "value": {
+            "user_id": "User_80",
+            "metadata": {}
+          },
+          "timestamp": 1765572013.8801842,
+          "relative_time": 16.295708179473877
+        },
+        {
+          "value": {
+            "user_id": "User_81",
+            "metadata": {}
+          },
+          "timestamp": 1765572014.0852532,
+          "relative_time": 16.50077724456787
+        },
+        {
+          "value": {
+            "user_id": "User_82",
+            "metadata": {}
+          },
+          "timestamp": 1765572014.296206,
+          "relative_time": 16.711730003356934
+        },
+        {
+          "value": {
+            "user_id": "User_83",
+            "metadata": {}
+          },
+          "timestamp": 1765572014.500384,
+          "relative_time": 16.915908098220825
+        },
+        {
+          "value": {
+            "user_id": "User_84",
+            "metadata": {}
+          },
+          "timestamp": 1765572014.704523,
+          "relative_time": 17.120047092437744
+        },
+        {
+          "value": {
+            "user_id": "User_85",
+            "metadata": {}
+          },
+          "timestamp": 1765572014.907739,
+          "relative_time": 17.323262929916382
+        },
+        {
+          "value": {
+            "user_id": "User_86",
+            "metadata": {}
+          },
+          "timestamp": 1765572015.10796,
+          "relative_time": 17.523483991622925
+        },
+        {
+          "value": {
+            "user_id": "User_87",
+            "metadata": {}
+          },
+          "timestamp": 1765572015.313026,
+          "relative_time": 17.72854995727539
+        },
+        {
+          "value": {
+            "user_id": "User_88",
+            "metadata": {}
+          },
+          "timestamp": 1765572015.518058,
+          "relative_time": 17.933582067489624
+        },
+        {
+          "value": {
+            "user_id": "User_89",
+            "metadata": {}
+          },
+          "timestamp": 1765572015.720375,
+          "relative_time": 18.13589906692505
+        },
+        {
+          "value": {
+            "user_id": "User_90",
+            "metadata": {}
+          },
+          "timestamp": 1765572015.9253309,
+          "relative_time": 18.34085488319397
+        },
+        {
+          "value": {
+            "user_id": "User_91",
+            "metadata": {}
+          },
+          "timestamp": 1765572016.130392,
+          "relative_time": 18.545916080474854
+        },
+        {
+          "value": {
+            "user_id": "User_92",
+            "metadata": {}
+          },
+          "timestamp": 1765572016.335422,
+          "relative_time": 18.750946044921875
+        },
+        {
+          "value": {
+            "user_id": "User_93",
+            "metadata": {}
+          },
+          "timestamp": 1765572016.540451,
+          "relative_time": 18.95597505569458
+        },
+        {
+          "value": {
+            "user_id": "User_94",
+            "metadata": {}
+          },
+          "timestamp": 1765572016.743507,
+          "relative_time": 19.15903091430664
+        },
+        {
+          "value": {
+            "user_id": "User_95",
+            "metadata": {}
+          },
+          "timestamp": 1765572016.9485319,
+          "relative_time": 19.3640558719635
+        },
+        {
+          "value": {
+            "user_id": "User_96",
+            "metadata": {}
+          },
+          "timestamp": 1765572017.153553,
+          "relative_time": 19.569077014923096
+        },
+        {
+          "value": {
+            "user_id": "User_97",
+            "metadata": {}
+          },
+          "timestamp": 1765572017.3585842,
+          "relative_time": 19.774108171463013
+        },
+        {
+          "value": {
+            "user_id": "User_98",
+            "metadata": {}
+          },
+          "timestamp": 1765572017.559458,
+          "relative_time": 19.974982023239136
+        },
+        {
+          "value": {
+            "user_id": "User_99",
+            "metadata": {}
+          },
+          "timestamp": 1765572017.761006,
+          "relative_time": 20.176530122756958
+        },
+        {
+          "value": {
+            "user_id": "User_100",
+            "metadata": {}
+          },
+          "timestamp": 1765572017.963,
+          "relative_time": 20.3785240650177
+        },
+        {
+          "value": {
+            "user_id": "User_101",
+            "metadata": {}
+          },
+          "timestamp": 1765572018.166371,
+          "relative_time": 20.581895112991333
+        },
+        {
+          "value": {
+            "user_id": "User_102",
+            "metadata": {}
+          },
+          "timestamp": 1765572018.367771,
+          "relative_time": 20.783294916152954
+        },
+        {
+          "value": {
+            "user_id": "User_103",
+            "metadata": {}
+          },
+          "timestamp": 1765572018.571593,
+          "relative_time": 20.987117052078247
+        },
+        {
+          "value": {
+            "user_id": "User_104",
+            "metadata": {}
+          },
+          "timestamp": 1765572018.773628,
+          "relative_time": 21.189152002334595
+        },
+        {
+          "value": {
+            "user_id": "User_105",
+            "metadata": {}
+          },
+          "timestamp": 1765572018.9769979,
+          "relative_time": 21.392521858215332
+        },
+        {
+          "value": {
+            "user_id": "User_106",
+            "metadata": {}
+          },
+          "timestamp": 1765572019.1798599,
+          "relative_time": 21.595383882522583
+        },
+        {
+          "value": {
+            "user_id": "User_107",
+            "metadata": {}
+          },
+          "timestamp": 1765572019.384923,
+          "relative_time": 21.8004469871521
+        },
+        {
+          "value": {
+            "user_id": "User_108",
+            "metadata": {}
+          },
+          "timestamp": 1765572019.589966,
+          "relative_time": 22.00549006462097
+        },
+        {
+          "value": {
+            "user_id": "User_109",
+            "metadata": {}
+          },
+          "timestamp": 1765572019.793552,
+          "relative_time": 22.209075927734375
+        },
+        {
+          "value": {
+            "user_id": "User_110",
+            "metadata": {}
+          },
+          "timestamp": 1765572019.9948978,
+          "relative_time": 22.41042184829712
+        },
+        {
+          "value": {
+            "user_id": "User_111",
+            "metadata": {}
+          },
+          "timestamp": 1765572020.199938,
+          "relative_time": 22.615462064743042
+        },
+        {
+          "value": {
+            "user_id": "User_112",
+            "metadata": {}
+          },
+          "timestamp": 1765572020.402462,
+          "relative_time": 22.817986011505127
+        },
+        {
+          "value": {
+            "user_id": "User_113",
+            "metadata": {}
+          },
+          "timestamp": 1765572020.6074922,
+          "relative_time": 23.023016214370728
+        },
+        {
+          "value": {
+            "user_id": "User_114",
+            "metadata": {}
+          },
+          "timestamp": 1765572020.810446,
+          "relative_time": 23.225970029830933
+        },
+        {
+          "value": {
+            "user_id": "User_115",
+            "metadata": {}
+          },
+          "timestamp": 1765572021.0105789,
+          "relative_time": 23.426102876663208
+        },
+        {
+          "value": {
+            "user_id": "User_116",
+            "metadata": {}
+          },
+          "timestamp": 1765572021.21564,
+          "relative_time": 23.631164073944092
+        },
+        {
+          "value": {
+            "user_id": "User_117",
+            "metadata": {}
+          },
+          "timestamp": 1765572021.4206898,
+          "relative_time": 23.83621382713318
+        },
+        {
+          "value": {
+            "user_id": "User_118",
+            "metadata": {}
+          },
+          "timestamp": 1765572021.6252759,
+          "relative_time": 24.040799856185913
+        },
+        {
+          "value": {
+            "user_id": "User_119",
+            "metadata": {}
+          },
+          "timestamp": 1765572021.828064,
+          "relative_time": 24.243587970733643
+        },
+        {
+          "value": {
+            "user_id": "User_120",
+            "metadata": {}
+          },
+          "timestamp": 1765572022.029481,
+          "relative_time": 24.44500494003296
+        },
+        {
+          "value": {
+            "user_id": "User_121",
+            "metadata": {}
+          },
+          "timestamp": 1765572022.230824,
+          "relative_time": 24.646347999572754
+        },
+        {
+          "value": {
+            "user_id": "User_122",
+            "metadata": {}
+          },
+          "timestamp": 1765572022.4344902,
+          "relative_time": 24.850014209747314
+        },
+        {
+          "value": {
+            "user_id": "User_123",
+            "metadata": {}
+          },
+          "timestamp": 1765572022.639543,
+          "relative_time": 25.05506706237793
+        },
+        {
+          "value": {
+            "user_id": "User_124",
+            "metadata": {}
+          },
+          "timestamp": 1765572022.840727,
+          "relative_time": 25.256251096725464
+        },
+        {
+          "value": {
+            "user_id": "User_125",
+            "metadata": {}
+          },
+          "timestamp": 1765572023.04543,
+          "relative_time": 25.460953950881958
+        },
+        {
+          "value": {
+            "user_id": "User_126",
+            "metadata": {}
+          },
+          "timestamp": 1765572023.2504802,
+          "relative_time": 25.666004180908203
+        },
+        {
+          "value": {
+            "user_id": "User_127",
+            "metadata": {}
+          },
+          "timestamp": 1765572023.451722,
+          "relative_time": 25.86724591255188
+        },
+        {
+          "value": {
+            "user_id": "User_128",
+            "metadata": {}
+          },
+          "timestamp": 1765572023.661689,
+          "relative_time": 26.077213048934937
+        },
+        {
+          "value": {
+            "user_id": "User_129",
+            "metadata": {}
+          },
+          "timestamp": 1765572023.8632581,
+          "relative_time": 26.27878212928772
+        },
+        {
+          "value": {
+            "user_id": "User_130",
+            "metadata": {}
+          },
+          "timestamp": 1765572024.0657651,
+          "relative_time": 26.48128914833069
+        },
+        {
+          "value": {
+            "user_id": "User_131",
+            "metadata": {}
+          },
+          "timestamp": 1765572024.2691069,
+          "relative_time": 26.684630870819092
+        },
+        {
+          "value": {
+            "user_id": "User_132",
+            "metadata": {}
+          },
+          "timestamp": 1765572024.471105,
+          "relative_time": 26.886629104614258
+        },
+        {
+          "value": {
+            "user_id": "User_133",
+            "metadata": {}
+          },
+          "timestamp": 1765572024.6824262,
+          "relative_time": 27.097950220108032
+        },
+        {
+          "value": {
+            "user_id": "User_134",
+            "metadata": {}
+          },
+          "timestamp": 1765572024.88746,
+          "relative_time": 27.30298399925232
+        },
+        {
+          "value": {
+            "user_id": "User_135",
+            "metadata": {}
+          },
+          "timestamp": 1765572025.091954,
+          "relative_time": 27.50747799873352
+        },
+        {
+          "value": {
+            "user_id": "User_136",
+            "metadata": {}
+          },
+          "timestamp": 1765572025.29576,
+          "relative_time": 27.711283922195435
+        },
+        {
+          "value": {
+            "user_id": "User_137",
+            "metadata": {}
+          },
+          "timestamp": 1765572025.498841,
+          "relative_time": 27.91436505317688
+        },
+        {
+          "value": {
+            "user_id": "User_138",
+            "metadata": {}
+          },
+          "timestamp": 1765572025.70325,
+          "relative_time": 28.118773937225342
+        },
+        {
+          "value": {
+            "user_id": "User_139",
+            "metadata": {}
+          },
+          "timestamp": 1765572025.908278,
+          "relative_time": 28.32380199432373
+        },
+        {
+          "value": {
+            "user_id": "User_140",
+            "metadata": {}
+          },
+          "timestamp": 1765572026.112229,
+          "relative_time": 28.527753114700317
+        },
+        {
+          "value": {
+            "user_id": "User_141",
+            "metadata": {}
+          },
+          "timestamp": 1765572026.315451,
+          "relative_time": 28.730974912643433
+        },
+        {
+          "value": {
+            "user_id": "User_142",
+            "metadata": {}
+          },
+          "timestamp": 1765572026.519045,
+          "relative_time": 28.934569120407104
+        },
+        {
+          "value": {
+            "user_id": "User_143",
+            "metadata": {}
+          },
+          "timestamp": 1765572026.72408,
+          "relative_time": 29.139604091644287
+        },
+        {
+          "value": {
+            "user_id": "User_144",
+            "metadata": {}
+          },
+          "timestamp": 1765572026.9273741,
+          "relative_time": 29.34289813041687
+        },
+        {
+          "value": {
+            "user_id": "User_145",
+            "metadata": {}
+          },
+          "timestamp": 1765572027.129589,
+          "relative_time": 29.54511308670044
+        },
+        {
+          "value": {
+            "user_id": "User_146",
+            "metadata": {}
+          },
+          "timestamp": 1765572027.330749,
+          "relative_time": 29.746273040771484
+        },
+        {
+          "value": {
+            "user_id": "User_147",
+            "metadata": {}
+          },
+          "timestamp": 1765572027.5311081,
+          "relative_time": 29.946632146835327
+        },
+        {
+          "value": {
+            "user_id": "User_148",
+            "metadata": {}
+          },
+          "timestamp": 1765572027.736164,
+          "relative_time": 30.15168809890747
+        },
+        {
+          "value": {
+            "user_id": "User_149",
+            "metadata": {}
+          },
+          "timestamp": 1765572027.9381719,
+          "relative_time": 30.3536958694458
+        }
+      ]
+    },
+    "quiz_quiz_started": {
+      "count": 1,
+      "values": [
+        {
+          "value": {},
+          "timestamp": 1765572028.14333,
+          "relative_time": 30.55885410308838
+        }
+      ]
+    },
+    "quiz_question_started": {
+      "count": 10,
+      "values": [
+        {
+          "value": {
+            "question_id": 1
+          },
+          "timestamp": 1765572030.148096,
+          "relative_time": 32.56362009048462
+        },
+        {
+          "value": {
+            "question_id": 2
+          },
+          "timestamp": 1765572037.149617,
+          "relative_time": 39.56514096260071
+        },
+        {
+          "value": {
+            "question_id": 3
+          },
+          "timestamp": 1765572044.1555111,
+          "relative_time": 46.57103514671326
+        },
+        {
+          "value": {
+            "question_id": 4
+          },
+          "timestamp": 1765572051.1593962,
+          "relative_time": 53.57492017745972
+        },
+        {
+          "value": {
+            "question_id": 5
+          },
+          "timestamp": 1765572058.1605382,
+          "relative_time": 60.57606220245361
+        },
+        {
+          "value": {
+            "question_id": 6
+          },
+          "timestamp": 1765572065.165549,
+          "relative_time": 67.58107304573059
+        },
+        {
+          "value": {
+            "question_id": 7
+          },
+          "timestamp": 1765572072.16819,
+          "relative_time": 74.5837140083313
+        },
+        {
+          "value": {
+            "question_id": 8
+          },
+          "timestamp": 1765572079.1731882,
+          "relative_time": 81.58871221542358
+        },
+        {
+          "value": {
+            "question_id": 9
+          },
+          "timestamp": 1765572086.1781728,
+          "relative_time": 88.59369683265686
+        },
+        {
+          "value": {
+            "question_id": 10
+          },
+          "timestamp": 1765572093.183197,
+          "relative_time": 95.59872102737427
+        }
+      ]
+    },
+    "quiz_question_ended": {
+      "count": 10,
+      "values": [
+        {
+          "value": {
+            "question_id": 1
+          },
+          "timestamp": 1765572037.14961,
+          "relative_time": 39.565134048461914
+        },
+        {
+          "value": {
+            "question_id": 2
+          },
+          "timestamp": 1765572044.1554859,
+          "relative_time": 46.57100987434387
+        },
+        {
+          "value": {
+            "question_id": 3
+          },
+          "timestamp": 1765572051.159376,
+          "relative_time": 53.57489991188049
+        },
+        {
+          "value": {
+            "question_id": 4
+          },
+          "timestamp": 1765572058.160533,
+          "relative_time": 60.57605695724487
+        },
+        {
+          "value": {
+            "question_id": 5
+          },
+          "timestamp": 1765572065.165537,
+          "relative_time": 67.58106112480164
+        },
+        {
+          "value": {
+            "question_id": 6
+          },
+          "timestamp": 1765572072.1681762,
+          "relative_time": 74.58370018005371
+        },
+        {
+          "value": {
+            "question_id": 7
+          },
+          "timestamp": 1765572079.173183,
+          "relative_time": 81.58870697021484
+        },
+        {
+          "value": {
+            "question_id": 8
+          },
+          "timestamp": 1765572086.178169,
+          "relative_time": 88.5936930179596
+        },
+        {
+          "value": {
+            "question_id": 9
+          },
+          "timestamp": 1765572093.1831849,
+          "relative_time": 95.59870886802673
+        },
+        {
+          "value": {
+            "question_id": 10
+          },
+          "timestamp": 1765572100.1882071,
+          "relative_time": 102.60373115539551
+        }
+      ]
+    },
+    "quiz_quiz_ended": {
+      "count": 1,
+      "values": [
+        {
+          "value": {},
+          "timestamp": 1765572100.188267,
+          "relative_time": 102.60379099845886
+        }
+      ]
+    },
+    "websocket_user_disconnected": {
+      "count": 150,
+      "values": [
+        {
+          "value": {
+            "user_id": "User_0",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.193648,
+          "relative_time": 103.60917210578918
+        },
+        {
+          "value": {
+            "user_id": "User_1",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.2966132,
+          "relative_time": 103.71213722229004
+        },
+        {
+          "value": {
+            "user_id": "User_2",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.401657,
+          "relative_time": 103.81718111038208
+        },
+        {
+          "value": {
+            "user_id": "User_3",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.505297,
+          "relative_time": 103.92082095146179
+        },
+        {
+          "value": {
+            "user_id": "User_4",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.6092958,
+          "relative_time": 104.02481985092163
+        },
+        {
+          "value": {
+            "user_id": "User_5",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.713614,
+          "relative_time": 104.12913799285889
+        },
+        {
+          "value": {
+            "user_id": "User_6",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.814629,
+          "relative_time": 104.23015308380127
+        },
+        {
+          "value": {
+            "user_id": "User_7",
+            "metadata": {}
+          },
+          "timestamp": 1765572101.91908,
+          "relative_time": 104.33460402488708
+        },
+        {
+          "value": {
+            "user_id": "User_8",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.028589,
+          "relative_time": 104.44411301612854
+        },
+        {
+          "value": {
+            "user_id": "User_9",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.132745,
+          "relative_time": 104.548269033432
+        },
+        {
+          "value": {
+            "user_id": "User_10",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.2378151,
+          "relative_time": 104.65333914756775
+        },
+        {
+          "value": {
+            "user_id": "User_11",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.340251,
+          "relative_time": 104.755774974823
+        },
+        {
+          "value": {
+            "user_id": "User_12",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.443337,
+          "relative_time": 104.85886096954346
+        },
+        {
+          "value": {
+            "user_id": "User_13",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.547727,
+          "relative_time": 104.9632511138916
+        },
+        {
+          "value": {
+            "user_id": "User_14",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.650056,
+          "relative_time": 105.06557989120483
+        },
+        {
+          "value": {
+            "user_id": "User_15",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.75513,
+          "relative_time": 105.17065405845642
+        },
+        {
+          "value": {
+            "user_id": "User_16",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.859189,
+          "relative_time": 105.2747130393982
+        },
+        {
+          "value": {
+            "user_id": "User_17",
+            "metadata": {}
+          },
+          "timestamp": 1765572102.964405,
+          "relative_time": 105.37992906570435
+        },
+        {
+          "value": {
+            "user_id": "User_18",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.074903,
+          "relative_time": 105.49042701721191
+        },
+        {
+          "value": {
+            "user_id": "User_19",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.179939,
+          "relative_time": 105.59546303749084
+        },
+        {
+          "value": {
+            "user_id": "User_20",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.284263,
+          "relative_time": 105.699786901474
+        },
+        {
+          "value": {
+            "user_id": "User_21",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.389332,
+          "relative_time": 105.80485606193542
+        },
+        {
+          "value": {
+            "user_id": "User_22",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.4898298,
+          "relative_time": 105.90535378456116
+        },
+        {
+          "value": {
+            "user_id": "User_23",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.5932732,
+          "relative_time": 106.00879716873169
+        },
+        {
+          "value": {
+            "user_id": "User_24",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.69842,
+          "relative_time": 106.1139440536499
+        },
+        {
+          "value": {
+            "user_id": "User_25",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.803491,
+          "relative_time": 106.21901512145996
+        },
+        {
+          "value": {
+            "user_id": "User_26",
+            "metadata": {}
+          },
+          "timestamp": 1765572103.908542,
+          "relative_time": 106.3240659236908
+        },
+        {
+          "value": {
+            "user_id": "User_27",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.0136042,
+          "relative_time": 106.42912817001343
+        },
+        {
+          "value": {
+            "user_id": "User_28",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.119959,
+          "relative_time": 106.53548312187195
+        },
+        {
+          "value": {
+            "user_id": "User_29",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.224362,
+          "relative_time": 106.63988590240479
+        },
+        {
+          "value": {
+            "user_id": "User_30",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.328557,
+          "relative_time": 106.74408102035522
+        },
+        {
+          "value": {
+            "user_id": "User_31",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.43134,
+          "relative_time": 106.84686398506165
+        },
+        {
+          "value": {
+            "user_id": "User_32",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.532195,
+          "relative_time": 106.94771909713745
+        },
+        {
+          "value": {
+            "user_id": "User_33",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.634826,
+          "relative_time": 107.0503499507904
+        },
+        {
+          "value": {
+            "user_id": "User_34",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.7398772,
+          "relative_time": 107.1554012298584
+        },
+        {
+          "value": {
+            "user_id": "User_35",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.8432472,
+          "relative_time": 107.25877118110657
+        },
+        {
+          "value": {
+            "user_id": "User_36",
+            "metadata": {}
+          },
+          "timestamp": 1765572104.948334,
+          "relative_time": 107.36385798454285
+        },
+        {
+          "value": {
+            "user_id": "User_37",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.0513868,
+          "relative_time": 107.46691083908081
+        },
+        {
+          "value": {
+            "user_id": "User_38",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.157274,
+          "relative_time": 107.57279801368713
+        },
+        {
+          "value": {
+            "user_id": "User_39",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.2619112,
+          "relative_time": 107.67743515968323
+        },
+        {
+          "value": {
+            "user_id": "User_40",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.363775,
+          "relative_time": 107.77929902076721
+        },
+        {
+          "value": {
+            "user_id": "User_41",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.4651158,
+          "relative_time": 107.88063979148865
+        },
+        {
+          "value": {
+            "user_id": "User_42",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.570147,
+          "relative_time": 107.985671043396
+        },
+        {
+          "value": {
+            "user_id": "User_43",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.670885,
+          "relative_time": 108.08640909194946
+        },
+        {
+          "value": {
+            "user_id": "User_44",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.771022,
+          "relative_time": 108.18654608726501
+        },
+        {
+          "value": {
+            "user_id": "User_45",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.875873,
+          "relative_time": 108.29139709472656
+        },
+        {
+          "value": {
+            "user_id": "User_46",
+            "metadata": {}
+          },
+          "timestamp": 1765572105.980901,
+          "relative_time": 108.3964250087738
+        },
+        {
+          "value": {
+            "user_id": "User_47",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.085928,
+          "relative_time": 108.50145196914673
+        },
+        {
+          "value": {
+            "user_id": "User_48",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.1952572,
+          "relative_time": 108.61078119277954
+        },
+        {
+          "value": {
+            "user_id": "User_49",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.300294,
+          "relative_time": 108.71581792831421
+        },
+        {
+          "value": {
+            "user_id": "User_50",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.400585,
+          "relative_time": 108.81610894203186
+        },
+        {
+          "value": {
+            "user_id": "User_51",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.505376,
+          "relative_time": 108.92090010643005
+        },
+        {
+          "value": {
+            "user_id": "User_52",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.6097438,
+          "relative_time": 109.02526783943176
+        },
+        {
+          "value": {
+            "user_id": "User_53",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.714779,
+          "relative_time": 109.13030290603638
+        },
+        {
+          "value": {
+            "user_id": "User_54",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.817547,
+          "relative_time": 109.2330710887909
+        },
+        {
+          "value": {
+            "user_id": "User_55",
+            "metadata": {}
+          },
+          "timestamp": 1765572106.919175,
+          "relative_time": 109.33469891548157
+        },
+        {
+          "value": {
+            "user_id": "User_56",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.021784,
+          "relative_time": 109.43730807304382
+        },
+        {
+          "value": {
+            "user_id": "User_57",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.126837,
+          "relative_time": 109.54236102104187
+        },
+        {
+          "value": {
+            "user_id": "User_58",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.236711,
+          "relative_time": 109.65223503112793
+        },
+        {
+          "value": {
+            "user_id": "User_59",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.339063,
+          "relative_time": 109.75458693504333
+        },
+        {
+          "value": {
+            "user_id": "User_60",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.4441311,
+          "relative_time": 109.85965514183044
+        },
+        {
+          "value": {
+            "user_id": "User_61",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.549212,
+          "relative_time": 109.96473598480225
+        },
+        {
+          "value": {
+            "user_id": "User_62",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.649488,
+          "relative_time": 110.06501197814941
+        },
+        {
+          "value": {
+            "user_id": "User_63",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.7507699,
+          "relative_time": 110.16629385948181
+        },
+        {
+          "value": {
+            "user_id": "User_64",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.85186,
+          "relative_time": 110.26738405227661
+        },
+        {
+          "value": {
+            "user_id": "User_65",
+            "metadata": {}
+          },
+          "timestamp": 1765572107.9545448,
+          "relative_time": 110.37006878852844
+        },
+        {
+          "value": {
+            "user_id": "User_66",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.058485,
+          "relative_time": 110.47400903701782
+        },
+        {
+          "value": {
+            "user_id": "User_67",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.160554,
+          "relative_time": 110.57607793807983
+        },
+        {
+          "value": {
+            "user_id": "User_68",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.2674649,
+          "relative_time": 110.68298888206482
+        },
+        {
+          "value": {
+            "user_id": "User_69",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.3677728,
+          "relative_time": 110.78329682350159
+        },
+        {
+          "value": {
+            "user_id": "User_70",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.4728162,
+          "relative_time": 110.88834023475647
+        },
+        {
+          "value": {
+            "user_id": "User_71",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.576551,
+          "relative_time": 110.99207496643066
+        },
+        {
+          "value": {
+            "user_id": "User_72",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.6766741,
+          "relative_time": 111.09219813346863
+        },
+        {
+          "value": {
+            "user_id": "User_73",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.779876,
+          "relative_time": 111.19539999961853
+        },
+        {
+          "value": {
+            "user_id": "User_74",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.884131,
+          "relative_time": 111.29965496063232
+        },
+        {
+          "value": {
+            "user_id": "User_75",
+            "metadata": {}
+          },
+          "timestamp": 1765572108.98744,
+          "relative_time": 111.40296411514282
+        },
+        {
+          "value": {
+            "user_id": "User_76",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.088898,
+          "relative_time": 111.5044219493866
+        },
+        {
+          "value": {
+            "user_id": "User_77",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.191542,
+          "relative_time": 111.6070659160614
+        },
+        {
+          "value": {
+            "user_id": "User_78",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.291955,
+          "relative_time": 111.70747900009155
+        },
+        {
+          "value": {
+            "user_id": "User_79",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.3969972,
+          "relative_time": 111.81252121925354
+        },
+        {
+          "value": {
+            "user_id": "User_80",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.500288,
+          "relative_time": 111.91581201553345
+        },
+        {
+          "value": {
+            "user_id": "User_81",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.600787,
+          "relative_time": 112.01631093025208
+        },
+        {
+          "value": {
+            "user_id": "User_82",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.705825,
+          "relative_time": 112.12134909629822
+        },
+        {
+          "value": {
+            "user_id": "User_83",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.8091688,
+          "relative_time": 112.22469282150269
+        },
+        {
+          "value": {
+            "user_id": "User_84",
+            "metadata": {}
+          },
+          "timestamp": 1765572109.9170718,
+          "relative_time": 112.33259582519531
+        },
+        {
+          "value": {
+            "user_id": "User_85",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.022105,
+          "relative_time": 112.4376289844513
+        },
+        {
+          "value": {
+            "user_id": "User_86",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.125855,
+          "relative_time": 112.54137897491455
+        },
+        {
+          "value": {
+            "user_id": "User_87",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.226134,
+          "relative_time": 112.64165806770325
+        },
+        {
+          "value": {
+            "user_id": "User_88",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.32848,
+          "relative_time": 112.74400401115417
+        },
+        {
+          "value": {
+            "user_id": "User_89",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.433522,
+          "relative_time": 112.84904599189758
+        },
+        {
+          "value": {
+            "user_id": "User_90",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.538553,
+          "relative_time": 112.95407700538635
+        },
+        {
+          "value": {
+            "user_id": "User_91",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.643601,
+          "relative_time": 113.05912494659424
+        },
+        {
+          "value": {
+            "user_id": "User_92",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.748659,
+          "relative_time": 113.16418290138245
+        },
+        {
+          "value": {
+            "user_id": "User_93",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.8537118,
+          "relative_time": 113.2692358493805
+        },
+        {
+          "value": {
+            "user_id": "User_94",
+            "metadata": {}
+          },
+          "timestamp": 1765572110.9587479,
+          "relative_time": 113.37427186965942
+        },
+        {
+          "value": {
+            "user_id": "User_95",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.063784,
+          "relative_time": 113.47930788993835
+        },
+        {
+          "value": {
+            "user_id": "User_96",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.167275,
+          "relative_time": 113.5827989578247
+        },
+        {
+          "value": {
+            "user_id": "User_97",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.2689202,
+          "relative_time": 113.68444418907166
+        },
+        {
+          "value": {
+            "user_id": "User_98",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.369146,
+          "relative_time": 113.78467011451721
+        },
+        {
+          "value": {
+            "user_id": "User_99",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.472964,
+          "relative_time": 113.88848805427551
+        },
+        {
+          "value": {
+            "user_id": "User_100",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.577803,
+          "relative_time": 113.99332690238953
+        },
+        {
+          "value": {
+            "user_id": "User_101",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.682824,
+          "relative_time": 114.09834790229797
+        },
+        {
+          "value": {
+            "user_id": "User_102",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.786826,
+          "relative_time": 114.20234990119934
+        },
+        {
+          "value": {
+            "user_id": "User_103",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.8918679,
+          "relative_time": 114.30739188194275
+        },
+        {
+          "value": {
+            "user_id": "User_104",
+            "metadata": {}
+          },
+          "timestamp": 1765572111.9931898,
+          "relative_time": 114.40871381759644
+        },
+        {
+          "value": {
+            "user_id": "User_105",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.095125,
+          "relative_time": 114.51064896583557
+        },
+        {
+          "value": {
+            "user_id": "User_106",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.1998038,
+          "relative_time": 114.61532783508301
+        },
+        {
+          "value": {
+            "user_id": "User_107",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.302806,
+          "relative_time": 114.71832990646362
+        },
+        {
+          "value": {
+            "user_id": "User_108",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.4065878,
+          "relative_time": 114.82211184501648
+        },
+        {
+          "value": {
+            "user_id": "User_109",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.508024,
+          "relative_time": 114.92354798316956
+        },
+        {
+          "value": {
+            "user_id": "User_110",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.6099079,
+          "relative_time": 115.02543187141418
+        },
+        {
+          "value": {
+            "user_id": "User_111",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.711411,
+          "relative_time": 115.12693500518799
+        },
+        {
+          "value": {
+            "user_id": "User_112",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.812124,
+          "relative_time": 115.22764801979065
+        },
+        {
+          "value": {
+            "user_id": "User_113",
+            "metadata": {}
+          },
+          "timestamp": 1765572112.9171999,
+          "relative_time": 115.33272385597229
+        },
+        {
+          "value": {
+            "user_id": "User_114",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.021194,
+          "relative_time": 115.43671798706055
+        },
+        {
+          "value": {
+            "user_id": "User_115",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.122837,
+          "relative_time": 115.53836107254028
+        },
+        {
+          "value": {
+            "user_id": "User_116",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.223213,
+          "relative_time": 115.6387369632721
+        },
+        {
+          "value": {
+            "user_id": "User_117",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.325991,
+          "relative_time": 115.74151492118835
+        },
+        {
+          "value": {
+            "user_id": "User_118",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.431296,
+          "relative_time": 115.84682011604309
+        },
+        {
+          "value": {
+            "user_id": "User_119",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.536333,
+          "relative_time": 115.95185708999634
+        },
+        {
+          "value": {
+            "user_id": "User_120",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.641366,
+          "relative_time": 116.05689001083374
+        },
+        {
+          "value": {
+            "user_id": "User_121",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.745844,
+          "relative_time": 116.161367893219
+        },
+        {
+          "value": {
+            "user_id": "User_122",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.850878,
+          "relative_time": 116.26640200614929
+        },
+        {
+          "value": {
+            "user_id": "User_123",
+            "metadata": {}
+          },
+          "timestamp": 1765572113.9522922,
+          "relative_time": 116.36781620979309
+        },
+        {
+          "value": {
+            "user_id": "User_124",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.057386,
+          "relative_time": 116.47290992736816
+        },
+        {
+          "value": {
+            "user_id": "User_125",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.1582148,
+          "relative_time": 116.57373881340027
+        },
+        {
+          "value": {
+            "user_id": "User_126",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.263247,
+          "relative_time": 116.67877101898193
+        },
+        {
+          "value": {
+            "user_id": "User_127",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.3682728,
+          "relative_time": 116.78379678726196
+        },
+        {
+          "value": {
+            "user_id": "User_128",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.4733179,
+          "relative_time": 116.8888418674469
+        },
+        {
+          "value": {
+            "user_id": "User_129",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.57655,
+          "relative_time": 116.99207401275635
+        },
+        {
+          "value": {
+            "user_id": "User_130",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.6815848,
+          "relative_time": 117.09710884094238
+        },
+        {
+          "value": {
+            "user_id": "User_131",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.786161,
+          "relative_time": 117.20168495178223
+        },
+        {
+          "value": {
+            "user_id": "User_132",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.890956,
+          "relative_time": 117.30647993087769
+        },
+        {
+          "value": {
+            "user_id": "User_133",
+            "metadata": {}
+          },
+          "timestamp": 1765572114.991789,
+          "relative_time": 117.40731310844421
+        },
+        {
+          "value": {
+            "user_id": "User_134",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.095098,
+          "relative_time": 117.51062202453613
+        },
+        {
+          "value": {
+            "user_id": "User_135",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.1970718,
+          "relative_time": 117.61259579658508
+        },
+        {
+          "value": {
+            "user_id": "User_136",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.301831,
+          "relative_time": 117.71735501289368
+        },
+        {
+          "value": {
+            "user_id": "User_137",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.406357,
+          "relative_time": 117.82188105583191
+        },
+        {
+          "value": {
+            "user_id": "User_138",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.511383,
+          "relative_time": 117.92690706253052
+        },
+        {
+          "value": {
+            "user_id": "User_139",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.616045,
+          "relative_time": 118.03156900405884
+        },
+        {
+          "value": {
+            "user_id": "User_140",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.7197409,
+          "relative_time": 118.13526487350464
+        },
+        {
+          "value": {
+            "user_id": "User_141",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.8247628,
+          "relative_time": 118.2402868270874
+        },
+        {
+          "value": {
+            "user_id": "User_142",
+            "metadata": {}
+          },
+          "timestamp": 1765572115.930038,
+          "relative_time": 118.34556198120117
+        },
+        {
+          "value": {
+            "user_id": "User_143",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.031808,
+          "relative_time": 118.44733190536499
+        },
+        {
+          "value": {
+            "user_id": "User_144",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.1367612,
+          "relative_time": 118.55228519439697
+        },
+        {
+          "value": {
+            "user_id": "User_145",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.241798,
+          "relative_time": 118.65732192993164
+        },
+        {
+          "value": {
+            "user_id": "User_146",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.346829,
+          "relative_time": 118.76235294342041
+        },
+        {
+          "value": {
+            "user_id": "User_147",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.447377,
+          "relative_time": 118.86290097236633
+        },
+        {
+          "value": {
+            "user_id": "User_148",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.551657,
+          "relative_time": 118.96718096733093
+        },
+        {
+          "value": {
+            "user_id": "User_149",
+            "metadata": {}
+          },
+          "timestamp": 1765572116.654162,
+          "relative_time": 119.06968593597412
+        }
+      ]
+    }
+  },
+  "performance_assessment": {
+    "overall_score": 100,
+    "grade": "A",
+    "issues": [],
+    "recommendations": [
+      "Performance excellent - ready for production with 150 users"
+    ]
+  },
+  "recommendations": [
+    "Performance looks good for target user count"
+  ]
+}

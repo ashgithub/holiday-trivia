@@ -59,6 +59,7 @@ class Answer(Base):
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
     content = Column(Text, nullable=False)
     is_correct = Column(Boolean, default=False)
+    score = Column(Integer, default=0)  # Time-based score (seconds remaining if correct, 0 if wrong)
     retry_count = Column(Integer, default=1)
     timestamp = Column(DateTime, default=datetime.utcnow)
 

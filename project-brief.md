@@ -26,7 +26,7 @@ The quiz master can configure questions beforehand via a UI page for entering qu
 Participants can type answers or speak. Browser-native voice-to-text converts speech to text. Pressing Enter sends responses. Some question types allow only one correct attempt. Drawing and Wheel of Fortune allow multiple guesses.
 
 ## Scoring
-Correct guesses win a point. The leaderboard shows top winners. Ties are decided by the quiz master.
+Time-based scoring: Correct answers receive points equal to the number of seconds remaining when answered (0-30 points). Incorrect answers receive 0 points. Scores accumulate across all questions. The leaderboard shows cumulative scores with top winners displayed. Ties are decided outside the app.
 
 ## Technical Stack
 - Pure Python, HTML, JS, CSS application

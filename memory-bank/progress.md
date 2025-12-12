@@ -18,6 +18,11 @@
 - [x] **Cross-Platform Compatibility**: Browser-tested with fallbacks implemented
 
 ## Recently Completed (Major Updates)
+- [x] **Time-Based Scoring System**: Implemented seconds-remaining scoring for correct answers (0-30 points)
+- [x] **Cumulative Leaderboard**: Live leaderboard showing accumulated scores across all questions
+- [x] **Question Rankings**: Answers sorted by score with fastest-at-top display
+- [x] **Admin Interface Updates**: Score columns, leaderboard display, and point tracking
+- [x] **Participant Feedback**: Points earned shown in real-time responses
 - [x] **Question Management System**: Add, edit, delete questions with category organization
 - [x] **Category Analytics Dashboard**: Visual breakdown showing question counts by category
 - [x] **Accurate Progress Tracking**: Fixed quiz progress display (shows correct "X of Y" counts)

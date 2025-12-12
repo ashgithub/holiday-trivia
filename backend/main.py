@@ -65,6 +65,7 @@ current_question: Optional[Question] = None
 current_question_index: int = 0
 total_questions: int = 0
 question_timer: Optional[asyncio.Task] = None
+question_start_time: Optional[float] = None  # Timestamp when current question was pushed
 
 async def cleanup_database():
     """Clean up users and answers tables at startup for fresh sessions"""
@@ -177,7 +178,11 @@ async def participant_websocket(websocket: WebSocket):
         # Send current game state if quiz is active
         if current_game and current_game.status == "active":
             await participant_manager.send_personal_message({
-                "type": "quiz_started"
+                "type": "quiz_started",
+                "progress": {
+                    "current": current_question_index if current_question else 0,
+                    "total": total_questions
+                }
             }, connection_id)
 
             if current_question:
@@ -206,13 +211,21 @@ async def participant_websocket(websocket: WebSocket):
 
                     # Check if correct
                     is_correct = False
+                    score = 0
                     if current_question and data["question_id"] == current_question.id:
                         is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
+
+                        # Calculate time-based score: seconds remaining if correct, 0 if wrong
+                        if is_correct and question_start_time is not None:
+                            elapsed_time = asyncio.get_event_loop().time() - question_start_time
+                            seconds_remaining = max(0, 30 - elapsed_time)
+                            score = int(seconds_remaining)  # Convert to integer seconds
 
                     if existing and not existing.is_correct:
                         # Update existing answer
                         existing.content = data["answer"]
                         existing.is_correct = is_correct
+                        existing.score = score
                         existing.retry_count += 1
                         existing.timestamp = datetime.utcnow()
                     else:
@@ -223,25 +236,37 @@ async def participant_websocket(websocket: WebSocket):
                             game_id=current_game.id if current_game else None,
                             content=data["answer"],
                             is_correct=is_correct,
+                            score=score,
                             retry_count=1
                         )
                         db.add(answer)
 
                     db.commit()
 
+                    # Calculate cumulative score for this user
+                    user_answers = db.query(Answer).filter(
+                        Answer.user_id == participant.id,
+                        Answer.game_id == current_game.id if current_game else None
+                    ).all()
+                    total_score = sum(ans.score for ans in user_answers)
+
                     # Send personal feedback to participant
                     await participant_manager.send_personal_message({
                         "type": "personal_feedback",
                         "correct": is_correct,
+                        "score": score,
+                        "total_score": total_score,
                         "retry_count": answer.retry_count,
                         "allow_multiple": current_question.allow_multiple if current_question else True
                     }, connection_id)
 
                     # Notify admin of updated answers
                     answers, _ = await get_current_answers(db)
+                    leaderboard = await get_cumulative_scores(db)
                     await admin_manager.broadcast({
                         "type": "answer_received",
-                        "answers": answers
+                        "answers": answers,
+                        "leaderboard": leaderboard
                     })
 
         except WebSocketDisconnect:
@@ -280,7 +305,13 @@ async def admin_websocket(websocket: WebSocket):
                             "total": total_questions
                         }
                     }, connection_id)
-                    await participant_manager.broadcast({"type": "quiz_started"})
+                    await participant_manager.broadcast({
+                        "type": "quiz_started",
+                        "progress": {
+                            "current": 0,
+                            "total": total_questions
+                        }
+                    })
 
                 elif data["type"] == "next_question":
                     await next_question(db)
@@ -421,7 +452,7 @@ async def start_quiz(db):
     current_question_index = 0
 
 async def next_question(db):
-    global current_question, question_timer, current_question_index
+    global current_question, question_timer, current_question_index, question_start_time
 
     # Only allow next question if quiz is active and not exhausted
     if not current_game or current_game.status != "active":
@@ -447,6 +478,8 @@ async def next_question(db):
     if question:
         current_question = question
         current_question_index += 1
+        # Record when this question was pushed for time-based scoring
+        question_start_time = asyncio.get_event_loop().time()
 
 async def end_quiz(db):
     global current_game, current_question, question_timer
@@ -508,13 +541,53 @@ async def get_current_answers(db):
 
     correct_count = sum(1 for answer, _ in answers if answer.is_correct)
 
-    return [{
+    # Sort answers by score (descending) for ranking
+    answer_data = [{
         "user": user.name,
         "content": answer.content,
         "correct": answer.is_correct,
+        "score": answer.score,
         "retry_count": answer.retry_count,
         "timestamp": answer.timestamp.isoformat() if answer.timestamp else None
-    } for answer, user in answers], correct_count
+    } for answer, user in answers]
+
+    # Sort by score descending for question rankings
+    answer_data.sort(key=lambda x: x["score"], reverse=True)
+
+    return answer_data, correct_count
+
+async def get_cumulative_scores(db):
+    """Get cumulative scores for all users in the current game"""
+    if not current_game:
+        return []
+
+    # Get all answers for the current game
+    answers = db.query(Answer, User).join(User).filter(
+        Answer.game_id == current_game.id
+    ).all()
+
+    # Aggregate scores by user
+    user_scores = {}
+    for answer, user in answers:
+        user_id = user.id
+        if user_id not in user_scores:
+            user_scores[user_id] = {
+                "user_id": user_id,
+                "user_name": user.name,
+                "total_score": 0,
+                "questions_answered": 0,
+                "correct_answers": 0
+            }
+        user_scores[user_id]["total_score"] += answer.score
+        user_scores[user_id]["questions_answered"] += 1
+        if answer.is_correct:
+            user_scores[user_id]["correct_answers"] += 1
+
+    # Convert to list and sort by total score descending
+    leaderboard = list(user_scores.values())
+    leaderboard.sort(key=lambda x: x["total_score"], reverse=True)
+
+    return leaderboard
 
 # Periodic status updates for admin
 async def send_admin_status_updates():
@@ -523,8 +596,9 @@ async def send_admin_status_updates():
             db = SessionLocal()
             try:
                 answers, correct_count = await get_current_answers(db)
+                leaderboard = await get_cumulative_scores(db)
                 total_answered = len(answers)
-                # Send participant count, quiz status, total answered, and correct answer count to all admins
+                # Send participant count, quiz status, total answered, correct answer count, and leaderboard
                 status_update = {
                     "type": "status_update",
                     "participant_count": participant_manager.get_participant_count(),
@@ -532,7 +606,8 @@ async def send_admin_status_updates():
                     "current_question": current_question.content if current_question else None,
                     "question_type": current_question.type if current_question else None,
                     "total_answered": total_answered,
-                    "correct_answers": correct_count
+                    "correct_answers": correct_count,
+                    "leaderboard": leaderboard
                 }
 
                 await admin_manager.broadcast(status_update)

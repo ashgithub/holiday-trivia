@@ -334,34 +334,30 @@ canvas {
 /* Status Dashboard */
 .status-dashboard {
     display: flex;
-    justify-content: space-around;
     align-items: center;
     background: var(--snow-white);
     border-radius: 10px;
-    padding: 20px;
+    padding: 12px 20px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     border: 2px solid var(--christmas-green);
-}
-
-.status-item {
-    text-align: center;
-    flex: 1;
+    font-size: 1.1rem;
+    gap: 8px;
 }
 
 .status-label {
-    display: block;
-    font-size: 0.9rem;
     color: var(--text-dark);
-    margin-bottom: 5px;
     font-weight: bold;
 }
 
 .status-value {
-    display: block;
-    font-size: 1.5rem;
     font-weight: bold;
     color: var(--christmas-red);
+}
+
+.status-separator {
+    color: var(--text-dark);
+    margin: 0 4px;
 }
 
 /* Admin Styles */
@@ -455,8 +451,8 @@ canvas {
 
 .quiz-control-content {
     display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: 30px;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
 }
 
 .control-section {
@@ -539,7 +535,59 @@ canvas {
     color: var(--text-dark);
 }
 
-.no-answers {
+/* Leaderboard Table */
+#leaderboard-table-container {
+    overflow-x: auto;
+}
+
+#leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--snow-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px var(--shadow);
+}
+
+#leaderboard-table th,
+#leaderboard-table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+#leaderboard-table th {
+    background: var(--christmas-red);
+    color: var(--snow-white);
+    font-weight: bold;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+#leaderboard-table tbody tr:hover {
+    background: var(--bg-light);
+}
+
+#leaderboard-table .rank {
+    font-weight: bold;
+    color: var(--christmas-red);
+    text-align: center;
+    width: 60px;
+}
+
+#leaderboard-table .name {
+    font-weight: bold;
+}
+
+#leaderboard-table .points {
+    font-weight: bold;
+    color: var(--christmas-green);
+    text-align: center;
+    width: 80px;
+}
+
+.no-answers, .no-scores {
     text-align: center;
     color: #666;
     font-style: italic;

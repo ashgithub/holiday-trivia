@@ -361,6 +361,9 @@ class QuizAdmin {
 
             case 'answer_received':
                 this.updateAnswersList(data.answers);
+                if (data.leaderboard && data.leaderboard.length > 0) {
+                    this.updateLeaderboard(data.leaderboard);
+                }
                 break;
 
             case 'scores_updated':
@@ -404,7 +407,7 @@ class QuizAdmin {
             const row = tbody.insertRow();
             row.className = 'no-answers';
             const cell = row.insertCell();
-            cell.colSpan = 5;
+            cell.colSpan = 4;
             cell.textContent = 'Waiting for answers...';
             // Update counter to correct format
             document.getElementById('answer-counter').textContent = `0 answered (0 correct) out of ${participantCount} participants`;
@@ -414,38 +417,36 @@ class QuizAdmin {
         // Calculate counts
         const totalAnswered = answers.length;
         const correctCount = answers.filter(answer => answer.correct).length;
+        const totalScore = answers.reduce((sum, answer) => sum + (answer.score || 0), 0);
 
-        // Update counter with both counts
-        document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
+        // Update counter with simplified format
+        document.getElementById('answer-counter').textContent = `${totalAnswered}/${participantCount} answered (${correctCount} correct)`;
 
-        // Sort answers by timestamp (newest first)
-        answers.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        // Sort answers by score (highest first) for question rankings
+        answers.sort((a, b) => (b.score || 0) - (a.score || 0));
 
-        answers.forEach(answer => {
+        answers.forEach((answer, index) => {
             const row = tbody.insertRow();
 
-            // Time column
-            const timeCell = row.insertCell();
-            timeCell.className = 'time';
-            timeCell.textContent = new Date(answer.timestamp).toLocaleTimeString();
+            // Rank column
+            const rankCell = row.insertCell();
+            rankCell.className = 'rank';
+            rankCell.textContent = `#${index + 1}`;
 
             // Participant column
             const participantCell = row.insertCell();
             participantCell.textContent = answer.user;
 
-            // Answer column
+            // Score column
+            const scoreCell = row.insertCell();
+            scoreCell.className = 'score';
+            scoreCell.textContent = answer.score || 0;
+
+            // Answer column (merged with status)
             const answerCell = row.insertCell();
-            answerCell.textContent = answer.content;
-
-            // Retry column
-            const retryCell = row.insertCell();
-            retryCell.className = 'retry';
-            retryCell.textContent = answer.retry_count || 1;
-
-            // Status column
-            const statusCell = row.insertCell();
-            statusCell.className = answer.correct ? 'correct' : 'incorrect';
-            statusCell.textContent = answer.correct ? '✓ Correct' : '✗ Incorrect';
+            const indicator = answer.correct ? '✓' : '✗';
+            const indicatorClass = answer.correct ? 'correct' : 'incorrect';
+            answerCell.innerHTML = `<span class="${indicatorClass}">${indicator} ${answer.content}</span>`;
         });
     }
 
@@ -478,23 +479,38 @@ class QuizAdmin {
     }
 
     updateLeaderboard(scores) {
-        const container = document.getElementById('scores-list');
-        container.innerHTML = '';
+        const tbody = document.getElementById('leaderboard-tbody');
+        tbody.innerHTML = '';
 
         if (scores.length === 0) {
-            container.textContent = 'No scores yet...';
+            const row = tbody.insertRow();
+            row.className = 'no-answers';
+            const cell = row.insertCell();
+            cell.colSpan = 3;
+            cell.textContent = 'No scores yet...';
             return;
         }
 
-        scores.forEach((score, index) => {
-            const div = document.createElement('div');
-            div.className = 'score-item';
-            div.innerHTML = `
-                <span class="rank">#${index + 1}</span>
-                <span class="name">${score.name}</span>
-                <span class="points">${score.points} pts</span>
-            `;
-            container.appendChild(div);
+        // Show top 10 scores
+        const topScores = scores.slice(0, 10);
+
+        topScores.forEach((score, index) => {
+            const row = tbody.insertRow();
+
+            // Rank column
+            const rankCell = row.insertCell();
+            rankCell.className = 'rank';
+            rankCell.textContent = `#${index + 1}`;
+
+            // Name column
+            const nameCell = row.insertCell();
+            nameCell.className = 'name';
+            nameCell.textContent = score.user_name;
+
+            // Score column
+            const scoreCell = row.insertCell();
+            scoreCell.className = 'points';
+            scoreCell.textContent = `${score.total_score} pts`;
         });
     }
 
@@ -534,6 +550,15 @@ class QuizAdmin {
             const totalAnswered = data.total_answered || 0;
             const correctCount = data.correct_answers || 0;
             document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
+        }
+
+        // Update leaderboard if available
+        if (data.leaderboard && data.leaderboard.length > 0) {
+            this.updateLeaderboard(data.leaderboard);
+        } else {
+            // Clear leaderboard if no data
+            const tbody = document.getElementById('leaderboard-tbody');
+            tbody.innerHTML = '<tr class="no-scores"><td colspan="3">No scores yet...</td></tr>';
         }
     }
 

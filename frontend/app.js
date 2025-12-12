@@ -171,7 +171,7 @@ class QuizParticipant {
     handleMessage(data) {
         switch (data.type) {
             case 'quiz_started':
-                this.showQuestionContainer();
+                this.handleQuizStarted(data.progress);
                 break;
 
             case 'question':
@@ -213,6 +213,18 @@ class QuizParticipant {
         document.getElementById('drawing-canvas').classList.add('hidden');
     }
 
+    handleQuizStarted(progress) {
+        // Show quiz started waiting message with progress info
+        const waitingMessage = document.getElementById('waiting-message');
+        waitingMessage.innerHTML = `
+            <h2>Quiz Started! 🎉</h2>
+            <p>Waiting for the first question...</p>
+            <div class="question-progress">Question ${progress.current} of ${progress.total}</div>
+            <div class="snowflake">❄️</div>
+        `;
+        this.updateStatus('Quiz started - Waiting for first question');
+    }
+
     showDrawingCanvas() {
         document.getElementById('waiting-message').classList.add('hidden');
         document.getElementById('question-container').classList.add('hidden');
@@ -235,6 +247,9 @@ class QuizParticipant {
         this.currentQuestion = question;
         this.hasSubmitted = false; // Reset submission flag for new question
         this.allowMultiple = question.allow_multiple || true;
+
+        // Show question container and hide waiting message
+        this.showQuestionContainer();
 
         // Restore timer markup for new question
         const timer = document.getElementById('timer');
@@ -306,7 +321,9 @@ class QuizParticipant {
         if (!slot) return;
 
         if (data.correct) {
-            slot.innerHTML = '<span class="feedback correct">Correct! 🎉</span>';
+            const currentScore = data.score || 0;
+            const totalScore = data.total_score || 0;
+            slot.innerHTML = `<span class="feedback correct">Correct! 🎉 (+${currentScore} pts, Total: ${totalScore} pts)</span>`;
             // Disable input for correct
             document.getElementById('text-answer').disabled = true;
             document.getElementById('submit-btn').disabled = true;
@@ -314,14 +331,16 @@ class QuizParticipant {
             this.hasSubmitted = true; // Keep as submitted
         } else if (data.allow_multiple && this.timeLeft > 0) {
             const retryCount = data.retry_count || 1;
-            slot.innerHTML = `<span class="feedback incorrect">Incorrect - try again! (Retry ${retryCount})</span>`;
+            const totalScore = data.total_score || 0;
+            slot.innerHTML = `<span class="feedback incorrect">Incorrect - try again! (Retry ${retryCount}, Total: ${totalScore} pts)</span>`;
             // Re-enable input for retry
             document.getElementById('text-answer').disabled = false;
             document.getElementById('submit-btn').disabled = false;
             document.getElementById('submit-btn').textContent = 'Submit';
             this.hasSubmitted = false;
         } else {
-            slot.innerHTML = '<span class="feedback incorrect">Incorrect</span>';
+            const totalScore = data.total_score || 0;
+            slot.innerHTML = `<span class="feedback incorrect">Incorrect (Total: ${totalScore} pts)</span>`;
             // Keep disabled if no retry or time expired
             document.getElementById('text-answer').disabled = true;
             document.getElementById('submit-btn').disabled = true;
