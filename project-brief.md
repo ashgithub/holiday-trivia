@@ -26,7 +26,22 @@ The quiz master can configure questions beforehand via a UI page for entering qu
 Participants can type answers or speak. Browser-native voice-to-text converts speech to text. Pressing Enter sends responses. Some question types allow only one correct attempt. Drawing and Wheel of Fortune allow multiple guesses.
 
 ## Scoring
-Time-based scoring: Correct answers receive points equal to the number of seconds remaining when answered (0-30 points). Incorrect answers receive 0 points. Scores accumulate across all questions. The leaderboard shows cumulative scores with top winners displayed. Ties are decided outside the app.
+**Time-Based Scoring System:**
+- Correct answers receive points equal to the number of seconds remaining when answered (0-30 points)
+- Incorrect answers receive 0 points
+- Scores accumulate across all questions per participant
+- Live leaderboard shows cumulative scores with top performers
+- Ties are decided outside the app
+
+**Participant Experience:**
+- Real-time score display showing current question points + cumulative total
+- Immediate feedback with score breakdown
+- Competitive leaderboard updates throughout the quiz
+
+**Admin Interface:**
+- 3-column layout: Current Question | Live Answers | Leaderboard
+- Simplified status dashboard and answer counters
+- Professional table styling with festive Christmas theme
 
 ## Technical Stack
 - Pure Python, HTML, JS, CSS application
