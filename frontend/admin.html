@@ -62,10 +62,16 @@
                         <h3>Current Question</h3>
                         <div id="admin-question-progress" class="question-progress">Question 1 of 5</div>
                         <div id="question-text">No question active</div>
-                        <div id="admin-timer" class="admin-timer">Time remaining: <span id="admin-time-remaining">30</span>s</div>
+                        <div id="admin-timer" class="admin-timer">
+                            <span>Time remaining: <span id="admin-time-remaining">30</span>s</span>
+                            <span id="admin-feedback-slot"></span>
+                        </div>
+                        <div class="question-actions">
+                            <button id="reveal-answer-btn" class="btn btn-warning" disabled>Reveal Answer 🎁</button>
+                        </div>
                     </div>
 
-                    <div id="answers-display" class="control-section">
+                    <div id="answers-display" class="control-section festive-panel">
                         <h3>Live Answers</h3>
                         <div id="answer-counter" class="answer-counter">0 of 0 participants have answered</div>
                         <div id="answers-table-container">
@@ -75,19 +81,20 @@
                                         <th>Time</th>
                                         <th>Participant</th>
                                         <th>Answer</th>
+                                        <th>Retry</th>
                                         <th>Status</th>
                                     </tr>
                                 </thead>
                                 <tbody id="answers-tbody">
                                     <tr class="no-answers">
-                                        <td colspan="4">Waiting for answers...</td>
+                                        <td colspan="5">Waiting for answers...</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
 
-                    <div id="leaderboard" class="control-section">
+                    <div id="leaderboard" class="control-section festive-panel">
                         <h3>Leaderboard</h3>
                         <div id="scores-list">No scores yet</div>
                     </div>

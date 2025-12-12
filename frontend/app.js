@@ -46,6 +46,12 @@ class QuizParticipant {
         errorDiv.classList.add('hidden');
         this.participantName = name;
 
+        // Update waiting message with personalized welcome
+        document.getElementById('waiting-message').innerHTML = `
+            <h2>Welcome ${this.participantName}!</h2>
+            <p>Waiting for the quiz to start...</p>
+            <div class="snowflake">❄️</div>
+        `;
 
         // Hide name entry, show quiz interface
         const nameEntryScreen = document.getElementById('name-entry-screen');
@@ -53,8 +59,6 @@ class QuizParticipant {
 
         nameEntryScreen.classList.add('hidden');
         participantScreen.classList.remove('hidden');
-
-
 
         // Now connect to WebSocket
         this.setupWebSocket();
@@ -174,6 +178,14 @@ class QuizParticipant {
                 this.displayQuestion(data.question, data.progress);
                 break;
 
+            case 'personal_feedback':
+                this.showPersonalFeedback(data);
+                break;
+
+            case 'answer_revealed':
+                this.showRevealedAnswer(data);
+                break;
+
             case 'drawing_start':
                 this.showDrawingCanvas();
                 break;
@@ -222,14 +234,11 @@ class QuizParticipant {
     displayQuestion(question, progress) {
         this.currentQuestion = question;
         this.hasSubmitted = false; // Reset submission flag for new question
+        this.allowMultiple = question.allow_multiple || true;
 
         // Restore timer markup for new question
-        document.getElementById('timer').innerHTML = 'Time remaining: <span id="time-remaining">30</span>s';
-
-        // Set default values for missing properties
-        if (this.currentQuestion.allow_multiple === undefined) {
-            this.currentQuestion.allow_multiple = true; // Default to allowing multiple attempts
-        }
+        const timer = document.getElementById('timer');
+        timer.innerHTML = '<span>Time remaining: <span id="time-remaining">30</span>s</span><span id="feedback-slot"></span>';
 
         // Update progress display
         if (progress) {
@@ -245,6 +254,11 @@ class QuizParticipant {
         textAnswer.disabled = false;
         textAnswer.value = ''; // Clear any previous answer
         submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
+
+        // Clear feedback and revealed answers
+        this.clearFeedback();
+        this.clearRevealedAnswer();
 
         // Handle different question types
         if (question.type === 'multiple_choice') {
@@ -287,6 +301,61 @@ class QuizParticipant {
         this.submitAnswer(text);
     }
 
+    showPersonalFeedback(data) {
+        const slot = document.getElementById('feedback-slot');
+        if (!slot) return;
+
+        if (data.correct) {
+            slot.innerHTML = '<span class="feedback correct">Correct! 🎉</span>';
+            // Disable input for correct
+            document.getElementById('text-answer').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').textContent = 'Correct!';
+            this.hasSubmitted = true; // Keep as submitted
+        } else if (data.allow_multiple && this.timeLeft > 0) {
+            const retryCount = data.retry_count || 1;
+            slot.innerHTML = `<span class="feedback incorrect">Incorrect - try again! (Retry ${retryCount})</span>`;
+            // Re-enable input for retry
+            document.getElementById('text-answer').disabled = false;
+            document.getElementById('submit-btn').disabled = false;
+            document.getElementById('submit-btn').textContent = 'Submit';
+            this.hasSubmitted = false;
+        } else {
+            slot.innerHTML = '<span class="feedback incorrect">Incorrect</span>';
+            // Keep disabled if no retry or time expired
+            document.getElementById('text-answer').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+        }
+    }
+
+    showRevealedAnswer(data) {
+        // Disable input
+        document.getElementById('text-answer').disabled = true;
+        document.getElementById('submit-btn').disabled = true;
+
+        // Show reveal
+        const revealDiv = document.createElement('div');
+        revealDiv.id = 'reveal';
+        revealDiv.className = 'reveal-answer';
+        revealDiv.innerHTML = `<h3>The answer is: ${data.correct_answer}</h3>`;
+        if (data.options) {
+            const optionsList = document.createElement('ul');
+            data.options.forEach(opt => {
+                const li = document.createElement('li');
+                li.textContent = opt;
+                if (opt.toLowerCase() === data.correct_answer.toLowerCase()) {
+                    li.className = 'correct-option';
+                }
+                optionsList.appendChild(li);
+            });
+            revealDiv.appendChild(optionsList);
+        }
+
+        document.getElementById('question-container').appendChild(revealDiv);
+
+        this.updateStatus('Answer revealed - waiting for next question');
+    }
+
     submitAnswer(answer) {
         if (!this.currentQuestion) return;
 
@@ -325,10 +394,13 @@ class QuizParticipant {
         submitBtn.textContent = 'Answer Submitted';
 
         // Update timer display to show submission
-        document.getElementById('timer').innerHTML = 'Time remaining: Submitted';
+        const slot = document.getElementById('feedback-slot');
+        if (slot) {
+            slot.innerHTML = '<span class="feedback submitted">Submitted</span>';
+        }
 
         // For single-attempt questions, keep disabled
-        if (!this.currentQuestion.allow_multiple) {
+        if (!this.allowMultiple) {
             // Already disabled above
         }
     }
@@ -366,6 +438,12 @@ class QuizParticipant {
             btn.disabled = true;
             btn.style.opacity = '0.5';
         });
+
+        // Show time expired in feedback slot
+        const slot = document.getElementById('feedback-slot');
+        if (slot) {
+            slot.innerHTML = '<span class="feedback expired">Time Expired</span>';
+        }
     }
 
     updateTimerDisplay() {
@@ -391,6 +469,20 @@ class QuizParticipant {
 
     updateStatus(status) {
         document.getElementById('status').textContent = status;
+    }
+
+    clearFeedback() {
+        const slot = document.getElementById('feedback-slot');
+        if (slot) {
+            slot.innerHTML = '';
+        }
+    }
+
+    clearRevealedAnswer() {
+        const revealDiv = document.getElementById('reveal');
+        if (revealDiv) {
+            revealDiv.remove();
+        }
     }
 }
 

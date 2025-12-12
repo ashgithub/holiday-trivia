@@ -9,6 +9,7 @@ Core WebSocket functionality and participant name entry are implemented. The qui
 3. **Testing**: Test the complete quiz flow with multiple browser tabs simulating 150 concurrent users
 4. **Error Handling**: Add comprehensive reconnection logic and better error recovery
 5. **Performance Optimization**: Optimize WebSocket connections and server resources for scalability
+6. **Full Question Types**: Implement specific logic for multiple choice, drawing, word cloud, etc.
 
 ## Key Decisions Made
 - **WebSocket Implementation**: Full real-time bidirectional communication implemented using FastAPI WebSockets
@@ -32,6 +33,14 @@ Core WebSocket functionality and participant name entry are implemented. The qui
 - ✅ FastAPI server architecture fixes (lifespan handlers, route registration)
 - ✅ File serving resolution for HTML pages and static assets
 - ✅ Background task management for periodic status updates
+- ✅ Participant answer status feedback (personal correctness indication with re-enable for multi-attempt questions)
+- ✅ Admin reveal answer button that broadcasts to all screens (admin and participants)
+- ✅ Christmas theming for UI panels (gradients, borders, icons) and reveal animations
+- ✅ .gitignore for project file management (ignores DB, logs, envs)
+- ✅ Admin answers table with retry count display for tracking participant attempts
+- ✅ Reveal answer cleanup when transitioning between questions on admin screen
+- ✅ Fixed personal feedback parameter passing and retry count backend inclusion
+- ✅ Updated admin table headers to accurately reflect all columns (Time, Participant, Answer, Retry, Status)
 
 ## Open Questions
 - Question sequencing strategy (random, ordered, categories)
@@ -41,13 +50,14 @@ Core WebSocket functionality and participant name entry are implemented. The qui
 - Browser compatibility testing for voice and WebSocket features
 
 ## Next Steps
-- Implement proper question cycling instead of always using first question
+- Implement full question type support (multiple choice, drawing, word cloud, wheel of fortune, fill-in-blank)
 - Add scoring system with points for correct answers and speed bonuses
 - Create real-time leaderboard that updates as answers are submitted
 - Add question management features (edit, delete, reorder questions)
 - Test complete flow with multiple participants
 - Implement reconnection logic for network interruptions
 - Add comprehensive error handling and user feedback
+- **UI Enhancement**: Add Christmas-themed borders with animated lights, candy canes, and holly leaves
 
 ## Risks and Mitigations
 - **Real-time Performance**: Monitor WebSocket connection efficiency; consider connection pooling and message batching for 150 users

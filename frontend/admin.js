@@ -125,6 +125,10 @@ class QuizAdmin {
             this.sendMessage({ type: 'start_quiz' });
         });
 
+        document.getElementById('reveal-answer-btn').addEventListener('click', () => {
+            this.sendMessage({ type: 'reveal_answer' });
+        });
+
         document.getElementById('next-question-btn').addEventListener('click', () => {
             this.sendMessage({ type: 'next_question' });
         });
@@ -299,12 +303,19 @@ class QuizAdmin {
 
             case 'quiz_started':
                 document.getElementById('start-quiz-btn').disabled = true;
+                document.getElementById('reveal-answer-btn').disabled = false;
                 document.getElementById('next-question-btn').disabled = false;
                 document.getElementById('end-quiz-btn').disabled = false;
                 this.updateStatus('Quiz started');
                 break;
 
             case 'question_pushed':
+                // Clear any existing revealed answer from previous question
+                const existingReveal = document.getElementById('admin-reveal');
+                if (existingReveal) {
+                    existingReveal.remove();
+                }
+
                 document.getElementById('question-text').textContent = data.question.content;
                 if (data.progress) {
                     document.getElementById('admin-question-progress').textContent = `Question ${data.progress.current} of ${data.progress.total}`;
@@ -321,6 +332,21 @@ class QuizAdmin {
                 if (data.question.type === 'drawing') {
                     document.getElementById('drawing-area').classList.remove('hidden');
                 }
+                // Enable reveal button when question is pushed
+                document.getElementById('reveal-answer-btn').disabled = false;
+                break;
+
+            case 'answer_revealed':
+                this.showRevealedAnswer(data);
+                break;
+
+    case 'reveal_confirmed':
+        this.updateStatus('Answer revealed to all participants');
+        document.getElementById('reveal-answer-btn').disabled = true;
+        break;
+
+            case 'reveal_error':
+                alert('Error: ' + data.message);
                 break;
 
             case 'timer_update':
@@ -337,6 +363,7 @@ class QuizAdmin {
 
             case 'quiz_ended':
                 document.getElementById('start-quiz-btn').disabled = false;
+                document.getElementById('reveal-answer-btn').disabled = true;
                 document.getElementById('next-question-btn').disabled = true;
                 document.getElementById('end-quiz-btn').disabled = true;
                 this.updateStatus('Quiz ended');
@@ -353,6 +380,10 @@ class QuizAdmin {
             case 'question_deleted':
                 this.loadQuestions(); // Refresh the question list
                 break;
+
+            case 'time_expired':
+                document.getElementById('reveal-answer-btn').disabled = false;
+                break;
         }
     }
 
@@ -366,7 +397,7 @@ class QuizAdmin {
             const row = tbody.insertRow();
             row.className = 'no-answers';
             const cell = row.insertCell();
-            cell.colSpan = 4;
+            cell.colSpan = 5;
             cell.textContent = 'Waiting for answers...';
             // Update counter to correct format
             document.getElementById('answer-counter').textContent = `0 answered (0 correct) out of ${participantCount} participants`;
@@ -399,11 +430,44 @@ class QuizAdmin {
             const answerCell = row.insertCell();
             answerCell.textContent = answer.content;
 
+            // Retry column
+            const retryCell = row.insertCell();
+            retryCell.className = 'retry';
+            retryCell.textContent = answer.retry_count || 1;
+
             // Status column
             const statusCell = row.insertCell();
             statusCell.className = answer.correct ? 'correct' : 'incorrect';
             statusCell.textContent = answer.correct ? '✓ Correct' : '✗ Incorrect';
         });
+    }
+
+    showRevealedAnswer(data) {
+        // Disable reveal button
+        document.getElementById('reveal-answer-btn').disabled = true;
+
+        // Show reveal in admin view
+        const revealDiv = document.createElement('div');
+        revealDiv.id = 'admin-reveal';
+        revealDiv.className = 'reveal-answer';
+        revealDiv.innerHTML = `<h3>Revealed Answer: ${data.correct_answer}</h3>`;
+        if (data.options) {
+            const optionsList = document.createElement('ul');
+            data.options.forEach(opt => {
+                const li = document.createElement('li');
+                li.textContent = opt;
+                if (opt.toLowerCase() === data.correct_answer.toLowerCase()) {
+                    li.className = 'correct-option';
+                }
+                optionsList.appendChild(li);
+            });
+            revealDiv.appendChild(optionsList);
+        }
+
+        const answersDisplay = document.getElementById('answers-display');
+        answersDisplay.appendChild(revealDiv);
+
+        this.updateStatus('Answer revealed');
     }
 
     updateLeaderboard(scores) {

@@ -34,6 +34,7 @@ class Question(Base):
     answers = Column(Text)  # JSON string for multiple choice options
     correct_answer = Column(Text, nullable=False)
     category = Column(String, nullable=False)
+    allow_multiple = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Game(Base):
@@ -58,6 +59,7 @@ class Answer(Base):
     game_id = Column(Integer, ForeignKey("games.id"), nullable=False)
     content = Column(Text, nullable=False)
     is_correct = Column(Boolean, default=False)
+    retry_count = Column(Integer, default=1)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User")

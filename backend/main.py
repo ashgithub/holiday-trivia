@@ -154,7 +154,7 @@ async def participant_websocket(websocket: WebSocket):
 
         participant_name = initial_data.get("name", "").strip()
         if not participant_name:
-            await websocket.close(code=4000, reason="Name is required")
+            await websocket.close(code=4000, result="Name is required")
             return
 
     except Exception as e:
@@ -187,7 +187,8 @@ async def participant_websocket(websocket: WebSocket):
                         "id": current_question.id,
                         "type": current_question.type,
                         "content": current_question.content,
-                        "options": json.loads(current_question.answers) if current_question.answers else None
+                        "options": json.loads(current_question.answers) if current_question.answers else None,
+                        "allow_multiple": getattr(current_question, 'allow_multiple', True)
                     }
                 }, connection_id)
 
@@ -196,22 +197,47 @@ async def participant_websocket(websocket: WebSocket):
                 data = await websocket.receive_json()
 
                 if data["type"] == "answer":
-                    # Save answer to database
-                    answer = Answer(
-                        user_id=participant.id,
-                        question_id=data["question_id"],
-                        game_id=current_game.id if current_game else None,
-                        content=data["answer"]
-                    )
-                    db.add(answer)
-                    db.commit()
+                    # Check if user has existing answer for this question
+                    existing = db.query(Answer).filter(
+                        Answer.user_id == participant.id,
+                        Answer.question_id == data["question_id"],
+                        Answer.game_id == current_game.id if current_game else None
+                    ).first()
 
                     # Check if correct
-                    if current_question and data["answer"].strip().lower() == current_question.correct_answer.strip().lower():
-                        answer.is_correct = True
-                        db.commit()
+                    is_correct = False
+                    if current_question and data["question_id"] == current_question.id:
+                        is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
 
-                    # Notify admin of new answer
+                    if existing and not existing.is_correct:
+                        # Update existing answer
+                        existing.content = data["answer"]
+                        existing.is_correct = is_correct
+                        existing.retry_count += 1
+                        existing.timestamp = datetime.utcnow()
+                    else:
+                        # Insert new answer
+                        answer = Answer(
+                            user_id=participant.id,
+                            question_id=data["question_id"],
+                            game_id=current_game.id if current_game else None,
+                            content=data["answer"],
+                            is_correct=is_correct,
+                            retry_count=1
+                        )
+                        db.add(answer)
+
+                    db.commit()
+
+                    # Send personal feedback to participant
+                    await participant_manager.send_personal_message({
+                        "type": "personal_feedback",
+                        "correct": is_correct,
+                        "retry_count": answer.retry_count,
+                        "allow_multiple": current_question.allow_multiple if current_question else True
+                    }, connection_id)
+
+                    # Notify admin of updated answers
                     answers, _ = get_current_answers(db)
                     await admin_manager.broadcast({
                         "type": "answer_received",
@@ -258,7 +284,8 @@ async def admin_websocket(websocket: WebSocket):
                                 "id": current_question.id,
                                 "type": current_question.type,
                                 "content": current_question.content,
-                                "options": json.loads(current_question.answers) if current_question.answers else None
+                                "options": json.loads(current_question.answers) if current_question.answers else None,
+                                "allow_multiple": getattr(current_question, 'allow_multiple', True)
                             },
                             "progress": {
                                 "current": current_question_index,
@@ -283,6 +310,7 @@ async def admin_websocket(websocket: WebSocket):
                         content=question_data["content"],
                         correct_answer=question_data["correct_answer"],
                         category=question_data.get("category", "general"),
+                        allow_multiple=question_data.get("allow_multiple", True),
                         answers=json.dumps(question_data.get("options", [])) if "options" in question_data else None
                     )
                     db.add(question)
@@ -300,7 +328,8 @@ async def admin_websocket(websocket: WebSocket):
                         "type": q.type,
                         "content": q.content,
                         "correct_answer": q.correct_answer,
-                        "category": q.category
+                        "category": q.category,
+                        "allow_multiple": q.allow_multiple
                     } for q in questions]
 
                     await admin_manager.send_personal_message({
@@ -337,6 +366,27 @@ async def admin_websocket(websocket: WebSocket):
                         "type": "drawing_update",
                         "stroke": data["stroke"]
                     })
+
+                elif data["type"] == "reveal_answer":
+                    if current_question:
+                        reveal_data = {
+                            "type": "answer_revealed",
+                            "correct_answer": current_question.correct_answer,
+                            "question_id": current_question.id,
+                            "question_type": current_question.type,
+                            "options": json.loads(current_question.answers) if current_question.answers else None
+                        }
+                        await admin_manager.broadcast(reveal_data)
+                        await participant_manager.broadcast(reveal_data)
+                        # Optionally send confirmation back to admin
+                        await admin_manager.send_personal_message({
+                            "type": "reveal_confirmed"
+                        }, connection_id)
+                    else:
+                        await admin_manager.send_personal_message({
+                            "type": "reveal_error",
+                            "message": "No active question"
+                        }, connection_id)
 
             finally:
                 db.close()
@@ -429,6 +479,10 @@ async def start_question_timer():
                 "type": "timer_update",
                 "time_left": time_left
             })
+        # Timer expired, notify admin
+        await admin_manager.broadcast({
+            "type": "time_expired"
+        })
 
     question_timer = asyncio.create_task(timer_task())
 
@@ -446,6 +500,7 @@ def get_current_answers(db):
         "user": user.name,
         "content": answer.content,
         "correct": answer.is_correct,
+        "retry_count": answer.retry_count,
         "timestamp": answer.timestamp.isoformat() if answer.timestamp else None
     } for answer, user in answers], correct_count
 

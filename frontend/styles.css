@@ -683,3 +683,78 @@ canvas {
         height: auto;
     }
 }
+
+/* Festive Panel Tint */
+.festive-panel {
+  background: linear-gradient(to bottom, #FFE4E1 0%, #FFFFFF 100%);
+  border: 2px solid #FFD700;
+}
+
+/* Xmas Lights Border */
+#app {
+  border: 4px dashed;
+  border-image: linear-gradient(to right, #dc143c 0%, #228b22 33%, #ffd700 66%, #dc143c 100%) 1;
+  animation: light-twinkle 3s infinite;
+}
+
+@keyframes light-twinkle {
+  0%, 100% { border-color: #dc143c; }
+  50% { border-color: #ffd700; }
+}
+
+/* Feedback and Status */
+.timer-panel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.feedback {
+  padding: 5px 10px;
+  border-radius: 4px;
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.feedback.correct {
+  background: lightgreen;
+  color: darkgreen;
+}
+
+.feedback.incorrect {
+  background: lightcoral;
+  color: darkred;
+}
+
+.feedback.submitted {
+  background: lightblue;
+  color: navy;
+}
+
+.feedback.expired {
+  background: lightgray;
+  color: gray;
+}
+
+.reveal-answer {
+  background: #FFD700;
+  color: #8B0000;
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+  text-align: center;
+  font-weight: bold;
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.question-actions {
+  margin-top: 10px;
+  text-align: center;
+}
