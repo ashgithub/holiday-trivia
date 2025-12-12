@@ -18,11 +18,13 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: linear-gradient(135deg, #e8f4f8 0%, #ffffff 100%);
+    background: url('/assets/xmas.jpeg') no-repeat center center fixed;
+    background-size: cover;
     color: var(--text-dark);
     line-height: 1.6;
     min-height: 100vh;
 }
+/* Overlay removed */
 
 #app {
     max-width: 1200px;
@@ -180,13 +182,17 @@ header h1 {
 }
 
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /* Participant Screen */
 #waiting-message {
     text-align: center;
     padding: 50px 20px;
+    background: var(--snow-white);
+    border-radius: 10px;
+    box-shadow: 0 4px 6px var(--shadow);
+    margin-bottom: 20px;
 }
 
 #waiting-message h2 {
@@ -208,13 +214,27 @@ header h1 {
     text-align: center;
 }
 
-#question-content {
+.question-progress {
     font-size: 1.5rem;
+    color: var(--christmas-green);
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    background: var(--snow-white);
+    padding: 10px;
+    border-radius: 8px;
+    border: 2px solid var(--christmas-green);
+}
+
+#question-content {
+    font-size: 4rem !important;
     margin-bottom: 20px;
-    padding: 20px;
+    padding: 30px;
     background: var(--bg-light);
     border-radius: 8px;
     border-left: 5px solid var(--christmas-red);
+    text-align: center;
+    font-weight: bold;
 }
 
 #timer {
@@ -222,6 +242,11 @@ header h1 {
     margin-bottom: 20px;
     color: var(--christmas-red);
     font-weight: bold;
+    background: var(--snow-white);
+    padding: 15px;
+    border-radius: 8px;
+    border: 2px solid var(--christmas-red);
+    display: inline-block;
 }
 
 #answer-inputs {
@@ -436,6 +461,24 @@ canvas {
     color: var(--christmas-red);
 }
 
+#question-text {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    padding: 20px;
+    background: var(--snow-white);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.admin-timer {
+    font-size: 1.2rem;
+    color: var(--christmas-red);
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+
 /* Answers Table */
 #answers-table-container {
     overflow-x: auto;
@@ -490,6 +533,18 @@ canvas {
     text-align: center;
     color: #666;
     font-style: italic;
+}
+
+.answer-counter {
+    font-size: 1.1rem;
+    color: var(--christmas-green);
+    font-weight: bold;
+    text-align: center;
+    margin-bottom: 15px;
+    background: var(--bg-light);
+    padding: 8px 15px;
+    border-radius: 8px;
+    border: 2px solid var(--christmas-green);
 }
 
 .question-management {

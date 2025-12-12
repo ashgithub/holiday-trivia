@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>All-Hands Quiz Game - Admin</title>
-    <link rel="stylesheet" href="/assets/styles.css">
+    <link rel="stylesheet" href="/assets/styles.css?v=20241211">
 </head>
 <body>
+    <div class="bg-overlay"></div>
     <div id="app">
         <header>
             <h1>🎄 Quiz Master Control Panel 🎄</h1>
@@ -59,11 +60,14 @@
                 <div class="quiz-control-content">
                     <div id="current-question-display" class="control-section">
                         <h3>Current Question</h3>
+                        <div id="admin-question-progress" class="question-progress">Question 1 of 5</div>
                         <div id="question-text">No question active</div>
+                        <div id="admin-timer" class="admin-timer">Time remaining: <span id="admin-time-remaining">30</span>s</div>
                     </div>
 
                     <div id="answers-display" class="control-section">
                         <h3>Live Answers</h3>
+                        <div id="answer-counter" class="answer-counter">0 of 0 participants have answered</div>
                         <div id="answers-table-container">
                             <table id="answers-table">
                                 <thead>
@@ -139,6 +143,6 @@
         </main>
     </div>
 
-    <script src="/assets/admin.js"></script>
+    <script src="/assets/admin.js?v=20241211"></script>
 </body>
 </html>

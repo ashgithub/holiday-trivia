@@ -8,6 +8,7 @@ class QuizParticipant {
         this.recognition = null;
         this.isListening = false;
         this.participantName = null;
+        this.hasSubmitted = false; // Track if participant has submitted answer
 
         this.init();
     }
@@ -45,9 +46,15 @@ class QuizParticipant {
         errorDiv.classList.add('hidden');
         this.participantName = name;
 
+
         // Hide name entry, show quiz interface
-        document.getElementById('name-entry-screen').classList.add('hidden');
-        document.getElementById('participant-screen').classList.remove('hidden');
+        const nameEntryScreen = document.getElementById('name-entry-screen');
+        const participantScreen = document.getElementById('participant-screen');
+
+        nameEntryScreen.classList.add('hidden');
+        participantScreen.classList.remove('hidden');
+
+
 
         // Now connect to WebSocket
         this.setupWebSocket();
@@ -164,7 +171,7 @@ class QuizParticipant {
                 break;
 
             case 'question':
-                this.displayQuestion(data.question);
+                this.displayQuestion(data.question, data.progress);
                 break;
 
             case 'drawing_start':
@@ -176,7 +183,10 @@ class QuizParticipant {
                 break;
 
             case 'timer_update':
-                this.updateTimer(data.time_left);
+                // Only update timer if question is still active (timeLeft > 0) and participant hasn't submitted
+                if (this.timeLeft > 0 && !this.hasSubmitted) {
+                    this.updateTimer(data.time_left);
+                }
                 break;
 
             case 'quiz_ended':
@@ -201,12 +211,40 @@ class QuizParticipant {
         document.getElementById('question-container').classList.add('hidden');
         document.getElementById('drawing-canvas').classList.add('hidden');
         document.getElementById('waiting-message').classList.remove('hidden');
+        document.getElementById('waiting-message').innerHTML = `
+            <h2>Quiz Finished!</h2>
+            <p>Thanks for playing! The quiz has ended.</p>
+            <div class="snowflake">🎉</div>
+        `;
         this.updateStatus('Quiz ended - Thanks for playing!');
     }
 
-    displayQuestion(question) {
+    displayQuestion(question, progress) {
         this.currentQuestion = question;
+        this.hasSubmitted = false; // Reset submission flag for new question
+
+        // Restore timer markup for new question
+        document.getElementById('timer').innerHTML = 'Time remaining: <span id="time-remaining">30</span>s';
+
+        // Set default values for missing properties
+        if (this.currentQuestion.allow_multiple === undefined) {
+            this.currentQuestion.allow_multiple = true; // Default to allowing multiple attempts
+        }
+
+        // Update progress display
+        if (progress) {
+            document.getElementById('question-progress').textContent = `Question ${progress.current} of ${progress.total}`;
+        }
+
         document.getElementById('question-content').textContent = question.content;
+
+        // Re-enable input fields for new question
+        const textAnswer = document.getElementById('text-answer');
+        const submitBtn = document.getElementById('submit-btn');
+
+        textAnswer.disabled = false;
+        textAnswer.value = ''; // Clear any previous answer
+        submitBtn.disabled = false;
 
         // Handle different question types
         if (question.type === 'multiple_choice') {
@@ -252,6 +290,12 @@ class QuizParticipant {
     submitAnswer(answer) {
         if (!this.currentQuestion) return;
 
+        // Check if time has expired
+        if (this.timeLeft <= 0) {
+            alert('Time has expired! You cannot submit answers after the timer runs out.');
+            return;
+        }
+
         const answerText = answer || document.getElementById('text-answer').value.trim();
         if (!answerText) return;
 
@@ -262,14 +306,30 @@ class QuizParticipant {
         };
 
         this.ws.send(JSON.stringify(message));
+        this.hasSubmitted = true; // Mark as submitted
 
-        // Clear input
-        document.getElementById('text-answer').value = '';
+        // Stop the timer
+        if (this.timer) {
+            clearInterval(this.timer);
+            this.timer = null;
+        }
 
-        // For single-attempt questions, disable input
+        // Show submitted answer feedback
+        const textAnswer = document.getElementById('text-answer');
+        const submitBtn = document.getElementById('submit-btn');
+
+        // Update input to show submitted answer
+        textAnswer.value = answerText;
+        textAnswer.disabled = true;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Answer Submitted';
+
+        // Update timer display to show submission
+        document.getElementById('timer').innerHTML = 'Time remaining: Submitted';
+
+        // For single-attempt questions, keep disabled
         if (!this.currentQuestion.allow_multiple) {
-            document.getElementById('text-answer').disabled = true;
-            document.getElementById('submit-btn').disabled = true;
+            // Already disabled above
         }
     }
 
@@ -284,9 +344,28 @@ class QuizParticipant {
 
             if (this.timeLeft <= 0) {
                 clearInterval(this.timer);
-                this.submitAnswer(); // Auto-submit empty answer
+                this.timeExpired();
             }
         }, 1000);
+    }
+
+    timeExpired() {
+        // Disable input fields when time expires
+        const textAnswer = document.getElementById('text-answer');
+        const submitBtn = document.getElementById('submit-btn');
+        const voiceBtn = document.getElementById('voice-btn');
+
+        textAnswer.disabled = true;
+        textAnswer.value = 'Time Expired - No answer submitted';
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Time Expired';
+        voiceBtn.disabled = true;
+
+        // Disable multiple choice buttons if they exist
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+        });
     }
 
     updateTimerDisplay() {

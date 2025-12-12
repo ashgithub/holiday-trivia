@@ -71,8 +71,15 @@ class QuizAdmin {
 
         if (password === correctPassword) {
             this.isAuthenticated = true;
-            document.getElementById('login-screen').classList.add('hidden');
-            document.getElementById('admin-interface').classList.remove('hidden');
+
+            const loginScreen = document.getElementById('login-screen');
+            const adminInterface = document.getElementById('admin-interface');
+
+            loginScreen.classList.add('hidden');
+            adminInterface.classList.remove('hidden');
+
+
+
             this.setupWebSocket();
             this.setupAdminControls();
             this.updateStatus('Logged in - Setting up quiz controls');
@@ -299,9 +306,25 @@ class QuizAdmin {
 
             case 'question_pushed':
                 document.getElementById('question-text').textContent = data.question.content;
+                if (data.progress) {
+                    document.getElementById('admin-question-progress').textContent = `Question ${data.progress.current} of ${data.progress.total}`;
+                    // Disable next-question button if we've reached the final question
+                    if (data.progress.current >= data.progress.total) {
+                        document.getElementById('next-question-btn').disabled = true;
+                    } else {
+                        document.getElementById('next-question-btn').disabled = false;
+                    }
+                }
+                // Reset answer counter for new question - show 0 of current total participants
+                const currentParticipantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
+                document.getElementById('answer-counter').textContent = `0 of ${currentParticipantCount} participants have answered`;
                 if (data.question.type === 'drawing') {
                     document.getElementById('drawing-area').classList.remove('hidden');
                 }
+                break;
+
+            case 'timer_update':
+                document.getElementById('admin-time-remaining').textContent = data.time_left;
                 break;
 
             case 'answer_received':
@@ -343,8 +366,14 @@ class QuizAdmin {
             const cell = row.insertCell();
             cell.colSpan = 4;
             cell.textContent = 'Waiting for answers...';
+            // Update counter
+            document.getElementById('answer-counter').textContent = '0 of 0 participants have answered';
             return;
         }
+
+        // Update counter - use the participant count from status updates
+        const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
+        document.getElementById('answer-counter').textContent = `${answers.length} of ${participantCount} participants have answered`;
 
         // Sort answers by timestamp (newest first)
         answers.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -403,7 +432,13 @@ class QuizAdmin {
 
     updateStatusDashboard(data) {
         // Update participant count
+        const oldCount = parseInt(document.getElementById('participant-count').textContent) || 0;
         document.getElementById('participant-count').textContent = data.participant_count;
+
+        // Update answer counter if participant count changed and we have answers
+        if (oldCount !== data.participant_count) {
+            this.updateAnswerCounter();
+        }
 
         // Update quiz status
         const quizStatus = data.quiz_active ? 'Active' : 'Waiting';
@@ -416,6 +451,18 @@ class QuizAdmin {
                 data.current_question) :
             'None';
         document.getElementById('current-question-status').textContent = questionStatus;
+    }
+
+    updateAnswerCounter() {
+        // Get current answers count from table
+        const tbody = document.getElementById('answers-tbody');
+        const answerCount = tbody.querySelectorAll('tr:not(.no-answers)').length;
+
+        // Get current participant count
+        const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
+
+        // Update counter
+        document.getElementById('answer-counter').textContent = `${answerCount} of ${participantCount} participants have answered`;
     }
 
     loadQuestions() {

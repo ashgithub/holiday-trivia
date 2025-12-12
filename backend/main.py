@@ -43,9 +43,10 @@ class ConnectionManager:
         if connection_id in self.active_connections:
             await self.active_connections[connection_id].send_json(message)
 
-    async def broadcast(self, message: dict, exclude_connection: str = None):
+    async def broadcast(self, message: dict, exclude_connections: Optional[set] = None):
+        exclude_connections = exclude_connections or set()
         for connection_id, connection in self.active_connections.items():
-            if connection_id != exclude_connection:
+            if connection_id not in exclude_connections:
                 try:
                     await connection.send_json(message)
                 except Exception as e:
@@ -61,12 +62,30 @@ admin_manager = ConnectionManager()
 # Game state
 current_game: Optional[Game] = None
 current_question: Optional[Question] = None
+current_question_index: int = 0
+total_questions: int = 0
 question_timer: Optional[asyncio.Task] = None
+
+async def cleanup_database():
+    """Clean up users and answers tables at startup for fresh sessions"""
+    db = SessionLocal()
+    try:
+        # Clear users and answers tables
+        db.query(Answer).delete()
+        db.query(User).delete()
+        db.commit()
+        print("Database cleaned: users and answers tables cleared")
+    except Exception as e:
+        print(f"Error cleaning database: {e}")
+        db.rollback()
+    finally:
+        db.close()
 
 # Lifespan event handler for startup/shutdown
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup: Start background status updates
+    # Startup: Clean database and start background status updates
+    await cleanup_database()
     status_task = asyncio.create_task(send_admin_status_updates())
     yield
     # Shutdown: Cancel background task
@@ -210,6 +229,14 @@ async def participant_websocket(websocket: WebSocket):
 async def admin_websocket(websocket: WebSocket):
     connection_id = await admin_manager.connect(websocket, "admin")
 
+    # Send current timer state if quiz is active
+    if current_game and current_game.status == "active" and current_question:
+        # Send current timer state (assume 30 seconds for new admin connections)
+        await admin_manager.send_personal_message({
+            "type": "timer_update",
+            "time_left": 30
+        }, connection_id)
+
     try:
         while True:
             data = await websocket.receive_json()
@@ -231,9 +258,13 @@ async def admin_websocket(websocket: WebSocket):
                                 "type": current_question.type,
                                 "content": current_question.content,
                                 "options": json.loads(current_question.answers) if current_question.answers else None
+                            },
+                            "progress": {
+                                "current": current_question_index,
+                                "total": total_questions
                             }
                         }
-                        await admin_manager.broadcast({"type": "question_pushed", "question": question_data["question"]})
+                        await admin_manager.broadcast({"type": "question_pushed", "question": question_data["question"], "progress": question_data["progress"]})
                         await participant_manager.broadcast(question_data)
 
                         # Start timer
@@ -316,23 +347,43 @@ async def admin_websocket(websocket: WebSocket):
 
 # Game management functions
 async def start_quiz(db):
-    global current_game
+    global current_game, current_question_index, total_questions
     current_game = Game(status="active")
     db.add(current_game)
     db.commit()
     db.refresh(current_game)
 
+    # Initialize question progress
+    total_questions = db.query(Question).count()
+    current_question_index = 0
+
 async def next_question(db):
-    global current_question, question_timer
+    global current_question, question_timer, current_question_index
+
+    # Only allow next question if quiz is active and not exhausted
+    if not current_game or current_game.status != "active":
+        print("Cannot push next question - quiz not active")
+        return
+
+    total = db.query(Question).count()
+    if current_question_index >= total:
+        print("No more questions to push")
+        return
 
     # Cancel existing timer
     if question_timer:
         question_timer.cancel()
+        # Notify admin to reset the timer value immediately (force admin timer to 30)
+        await admin_manager.broadcast({
+            "type": "timer_update",
+            "time_left": 30
+        })
 
     # Get next question
-    question = db.query(Question).first()  # For now, just get first question
+    question = db.query(Question).offset(current_question_index).first()
     if question:
         current_question = question
+        current_question_index += 1
 
 async def end_quiz(db):
     global current_game, current_question, question_timer
@@ -354,19 +405,29 @@ async def start_question_timer():
 
     async def timer_task():
         time_left = 30
+        # Send initial timer state (30 seconds)
+        await participant_manager.broadcast({
+            "type": "timer_update",
+            "time_left": time_left
+        })
+        await admin_manager.broadcast({
+            "type": "timer_update",
+            "time_left": time_left
+        })
+
+        # Count down from 29 to 0
         while time_left > 0:
             await asyncio.sleep(1)
             time_left -= 1
+            # Send timer updates to both participants and admins
             await participant_manager.broadcast({
                 "type": "timer_update",
                 "time_left": time_left
             })
-
-        # Time's up - auto-submit empty answers or something
-        await participant_manager.broadcast({
-            "type": "timer_update",
-            "time_left": 0
-        })
+            await admin_manager.broadcast({
+                "type": "timer_update",
+                "time_left": time_left
+            })
 
     question_timer = asyncio.create_task(timer_task())
 
@@ -382,7 +443,7 @@ async def get_current_answers(db):
         "user": user.name,
         "content": answer.content,
         "correct": answer.is_correct,
-        "timestamp": answer.created_at.isoformat() if answer.created_at else None
+        "timestamp": answer.timestamp.isoformat() if answer.timestamp else None
     } for answer, user in answers]
 
 # Periodic status updates for admin
