@@ -315,9 +315,9 @@ class QuizAdmin {
                         document.getElementById('next-question-btn').disabled = false;
                     }
                 }
-                // Reset answer counter for new question - show 0 of current total participants
+                // Reset answer counter for new question - show 0 answered (0 correct)
                 const currentParticipantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
-                document.getElementById('answer-counter').textContent = `0 of ${currentParticipantCount} participants have answered`;
+                document.getElementById('answer-counter').textContent = `0 answered (0 correct) out of ${currentParticipantCount} participants`;
                 if (data.question.type === 'drawing') {
                     document.getElementById('drawing-area').classList.remove('hidden');
                 }
@@ -360,20 +360,25 @@ class QuizAdmin {
         const tbody = document.getElementById('answers-tbody');
         tbody.innerHTML = '';
 
+        const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
+
         if (answers.length === 0) {
             const row = tbody.insertRow();
             row.className = 'no-answers';
             const cell = row.insertCell();
             cell.colSpan = 4;
             cell.textContent = 'Waiting for answers...';
-            // Update counter
-            document.getElementById('answer-counter').textContent = '0 of 0 participants have answered';
+            // Update counter to correct format
+            document.getElementById('answer-counter').textContent = `0 answered (0 correct) out of ${participantCount} participants`;
             return;
         }
 
-        // Update counter - use the participant count from status updates
-        const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
-        document.getElementById('answer-counter').textContent = `${answers.length} of ${participantCount} participants have answered`;
+        // Calculate counts
+        const totalAnswered = answers.length;
+        const correctCount = answers.filter(answer => answer.correct).length;
+
+        // Update counter with both counts
+        document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
 
         // Sort answers by timestamp (newest first)
         answers.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
@@ -451,18 +456,28 @@ class QuizAdmin {
                 data.current_question) :
             'None';
         document.getElementById('current-question-status').textContent = questionStatus;
+
+        // Update answered and correct answers count if available
+        if (data.hasOwnProperty('total_answered') && data.hasOwnProperty('correct_answers')) {
+            const participantCount = data.participant_count;
+            const totalAnswered = data.total_answered || 0;
+            const correctCount = data.correct_answers || 0;
+            document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
+        }
     }
 
     updateAnswerCounter() {
-        // Get current answers count from table
+        // Get current answered and correct counts from table
         const tbody = document.getElementById('answers-tbody');
-        const answerCount = tbody.querySelectorAll('tr:not(.no-answers)').length;
+        const rows = tbody.querySelectorAll('tr:not(.no-answers)');
+        const totalAnswered = rows.length;
+        const correctCount = Array.from(rows).filter(row => row.querySelector('.correct')).length;
 
         // Get current participant count
         const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
 
         // Update counter
-        document.getElementById('answer-counter').textContent = `${answerCount} of ${participantCount} participants have answered`;
+        document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
     }
 
     loadQuestions() {

@@ -212,9 +212,10 @@ async def participant_websocket(websocket: WebSocket):
                         db.commit()
 
                     # Notify admin of new answer
+                    answers, _ = get_current_answers(db)
                     await admin_manager.broadcast({
                         "type": "answer_received",
-                        "answers": await get_current_answers(db)
+                        "answers": answers
                     })
 
         except WebSocketDisconnect:
@@ -431,35 +432,45 @@ async def start_question_timer():
 
     question_timer = asyncio.create_task(timer_task())
 
-async def get_current_answers(db):
+def get_current_answers(db):
     if not current_question:
-        return []
+        return [], 0
 
     answers = db.query(Answer, User).join(User).filter(
         Answer.question_id == current_question.id
     ).all()
+
+    correct_count = sum(1 for answer, _ in answers if answer.is_correct)
 
     return [{
         "user": user.name,
         "content": answer.content,
         "correct": answer.is_correct,
         "timestamp": answer.timestamp.isoformat() if answer.timestamp else None
-    } for answer, user in answers]
+    } for answer, user in answers], correct_count
 
 # Periodic status updates for admin
 async def send_admin_status_updates():
     while True:
         try:
-            # Send participant count and quiz status to all admins
-            status_update = {
-                "type": "status_update",
-                "participant_count": participant_manager.get_participant_count(),
-                "quiz_active": current_game is not None and current_game.status == "active",
-                "current_question": current_question.content if current_question else None,
-                "question_type": current_question.type if current_question else None
-            }
+            db = SessionLocal()
+            try:
+                answers, correct_count = get_current_answers(db)
+                total_answered = len(answers)
+                # Send participant count, quiz status, total answered, and correct answer count to all admins
+                status_update = {
+                    "type": "status_update",
+                    "participant_count": participant_manager.get_participant_count(),
+                    "quiz_active": current_game is not None and current_game.status == "active",
+                    "current_question": current_question.content if current_question else None,
+                    "question_type": current_question.type if current_question else None,
+                    "total_answered": total_answered,
+                    "correct_answers": correct_count
+                }
 
-            await admin_manager.broadcast(status_update)
+                await admin_manager.broadcast(status_update)
+            finally:
+                db.close()
         except Exception as e:
             print(f"Error sending status update: {e}")
 
