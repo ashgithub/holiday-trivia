@@ -132,12 +132,12 @@ async def debug():
 @app.get("/")
 async def participant_page():
     """Serve participant page"""
-    return FileResponse("../frontend/index.html")
+    return FileResponse("frontend/index.html")
 
 @app.get("/admin")
 async def admin_page():
     """Serve admin page"""
-    return FileResponse("../frontend/admin.html")
+    return FileResponse("frontend/admin.html")
 
 # WebSocket endpoints
 @app.websocket("/ws/participant")
@@ -238,7 +238,7 @@ async def participant_websocket(websocket: WebSocket):
                     }, connection_id)
 
                     # Notify admin of updated answers
-                    answers, _ = get_current_answers(db)
+                    answers, _ = await get_current_answers(db)
                     await admin_manager.broadcast({
                         "type": "answer_received",
                         "answers": answers
@@ -272,7 +272,14 @@ async def admin_websocket(websocket: WebSocket):
             try:
                 if data["type"] == "start_quiz":
                     await start_quiz(db)
-                    await admin_manager.send_personal_message({"type": "quiz_started"}, connection_id)
+                    # Send initial progress info with quiz started
+                    await admin_manager.send_personal_message({
+                        "type": "quiz_started",
+                        "progress": {
+                            "current": 0,
+                            "total": total_questions
+                        }
+                    }, connection_id)
                     await participant_manager.broadcast({"type": "quiz_started"})
 
                 elif data["type"] == "next_question":
@@ -292,6 +299,7 @@ async def admin_websocket(websocket: WebSocket):
                                 "total": total_questions
                             }
                         }
+                        print(f"Pushing question {current_question_index} of {total_questions}")
                         await admin_manager.broadcast({"type": "question_pushed", "question": question_data["question"], "progress": question_data["progress"]})
                         await participant_manager.broadcast(question_data)
 
@@ -322,7 +330,9 @@ async def admin_websocket(websocket: WebSocket):
                     }, connection_id)
 
                 elif data["type"] == "get_questions":
+                    print(f"Admin {connection_id} requested questions")
                     questions = db.query(Question).all()
+                    print(f"Found {len(questions)} questions in database")
                     questions_data = [{
                         "id": q.id,
                         "type": q.type,
@@ -332,6 +342,7 @@ async def admin_websocket(websocket: WebSocket):
                         "allow_multiple": q.allow_multiple
                     } for q in questions]
 
+                    print(f"Sending {len(questions_data)} questions to admin")
                     await admin_manager.send_personal_message({
                         "type": "questions_loaded",
                         "questions": questions_data
@@ -406,6 +417,7 @@ async def start_quiz(db):
 
     # Initialize question progress
     total_questions = db.query(Question).count()
+    print(f"Starting quiz with {total_questions} total questions")
     current_question_index = 0
 
 async def next_question(db):
@@ -486,7 +498,7 @@ async def start_question_timer():
 
     question_timer = asyncio.create_task(timer_task())
 
-def get_current_answers(db):
+async def get_current_answers(db):
     if not current_question:
         return [], 0
 
@@ -510,7 +522,7 @@ async def send_admin_status_updates():
         try:
             db = SessionLocal()
             try:
-                answers, correct_count = get_current_answers(db)
+                answers, correct_count = await get_current_answers(db)
                 total_answered = len(answers)
                 # Send participant count, quiz status, total answered, and correct answer count to all admins
                 status_update = {

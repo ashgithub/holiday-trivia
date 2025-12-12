@@ -99,15 +99,16 @@ class QuizAdmin {
 
         this.ws.onopen = () => {
             this.updateStatus('Connected to quiz server');
+            // Load existing questions after connection is established
+            setTimeout(() => {
+                this.loadQuestions();
+            }, 100); // Small delay to ensure connection is ready
         };
 
         this.ws.onmessage = (event) => {
             const data = JSON.parse(event.data);
             this.handleMessage(data);
         };
-
-        // Load existing questions
-        this.loadQuestions();
 
         this.ws.onclose = () => {
             this.updateStatus('Disconnected from server');
@@ -303,9 +304,14 @@ class QuizAdmin {
 
             case 'quiz_started':
                 document.getElementById('start-quiz-btn').disabled = true;
+                document.getElementById('reveal-answer-btn').classList.remove('hidden');
                 document.getElementById('reveal-answer-btn').disabled = false;
                 document.getElementById('next-question-btn').disabled = false;
                 document.getElementById('end-quiz-btn').disabled = false;
+                // Update progress display if provided
+                if (data.progress) {
+                    document.getElementById('admin-question-progress').textContent = `Question ${data.progress.current} of ${data.progress.total}`;
+                }
                 this.updateStatus('Quiz started');
                 break;
 
@@ -363,6 +369,7 @@ class QuizAdmin {
 
             case 'quiz_ended':
                 document.getElementById('start-quiz-btn').disabled = false;
+                document.getElementById('reveal-answer-btn').classList.add('hidden');
                 document.getElementById('reveal-answer-btn').disabled = true;
                 document.getElementById('next-question-btn').disabled = true;
                 document.getElementById('end-quiz-btn').disabled = true;
@@ -545,18 +552,47 @@ class QuizAdmin {
     }
 
     loadQuestions() {
+        console.log('Loading questions...');
         // Send request to load existing questions
         this.sendMessage({ type: 'get_questions' });
     }
 
     updateQuestionsList(questions) {
+        console.log('Updating questions list with:', questions);
         const container = document.getElementById('questions-list');
         container.innerHTML = '';
 
         if (!questions || questions.length === 0) {
+            console.log('No questions to display');
             container.textContent = 'No questions added yet...';
             return;
         }
+
+        // Calculate category counts
+        const categoryCounts = {};
+        questions.forEach(question => {
+            categoryCounts[question.category] = (categoryCounts[question.category] || 0) + 1;
+        });
+
+        // Create category summary section
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'questions-summary';
+        summaryDiv.innerHTML = `
+            <h4>Question Library Summary</h4>
+            <div class="category-counts">
+                ${Object.entries(categoryCounts).map(([category, count]) =>
+                    `<span class="category-badge">${category}: ${count}</span>`
+                ).join('')}
+            </div>
+            <div class="total-count">Total: ${questions.length} questions</div>
+        `;
+        container.appendChild(summaryDiv);
+
+        // Create individual questions list
+        const questionsHeader = document.createElement('h4');
+        questionsHeader.textContent = 'Individual Questions';
+        questionsHeader.style.marginTop = '20px';
+        container.appendChild(questionsHeader);
 
         questions.forEach((question, index) => {
             const div = document.createElement('div');
@@ -564,6 +600,7 @@ class QuizAdmin {
             div.innerHTML = `
                 <div class="question-header">
                     <strong>${question.type.replace('_', ' ').toUpperCase()}</strong>
+                    <span class="question-category">${question.category}</span>
                     <button class="btn btn-danger btn-small delete-btn" data-index="${index}">Delete</button>
                 </div>
                 <div class="question-content">${question.content}</div>

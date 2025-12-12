@@ -35,15 +35,19 @@ An interactive real-time quiz game for Zoom all-hands meetings with up to 150 pa
    curl -LsSf https://astral.sh/uv/install.sh | sh
    ```
 
-3. **Install backend dependencies**:
+3. **Install dependencies**:
    ```bash
-   cd backend
    uv sync
    ```
 
-4. **Start the server**:
+4. **Populate sample quiz questions** (optional, for testing):
    ```bash
-   uv run main.py
+   uv run populate_sample_data.py
+   ```
+
+5. **Start the server**:
+   ```bash
+   uv run python backend/main.py
    ```
    Server will start on http://localhost:8000
 
@@ -66,8 +70,7 @@ all-hands-game/
 ├── backend/
 │   ├── main.py              # FastAPI server
 │   ├── models.py            # Database models
-│   ├── pyproject.toml       # uv project configuration
-│   └── requirements.txt     # Legacy pip requirements
+│   └── pyproject.toml       # Backend package configuration
 ├── frontend/
 │   ├── index.html           # Participant page
 │   ├── admin.html           # Quiz master page
@@ -75,7 +78,9 @@ all-hands-game/
 │   ├── app.js               # Participant client logic
 │   └── admin.js             # Quiz master client logic
 ├── memory-bank/             # Project documentation
-├── tests/                   # Test files (future)
+├── tests/                   # Comprehensive testing suite
+├── populate_sample_data.py  # Database population script
+├── pyproject.toml           # Root workspace configuration
 └── README.md               # This file
 ```
 
@@ -107,17 +112,88 @@ all-hands-game/
 
 ### Running in Development Mode
 ```bash
-cd backend
-uv run main.py
+uv run python backend/main.py
 ```
 The server supports hot reload for development.
 
 ### Testing
+The project includes comprehensive testing infrastructure for validating performance with 150 concurrent users.
+
+#### Quick Test Commands
 ```bash
-# Run tests (when implemented)
-cd backend
-uv run pytest tests/
+# Run all tests
+uv run pytest
+
+# Run with coverage report
+uv run pytest --cov
+
+# Run specific test categories
+uv run pytest tests/unit_tests/          # Unit tests
+uv run pytest tests/integration_tests/   # Integration tests
 ```
+
+#### Load Testing for 150 Users
+The project includes specialized load testing tools to validate performance under full user load:
+
+##### Prerequisites for Load Testing
+1. **Start the quiz server:**
+   ```bash
+   uv run python backend/main.py
+   ```
+
+2. **In a separate terminal, run load tests:**
+   ```bash
+   # Full 150-user test (requires server running)
+   uv run python tests/load_tests/test_scenarios.py 150user
+
+   # Gradual scaling test (10→50→100→150 users)
+   uv run python tests/load_tests/test_scenarios.py scaling
+
+   # Stress test with connection churn
+   uv run python tests/load_tests/test_scenarios.py stress
+
+   # Correctness validation under load
+   uv run python tests/load_tests/test_scenarios.py correctness
+   ```
+
+##### Locust Web Interface (Alternative)
+```bash
+# Start Locust web interface
+uv run locust -f tests/load_tests/locustfile.py --host http://localhost:8000
+
+# Open http://localhost:8089 and configure:
+# - Number of users: 150
+# - Spawn rate: 10 users/second
+# - Run for 5-10 minutes
+```
+
+#### Test Results and Reports
+Load tests generate comprehensive reports including:
+- **System Performance**: CPU, memory, network usage
+- **Application Metrics**: WebSocket events, quiz interactions
+- **Performance Scoring**: A-F grade with specific recommendations
+- **Bottleneck Analysis**: Identification of scaling issues
+
+Reports are saved as JSON files with timestamps for analysis.
+
+#### Testing Architecture
+```
+tests/
+├── unit_tests/           # Database models, business logic
+├── integration_tests/    # WebSocket connections, HTTP endpoints
+└── load_tests/           # 150-user performance validation
+    ├── locustfile.py     # Locust load testing framework
+    ├── monitoring.py     # System monitoring and metrics
+    └── test_scenarios.py # Comprehensive test scenarios
+```
+
+#### Key Testing Features
+- **Real-time WebSocket Testing**: Validates bidirectional communication
+- **System Resource Monitoring**: CPU, memory, network tracking
+- **Performance Scoring**: Automated assessment of system health
+- **Gradual Scaling Tests**: Identifies performance degradation points
+- **Stress Testing**: Connection churn and peak load simulation
+- **Correctness Validation**: Ensures quiz logic accuracy under load
 
 ### Browser Compatibility
 - Chrome 70+

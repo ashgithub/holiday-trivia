@@ -1,0 +1,32 @@
+[project]
+name = "all-hands-quiz"
+version = "0.1.0"
+description = "All-Hands Quiz Game with real-time multiplayer support"
+requires-python = ">=3.9"
+
+[tool.uv.workspace]
+members = ["backend"]
+
+[tool.uv]
+dev-dependencies = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "locust>=2.15.0",
+    "websockets>=12.0",
+    "httpx>=0.25.0",
+    "pytest-mock>=3.10.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--cov=backend",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+]
