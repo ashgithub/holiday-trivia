@@ -8,10 +8,11 @@ This project creates an interactive quiz game for all-hands meetings conducted o
 2. **Participants**: Everyone other than the quiz master is a participant. They view questions pushed to their screens, respond, and see responses pushed back to the quiz master for real-time scoring.
 
 ## Questions
-There are 10 questions across 5 categories, with each category containing 2 questions.
+The system supports comprehensive question libraries with 25+ questions across 4 categories (Geography, Science, History, General). Questions are dynamically managed through the admin interface.
 
+**Supported Question Types:**
 1. **Fill in the Blank**: A sentence with missing words. Participants fill in the word. The quiz master's screen shows guesses with participant names. The matching answer wins.
-   
+
 2. **Word Cloud**: Quiz master provides a prompt. Participants respond with 1-3 word phrases. The quiz master's screen forms a word cloud. Words matching the most popular responses win.
 
 3. **Drawing**: The quiz master draws a phrase. Participants see the drawing being created in real-time and guess. Guesses appear on the screen. Participants can make multiple guesses. The nearest match wins.
@@ -30,9 +31,11 @@ Correct guesses win a point. The leaderboard shows top winners. Ties are decided
 
 ## Technical Stack
 - Pure Python, HTML, JS, CSS application
-- Frontend in pure JS, HTML, CSS calling REST APIs on Python backend using FastAPI
+- Frontend in pure JS, HTML, CSS with WebSocket connections to Python backend using FastAPI
+- Real-time communication via WebSockets for instant interaction
 - Theme: Christmas with a subtle Christmas background
-- Questions and answers handled using HTTP streaming
+- Database: SQLite with SQLAlchemy ORM
+- Testing: Comprehensive load testing infrastructure for 150 concurrent users
 
 ## Gameplay
 - Quiz master shares screen

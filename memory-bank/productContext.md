@@ -12,6 +12,8 @@ An interactive quiz game that transforms passive meetings into engaging, competi
 - **Ease of Use**: Simple setup and operation for quiz masters, intuitive interface for participants
 - **Variety**: Multiple question types to suit different content and engagement needs
 - **Real-time Feedback**: Immediate response aggregation and scoring for dynamic gameplay
+- **Robust Testing**: Comprehensive load testing infrastructure to validate performance at scale
+- **Admin Control**: Advanced question management and real-time analytics for quiz masters
 
 ## Target Users
 - **Quiz Masters**: Meeting organizers who need to facilitate interactive sessions
@@ -27,7 +29,8 @@ An interactive quiz game that transforms passive meetings into engaging, competi
 - Must work within Zoom/web conferencing environment
 - Browser-based (no app downloads required)
 - Christmas-themed for holiday season deployment
-- HTTP streaming for real-time capabilities
+- WebSocket connections for real-time, bidirectional communication
+- SQLite database for development (PostgreSQL for production)
 
 ## Business Value
 - Increases meeting effectiveness and retention

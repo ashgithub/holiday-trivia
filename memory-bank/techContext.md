@@ -3,9 +3,11 @@
 ## Technology Stack
 - **Backend**: Python 3.9+ with FastAPI framework
 - **Frontend**: Vanilla JavaScript, HTML5, CSS3 (no frameworks)
-- **Database**: SQLite for development, PostgreSQL for production (if needed)
+- **Database**: SQLite for development, PostgreSQL for production
 - **Real-time Communication**: WebSockets (via FastAPI WebSockets)
 - **Voice-to-Text**: Browser native Speech Recognition API (Web Speech API)
+- **Dependency Management**: uv for Python package management
+- **Testing**: pytest, Locust for load testing, custom monitoring tools
 - **Deployment**: Docker containerization, cloud hosting (AWS/GCP/Azure)
 
 ## Architecture Overview
@@ -53,18 +55,24 @@
 - **Answer**: id, user_id, question_id, content, timestamp, correct
 
 ## API Endpoints
-- `GET /questions` - List configured questions
-- `POST /questions` - Create new question
-- `WebSocket /ws/game/{game_id}` - Real-time game communication
-- `GET /game/{game_id}/status` - Current game state
-- `POST /game/{game_id}/start` - Start quiz session
+- `GET /api/` - API root with health info
+- `GET /api/health` - Health check endpoint
+- `WebSocket /ws/participant` - Participant real-time connection
+- `WebSocket /ws/admin` - Quiz master real-time connection
 
-## Real-time Message Types
-- `question_push`: New question broadcast
-- `answer_submit`: Participant answer
-- `score_update`: Leaderboard update
-- `drawing_stroke`: Drawing coordinate data
-- `game_state`: Status changes
+## Real-time Message Types (15+ implemented)
+- `quiz_started` - Quiz begins with progress info
+- `question_pushed` - Question successfully pushed to participants
+- `question` - New question broadcast with progress tracking
+- `answer_received` - Admin notification of participant answers
+- `personal_feedback` - Individual correctness feedback
+- `answer_revealed` - Correct answer revealed to all participants
+- `drawing_update` - Live drawing strokes from quiz master
+- `timer_update` - Timer countdown updates
+- `quiz_ended` - Quiz finished, cleanup state
+- `status_update` - Real-time dashboard updates
+- `questions_loaded` - Question library data sent to admin
+- `question_added/deleted` - Question management confirmations
 
 ## Performance Considerations
 - WebSocket connection pooling

@@ -36,10 +36,11 @@
 - **Batch Updates**: Aggregate multiple events before sending to reduce network traffic
 
 ## Testing Patterns
-- **Unit Testing**: Individual components (FastAPI routes, JS functions)
-- **Integration Testing**: Full request/response cycles
-- **Load Testing**: Simulate 150 concurrent users for scalability validation
-- **Browser Testing**: Cross-browser compatibility for voice-to-text and WebSockets
+- **Unit Testing**: Individual components (FastAPI routes, JS functions, database models)
+- **Integration Testing**: Full WebSocket communication cycles and database operations
+- **Load Testing**: Comprehensive 150-user scenarios with performance monitoring and reporting
+- **Browser Testing**: Cross-browser compatibility for voice-to-text and WebSocket features
+- **Debug Logging**: Extensive client and server-side logging for real-time troubleshooting
 
 ## Deployment Patterns
 - **Containerization**: Docker for consistent deployment

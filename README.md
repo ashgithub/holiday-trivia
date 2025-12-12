@@ -1,6 +1,6 @@
 # All-Hands Quiz Game 🎄
 
-An interactive real-time quiz game for Zoom all-hands meetings with up to 150 participants. Features multiple question types, live drawing, voice input, and Christmas-themed UI.
+An interactive real-time quiz game for Zoom all-hands meetings with up to 150 participants. Features multiple question types, live drawing, voice input, comprehensive admin controls, and Christmas-themed UI.
 
 ## Features
 
@@ -10,7 +10,11 @@ An interactive real-time quiz game for Zoom all-hands meetings with up to 150 pa
 - **Live Drawing**: Real-time collaborative drawing for quiz master
 - **Christmas Theme**: Festive UI with subtle holiday styling
 - **Scalable**: Supports up to 150 concurrent participants
-- **Admin Panel**: Password-protected quiz master controls
+- **Advanced Admin Panel**: Password-protected quiz master controls with question management
+- **Question Library**: Categorized question management with summary statistics
+- **Load Testing**: Comprehensive 150-user performance testing infrastructure
+- **Real-time Analytics**: Live participant tracking and answer statistics
+- **Robust Error Handling**: Debug logging and graceful failure recovery
 
 ## Tech Stack
 
@@ -56,6 +60,16 @@ An interactive real-time quiz game for Zoom all-hands meetings with up to 150 pa
 1. **For Participants**: Open http://localhost:8000 in web browser
 2. **For Quiz Master**: Open http://localhost:8000/admin and login with password `quizzer`
 
+### Sample Data
+
+The project includes a comprehensive sample dataset with 25 questions across 5 categories:
+- **Geography**: 5 questions (capitals, landmarks, countries)
+- **Science**: 8 questions (physics, biology, chemistry, space)
+- **History**: 5 questions (events, figures, timelines)
+- **General**: 7 questions (mixed knowledge topics)
+
+Run `uv run populate_sample_data.py` to populate the database with sample questions for testing.
+
 ### During Zoom Meeting
 
 1. Quiz master shares their screen showing the admin panel
@@ -68,21 +82,43 @@ An interactive real-time quiz game for Zoom all-hands meetings with up to 150 pa
 ```
 all-hands-game/
 ├── backend/
-│   ├── main.py              # FastAPI server
-│   ├── models.py            # Database models
+│   ├── main.py              # FastAPI server with WebSocket handlers
+│   ├── models.py            # Database models (User, Question, Game, Answer)
 │   └── pyproject.toml       # Backend package configuration
 ├── frontend/
-│   ├── index.html           # Participant page
-│   ├── admin.html           # Quiz master page
-│   ├── styles.css           # Christmas-themed styles
+│   ├── index.html           # Participant page with voice input
+│   ├── admin.html           # Quiz master page with controls
+│   ├── styles.css           # Christmas-themed styles with animations
 │   ├── app.js               # Participant client logic
-│   └── admin.js             # Quiz master client logic
-├── memory-bank/             # Project documentation
-├── tests/                   # Comprehensive testing suite
-├── populate_sample_data.py  # Database population script
+│   └── admin.js             # Admin client with question management
+├── tests/
+│   ├── unit_tests/          # Database and business logic tests
+│   ├── integration_tests/   # WebSocket and API endpoint tests
+│   └── load_tests/          # 150-user performance testing
+│       ├── locustfile.py    # Locust load testing framework
+│       ├── monitoring.py    # System monitoring utilities
+│       └── test_scenarios.py # Comprehensive test scenarios
+├── memory-bank/             # Project documentation system
+├── populate_sample_data.py  # Sample question database population
 ├── pyproject.toml           # Root workspace configuration
-└── README.md               # This file
+├── .gitignore              # Git ignore rules
+└── README.md               # This documentation
 ```
+
+## Database Models
+
+The application uses SQLAlchemy ORM with the following core models:
+
+- **User**: Participant information (name, role, session tracking)
+- **Question**: Quiz questions with types, categories, and answers
+- **Game**: Quiz session management with start/end timestamps
+- **Answer**: Participant responses with correctness tracking and retry logic
+
+### Database Features
+- **Automatic Cleanup**: User and answer tables cleared on server startup
+- **Session Management**: Persistent user sessions across page refreshes
+- **Real-time Sync**: Live database updates via WebSocket connections
+- **Performance Optimized**: Efficient queries for high-concurrency scenarios
 
 ## API Endpoints
 
@@ -91,22 +127,54 @@ all-hands-game/
 - `WebSocket /ws/participant` - Participant real-time connection
 - `WebSocket /ws/admin` - Quiz master real-time connection
 
+## Admin Interface Features
+
+### Quiz Control Panel
+- **Real-time Status Dashboard**: Live participant count, quiz status, current question
+- **Question Progress**: Accurate "X of Y" progress tracking with proper question counting
+- **Answer Analytics**: Live answer table with timestamps, retry counts, and correctness
+- **Timer Control**: 30-second countdown with visual feedback
+- **Drawing Canvas**: Interactive drawing board for creative questions
+
+### Question Management System
+- **Add Questions**: Create new questions with multiple types and categories
+- **Question Library**: View all questions with category badges and delete functionality
+- **Category Summary**: Visual breakdown showing question counts by category (geography, science, history, general)
+- **Real-time Sync**: Questions load automatically with WebSocket updates
+
+### Reveal Answer System
+- **Smart Visibility**: Reveal button only appears during active quiz sessions
+- **Proper Styling**: Orange warning button that clearly indicates action availability
+- **Answer Display**: Shows correct answers with options for multiple choice questions
+
 ## WebSocket Message Types
 
 ### From Server to Clients
-- `quiz_started` - Quiz begins
-- `question` - New question broadcast
-- `drawing_start` - Drawing mode activated
-- `drawing_update` - Live drawing strokes
-- `timer_update` - Timer countdown
-- `quiz_ended` - Quiz finished
+- `quiz_started` - Quiz begins with progress info (current: 0, total: X)
+- `question` - New question broadcast with progress tracking
+- `question_pushed` - Question successfully pushed to participants
+- `drawing_update` - Live drawing strokes from quiz master
+- `timer_update` - Timer countdown updates
+- `answer_revealed` - Correct answer revealed to all participants
+- `quiz_ended` - Quiz finished, cleanup state
+- `status_update` - Real-time dashboard updates (participant count, answers, etc.)
+- `questions_loaded` - Question library data sent to admin
+- `question_added` - Confirmation of new question creation
+- `question_deleted` - Confirmation of question removal
+- `reveal_confirmed` - Answer reveal acknowledgment
 
 ### From Clients to Server
-- `answer` - Participant answer submission
+- `join` - Participant joins with name
+- `answer` - Participant answer submission with retry logic
 - `start_quiz` - Quiz master starts game
-- `next_question` - Push next question
-- `add_question` - Add new question
-- `drawing_stroke` - Drawing coordinates
+- `next_question` - Push next question in sequence
+- `end_quiz` - Quiz master ends session
+- `add_question` - Create new question
+- `delete_question` - Remove question by index
+- `get_questions` - Request question library data
+- `reveal_answer` - Show correct answer to participants
+- `drawing_stroke` - Drawing coordinates for collaborative drawing
+- `push_drawing` - Send completed drawing to participants
 
 ## Development
 
@@ -115,6 +183,25 @@ all-hands-game/
 uv run python backend/main.py
 ```
 The server supports hot reload for development.
+
+### Debug Features
+The application includes comprehensive debug logging for troubleshooting:
+
+**Server-side Debug Logs:**
+- Question loading: `Admin X requested questions`, `Found Y questions in database`
+- Quiz progress: `Starting quiz with X total questions`, `Pushing question Y of X`
+- WebSocket events: Connection/disconnection tracking
+
+**Client-side Debug Logs:**
+- Question management: `Loading questions...`, `Updating questions list with: [...]`
+- WebSocket messages: Real-time message flow tracking
+- Error handling: Graceful failure recovery with detailed error messages
+
+**Browser Console:**
+Open F12 Developer Tools → Console tab to view client-side debug output.
+
+**Terminal Output:**
+Server logs provide backend operation visibility for performance monitoring.
 
 ### Testing
 The project includes comprehensive testing infrastructure for validating performance with 150 concurrent users.
