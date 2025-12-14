@@ -295,6 +295,7 @@ class QuizParticipant {
             btn.className = 'choice-btn';
             btn.textContent = option;
             btn.onclick = () => this.selectChoice(index, option);
+            // Remove auto-highlight and rely only on submit+disable feedback
             container.appendChild(btn);
         });
     }
@@ -304,23 +305,46 @@ class QuizParticipant {
     }
 
     selectChoice(index, text) {
-        // Remove previous selection
-        document.querySelectorAll('.choice-btn').forEach(btn => {
-            btn.classList.remove('selected');
-        });
-
-        // Select current
-        event.target.classList.add('selected');
+        // Prevent multiple submissions/disables after submission
+        if (this.hasSubmitted) return;
 
         // Submit answer
         this.submitAnswer(text);
+
+        // Disable all MCQ buttons immediately; no visual "selected" class
+        document.querySelectorAll('.choice-btn').forEach(btn => {
+            btn.disabled = true;
+        });
+    }
+
+    // Simple HTML escape (same as admin.js)
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
     }
 
     showPersonalFeedback(data) {
+        // Debug: always log feedback received
+        console.log('[participant] showPersonalFeedback received:', data);
         const slot = document.getElementById('feedback-slot');
         if (!slot) return;
 
-        if (data.correct) {
+        // For word cloud: explicit status handling via scoring_status field
+        if (data.scoring_status === 'pending') {
+            slot.innerHTML = `<span class="feedback submitted">Answer submitted. Waiting for word cloud scoring...</span>`;
+            document.getElementById('text-answer').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').textContent = 'Submitted';
+            this.hasSubmitted = true;
+        } else if (data.scoring_status === 'complete') {
+            // Scored after clustering
+            slot.innerHTML = `<span class="feedback wordcloud-result">Word cloud score: <strong>${data.score}</strong> (${data.cluster_size} in group: ${this.escapeHtml(data.cluster_rep || '')})</span>`;
+            document.getElementById('text-answer').disabled = true;
+            document.getElementById('submit-btn').disabled = true;
+            document.getElementById('submit-btn').textContent = 'Scored';
+            this.hasSubmitted = true;
+        } else if (data.correct) {
             const currentScore = data.score || 0;
             const totalScore = data.total_score || 0;
             slot.innerHTML = `<span class="feedback correct">Correct! 🎉 (+${currentScore} pts, Total: ${totalScore} pts)</span>`;

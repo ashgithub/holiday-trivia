@@ -15,6 +15,60 @@ from pathlib import Path
 
 from models import SessionLocal, User, Question, Game, Answer
 
+# --- Word Cloud Embedding/Clustering Imports ---
+import numpy as np
+import torch
+from sentence_transformers import SentenceTransformer, util
+
+# Load the embedding model globally (MiniLM is fast and small)
+WORD_CLOUD_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
+
+def cluster_word_cloud_answers(answers, similarity_threshold=0.75):
+    """
+    Groups similar word cloud answers using sentence-transformers.
+    Args:
+        answers: List of (user_id, answer_string)
+        similarity_threshold: Cosine similarity threshold for grouping
+    Returns:
+        cluster_map: dict {cluster_id: {"users": [user_id,...], "answers": [str], "rep": str}}
+        answer_to_cluster: dict {user_id: cluster_id}
+    """
+    if not answers:
+        return {}, {}
+
+    user_ids, answer_texts = zip(*answers)
+    embeddings = WORD_CLOUD_MODEL.encode(answer_texts, convert_to_tensor=True)
+
+    # Cosine similarity matrix
+    cosine_scores = util.pytorch_cos_sim(embeddings, embeddings).cpu().numpy()
+
+    n = len(answers)
+    visited = [False] * n
+    clusters = []
+    for i in range(n):
+        if not visited[i]:
+            # Group all answers with cosine similarity >= threshold to i
+            cluster = [i]
+            visited[i] = True
+            for j in range(i+1, n):
+                if not visited[j] and cosine_scores[i,j] >= similarity_threshold:
+                    cluster.append(j)
+                    visited[j] = True
+            clusters.append(cluster)
+
+    cluster_map = {}
+    answer_to_cluster = {}
+    for idx, cluster in enumerate(clusters):
+        cluster_user_ids = [user_ids[i] for i in cluster]
+        cluster_answers = [answer_texts[i] for i in cluster]
+        # Cluster representative: the most common answer, or first answer
+        rep = max(set(cluster_answers), key=cluster_answers.count)
+        cluster_map[idx] = {"users": cluster_user_ids, "answers": cluster_answers, "rep": rep}
+        for user_id in cluster_user_ids:
+            answer_to_cluster[user_id] = idx
+
+    return cluster_map, answer_to_cluster
+
 # Connection managers
 class ConnectionManager:
     def __init__(self):
@@ -149,6 +203,9 @@ async def admin_page():
     return FileResponse("frontend/admin.html")
 
 # WebSocket endpoints
+# --- Word cloud scoring tracking ---
+word_cloud_scored = False
+
 @app.websocket("/ws/participant")
 async def participant_websocket(websocket: WebSocket):
     # Accept the WebSocket connection and get connection ID
@@ -210,18 +267,22 @@ async def participant_websocket(websocket: WebSocket):
             while True:
                 data = await websocket.receive_json()
 
+
                 if data["type"] == "answer":
-                    # Check if user has existing answer for this question
+                    global word_cloud_scored
                     existing = db.query(Answer).filter(
                         Answer.user_id == participant.id,
                         Answer.question_id == data["question_id"],
                         Answer.game_id == current_game.id if current_game else None
                     ).first()
 
-                    # Check if correct
+                    # CUSTOM: For word_cloud, always accept and ignore is_correct/scoring at this stage
+                    is_word_cloud = current_question and current_question.type == "word_cloud"
                     is_correct = False
                     score = 0
-                    if current_question and data["question_id"] == current_question.id:
+
+                    if current_question and data["question_id"] == current_question.id and not is_word_cloud:
+                        # Only use text match scoring for non-word_cloud
                         is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
 
                         # Calculate time-based score: seconds remaining if correct, 0 if wrong
@@ -230,7 +291,7 @@ async def participant_websocket(websocket: WebSocket):
                             seconds_remaining = max(0, 30 - elapsed_time)
                             score = int(seconds_remaining)  # Convert to integer seconds
 
-                    if existing and not existing.is_correct:
+                    if existing and (not existing.is_correct or is_word_cloud):
                         # Update existing answer
                         existing.content = data["answer"]
                         existing.is_correct = is_correct
@@ -252,7 +313,6 @@ async def participant_websocket(websocket: WebSocket):
 
                     db.commit()
 
-                    # Calculate cumulative score for this user
                     user_answers = db.query(Answer).filter(
                         Answer.user_id == participant.id,
                         Answer.game_id == current_game.id if current_game else None
@@ -260,14 +320,26 @@ async def participant_websocket(websocket: WebSocket):
                     total_score = sum(ans.score for ans in user_answers)
 
                     # Send personal feedback to participant
-                    await participant_manager.send_personal_message({
-                        "type": "personal_feedback",
-                        "correct": is_correct,
-                        "score": score,
-                        "total_score": total_score,
-                        "retry_count": answer.retry_count,
-                        "allow_multiple": current_question.allow_multiple if current_question else True
-                    }, connection_id)
+                    # For word_cloud, do not mark as correct/incorrect -- just acknowledge
+                    if is_word_cloud:
+                        await participant_manager.send_personal_message({
+                            "type": "personal_feedback",
+                            "correct": False,
+                            "score": 0,
+                            "total_score": total_score,
+                            "retry_count": existing.retry_count if existing else 1,
+                            "allow_multiple": False,
+                            "scoring_status": "pending"
+                        }, connection_id)
+                    else:
+                        await participant_manager.send_personal_message({
+                            "type": "personal_feedback",
+                            "correct": is_correct,
+                            "score": score,
+                            "total_score": total_score,
+                            "retry_count": existing.retry_count if existing else 1,
+                            "allow_multiple": current_question.allow_multiple if current_question else True
+                        }, connection_id)
 
                     # Notify admin of updated answers
                     answers, _ = await get_current_answers(db)
@@ -277,6 +349,16 @@ async def participant_websocket(websocket: WebSocket):
                         "answers": answers,
                         "leaderboard": leaderboard
                     })
+
+                    # --- NEW: Auto-scoring for word_cloud when all have answered ---
+                    if is_word_cloud and not word_cloud_scored:
+                        total_participants = participant_manager.get_participant_count()
+                        submitted_count = db.query(Answer).filter(
+                            Answer.question_id == current_question.id,
+                            Answer.game_id == current_game.id if current_game else None
+                        ).count()
+                        if submitted_count >= total_participants:
+                            await score_word_cloud_and_reveal(db)
 
         except WebSocketDisconnect:
             participant_manager.disconnect(connection_id)
@@ -315,7 +397,9 @@ async def admin_websocket(websocket: WebSocket):
                         {"type": "quiz_started", "progress": {"current": 0, "total": total_questions}}
                     )
                 elif data["type"] == "next_question":
+                    global word_cloud_scored
                     await next_question(db)
+                    word_cloud_scored = False
                     if current_question:
                         print(f"Pushing next question ID {current_question.id} (index {current_question_index}/{total_questions})")
                         question_payload = {
@@ -403,7 +487,17 @@ async def admin_websocket(websocket: WebSocket):
                     await participant_manager.broadcast({"type": "drawing_update", "stroke": data["stroke"]})
                 # ---------- Reveal answer ----------
                 elif data["type"] == "reveal_answer":
-                    if current_question:
+                    if not current_question:
+                        await admin_manager.send_personal_message(
+                            {"type": "reveal_error", "message": "No active question"},
+                            connection_id,
+                        )
+                        continue
+                    # --- Begin word_cloud answer clustering and reveal ---
+                    if current_question.type == "word_cloud":
+                        await score_word_cloud_and_reveal(db, admin_connection_id=connection_id)
+                    else:
+                        # DEFAULT: legacy reveal behavior for non-word_cloud questions
                         reveal_payload = {
                             "type": "answer_revealed",
                             "correct_answer": current_question.correct_answer or "",
@@ -413,11 +507,6 @@ async def admin_websocket(websocket: WebSocket):
                         await admin_manager.broadcast(reveal_payload)
                         await participant_manager.broadcast(reveal_payload)
                         await admin_manager.send_personal_message({"type": "reveal_confirmed"}, connection_id)
-                    else:
-                        await admin_manager.send_personal_message(
-                            {"type": "reveal_error", "message": "No active question"},
-                            connection_id,
-                        )
             finally:
                 db.close()
     except WebSocketDisconnect:
@@ -487,6 +576,7 @@ async def start_question_timer():
     global question_timer
 
     async def timer_task():
+        global word_cloud_scored
         time_left = 30
         # Send initial timer state (30 seconds)
         await participant_manager.broadcast({
@@ -511,10 +601,17 @@ async def start_question_timer():
                 "type": "timer_update",
                 "time_left": time_left
             })
-        # Timer expired, notify admin
+        # Timer expired
         await admin_manager.broadcast({
             "type": "time_expired"
         })
+        # --- Auto-score word_cloud on expiry ---
+        if current_question and current_question.type == "word_cloud" and not word_cloud_scored:
+            db = SessionLocal()
+            try:
+                await score_word_cloud_and_reveal(db)
+            finally:
+                db.close()
 
     question_timer = asyncio.create_task(timer_task())
 
@@ -575,6 +672,66 @@ async def get_cumulative_scores(db):
     leaderboard.sort(key=lambda x: x["total_score"], reverse=True)
 
     return leaderboard
+
+# Helper to do word cloud scoring and reveal, idempotent
+async def score_word_cloud_and_reveal(db, admin_connection_id=None):
+    global word_cloud_scored
+    if word_cloud_scored:
+        return
+    word_cloud_scored = True
+    # Fetch all answers
+    answer_objs = db.query(Answer).filter(
+        Answer.question_id == current_question.id,
+        Answer.game_id == current_game.id if current_game else None
+    ).all()
+    answers = [(ans.user_id, ans.content.strip()) for ans in answer_objs if ans.content and ans.content.strip()]
+
+    cluster_map, answer_to_cluster = cluster_word_cloud_answers(answers)
+    total_participants = len(answers)
+    for ans in answer_objs:
+        cluster_id = answer_to_cluster.get(ans.user_id)
+        cluster_size = len(cluster_map[cluster_id]["users"]) if cluster_id is not None else 1
+        ans.score = int(round(30 * (cluster_size / total_participants))) if total_participants > 0 else 0
+        ans.is_correct = False
+    db.commit()
+    # Prepare for admin word cloud
+    word_cloud = [
+        {
+            "text": cluster["rep"],
+            "size": len(cluster["users"]),
+            "answers": cluster["answers"]
+        }
+        for cluster in cluster_map.values()
+    ]
+    for ans in answer_objs:
+        cluster_id = answer_to_cluster.get(ans.user_id)
+        cluster_size = len(cluster_map[cluster_id]["users"]) if cluster_id is not None else 1
+        await participant_manager.send_personal_message(
+            {
+                "type": "personal_feedback",
+                "correct": False,
+                "score": ans.score,
+                "total_score": sum(a.score for a in db.query(Answer).filter(Answer.user_id == ans.user_id, Answer.game_id == current_game.id).all()),
+                "retry_count": ans.retry_count,
+                "allow_multiple": False,
+                "cluster_size": cluster_size,
+                "cluster_rep": cluster_map[cluster_id]["rep"] if cluster_id is not None else ans.content,
+                "scoring_status": "complete"
+            },
+            ans.user.session_id
+        )
+    # Broadcast word cloud to admin only
+    reveal_payload = {
+        "type": "word_cloud_revealed",
+        "question_id": current_question.id,
+        "word_cloud": word_cloud,
+    }
+    await admin_manager.broadcast(reveal_payload)
+    if admin_connection_id:
+        await admin_manager.send_personal_message({"type": "reveal_confirmed"}, admin_connection_id)
+    await participant_manager.broadcast(
+        {"type": "word_cloud_scoring_complete", "question_id": current_question.id}
+    )
 
 # Periodic status updates for admin
 async def send_admin_status_updates():

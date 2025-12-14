@@ -296,12 +296,13 @@ toggleMCQOptions(showMCQ) {
             if (correctIndex === null) {
                 return 'Please select the correct answer';
             }
-        } else {
+        } else if (type !== 'word_cloud') {
             if (!correctAnswer.trim()) {
                 return 'Please enter the correct answer';
             }
         }
 
+        // No correct answer needed for word_cloud
         return null;
     }
 
@@ -327,6 +328,20 @@ toggleMCQOptions(showMCQ) {
                 options,
                 correct_answer: options[correctIndex],
                 correct_index: correctIndex,
+                category: 'general'
+            };
+        } else if (type === 'word_cloud') {
+            // Do not require or include correct_answer for word_cloud
+            error = this.validateQuestion(type, content, '');
+
+            if (error) {
+                this.showMessage(error, 'error');
+                return;
+            }
+            question = {
+                type,
+                content,
+                correct_answer: '', // explicit empty; backend ignores
                 category: 'general'
             };
         } else {
@@ -379,29 +394,11 @@ toggleMCQOptions(showMCQ) {
 
         this.editingQuestionIndex = index;
 
-        // Normalize type for compatibility with select options
-        const typeMap = {
-            "fill_blank": "fill_in_the_blank",
-            "fill-blank": "fill_in_the_blank",
-            "fillintheblank": "fill_in_the_blank",
-            "drawing": "pictionary",
-            "draw": "pictionary",
-            "multiplechoice": "multiple_choice",
-            "mcq": "multiple_choice",
-            "wordcloud": "word_cloud",
-            "wheeloffortune": "wheel_of_fortune"
-        };
-
-        let normType = question.type;
-        if (!document.querySelector(`#question-type option[value="${normType}"]`)) {
-            normType = typeMap[question.type] || "fill_in_the_blank";
-        }
-        // Optionally notify admin/user if normalization occurred
-
-        this.dom.questionType.value = normType;
+        // No normalization needed; trust database value of question.type
+        this.dom.questionType.value = question.type;
         this.dom.questionContent.value = question.content;
 
-        if (normType === 'multiple_choice') {
+        if (question.type === 'multiple_choice') {
             // Debug logging for MCQ parsing
             let opts = [];
             let optsRaw = question.options;
@@ -495,20 +492,37 @@ toggleMCQOptions(showMCQ) {
         questionsHeader.style.marginTop = '20px';
         this.dom.questionsList.appendChild(questionsHeader);
 
+        // Serial number table header
+        const table = document.createElement('table');
+        table.className = 'questions-table';
+        table.style.width = '100%';
+        table.innerHTML = `<thead>
+            <tr>
+                <th style="width:3ch;">#</th>
+                <th>Type</th>
+                <th>Category</th>
+                <th>Content</th>
+                <th>Answer</th>
+                <th style="width:110px;">Actions</th>
+            </tr>
+        </thead><tbody></tbody>`;
+        this.dom.questionsList.appendChild(table);
+        const tbody = table.querySelector('tbody');
+
         questions.forEach((question, index) => {
-            const div = document.createElement('div');
-            div.className = 'question-item';
-            div.innerHTML = `
-                <div class="question-header">
-                    <strong>${question.type.replace('_', ' ').toUpperCase()}</strong>
-                    <span class="question-category">${this.escapeHtml(question.category)}</span>
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td><strong>${this.escapeHtml(question.type.replace('_', ' ').toUpperCase())}</strong></td>
+                <td>${this.escapeHtml(question.category)}</td>
+                <td>${this.escapeHtml(question.content)}</td>
+                <td>${this.escapeHtml(question.correct_answer)}</td>
+                <td>
                     <button class="btn btn-primary btn-small edit-btn" data-index="${index}">Edit</button>
                     <button class="btn btn-danger btn-small delete-btn" data-index="${index}">Delete</button>
-                </div>
-                <div class="question-content">${this.escapeHtml(question.content)}</div>
-                <div class="question-answer">Answer: ${this.escapeHtml(question.correct_answer)}</div>
+                </td>
             `;
-            this.dom.questionsList.appendChild(div);
+            tbody.appendChild(tr);
         });
     }
 
@@ -564,7 +578,10 @@ toggleMCQOptions(showMCQ) {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
+        // Rename button label to "Hide Drawing"
+        this.dom.finishDrawingBtn.textContent = 'Hide Drawing';
         this.dom.finishDrawingBtn.addEventListener('click', () => {
+            // Formerly "push_drawing" -- now just hide, keep for backward compatibility if backend expects it
             this.sendMessage({ type: 'push_drawing' });
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             this.dom.drawingArea.classList.add('hidden');
@@ -637,6 +654,10 @@ toggleMCQOptions(showMCQ) {
                 this.setButtonState(this.dom.nextQuestionBtn, false);
                 break;
 
+            case 'word_cloud_revealed':
+                this.showWordCloud(data.word_cloud);
+                break;
+
             case 'reveal_confirmed':
                 this.updateStatus('Answer revealed to all participants');
                 this.setButtonState(this.dom.revealAnswerBtn, true);
@@ -697,8 +718,17 @@ toggleMCQOptions(showMCQ) {
 
         this.resetAnswerCounter();
 
-        if (data.question.type === 'drawing') {
-            this.dom.drawingArea.classList.remove('hidden');
+        // Drawing area visibility and clearing logic
+        const drawingArea = this.dom.drawingArea;
+        const canvas = this.dom.adminDrawCanvas;
+        const ctx = this.drawing?.ctx || (canvas ? canvas.getContext('2d') : null);
+        if (data.question.type === 'pictionary') {
+            drawingArea.classList.remove('hidden');
+            if (ctx && canvas) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        } else {
+            drawingArea.classList.add('hidden');
         }
 
         this.setButtonState(this.dom.revealAnswerBtn, false);
@@ -747,6 +777,10 @@ toggleMCQOptions(showMCQ) {
         }
 
         const totalAnswered = answers.length;
+        // For word cloud: do not display "correct"/"✗" in admin table
+        // Heuristic: if every answer.correct === false and every answer.score === 0, it's likely word cloud question (robust if backend tags type)
+        const allUnknown = answers.every(a => a.correct === false && (!a.score || a.score === 0));
+
         const correctCount = answers.filter(a => a.correct).length;
 
         this.dom.answerCounter.textContent = 
@@ -754,19 +788,35 @@ toggleMCQOptions(showMCQ) {
 
         answers.sort((a, b) => (b.score || 0) - (a.score || 0));
 
-        answers.forEach((answer, index) => {
-            this.addTableRow(this.dom.answersTbody, [
-                `#${index + 1}`,
-                answer.user,
-                answer.score || 0,
-                answer.correct ? '✓' : '✗'
-            ], [
-                'rank',
-                '',
-                'score',
-                answer.correct ? 'correct' : 'incorrect'
-            ]);
-        });
+        if (allUnknown) {
+            // Word cloud: show only participant name and their submission
+            answers.forEach((answer, index) => {
+                this.addTableRow(this.dom.answersTbody, [
+                    `#${index + 1}`,
+                    answer.user,
+                    answer.content
+                ], [
+                    'rank',
+                    '',
+                    'submission'
+                ]);
+            });
+        } else {
+            // Default: old logic, show ✓/✗ etc
+            answers.forEach((answer, index) => {
+                this.addTableRow(this.dom.answersTbody, [
+                    `#${index + 1}`,
+                    answer.user,
+                    answer.score || 0,
+                    answer.correct ? '✓' : '✗'
+                ], [
+                    'rank',
+                    '',
+                    'score',
+                    answer.correct ? 'correct' : 'incorrect'
+                ]);
+            });
+        }
     }
 
     updateLeaderboard(scores) {
@@ -815,6 +865,45 @@ toggleMCQOptions(showMCQ) {
 
         this.dom.answersDisplay.appendChild(revealDiv);
         this.updateStatus('Answer revealed');
+    }
+
+    showWordCloud(wordCloudData) {
+        // Remove any existing reveal/word cloud displays
+        const prev = document.getElementById('admin-reveal');
+        if (prev) prev.remove();
+
+        const wcDiv = document.createElement('div');
+        wcDiv.id = 'admin-reveal';
+        wcDiv.className = 'reveal-answer';
+        wcDiv.innerHTML = `<h3>Word Cloud</h3>`;
+
+        // Compute sizing (map frequency to font size: linear 1..max -> e.g. 18..56px)
+        const maxSize = 56, minSize = 18;
+        const max = Math.max(...wordCloudData.map(w => w.size), 1);
+
+        wcDiv.style.display = 'flex';
+        wcDiv.style.flexWrap = 'wrap';
+        wcDiv.style.alignItems = 'center';
+        wcDiv.style.gap = '12px';
+        wcDiv.style.margin = '24px 0';
+
+        wordCloudData.sort((a, b) => b.size - a.size);
+
+        wordCloudData.forEach(word => {
+            const span = document.createElement('span');
+            const sizePx = minSize + Math.round((max > 1 ? (word.size - 1) / (max - 1) : 0) * (maxSize - minSize));
+            span.textContent = word.text;
+            span.style.fontSize = `${sizePx}px`;
+            span.style.fontWeight = (sizePx > minSize + 8) ? 'bold' : 'normal';
+            span.style.padding = '4px 8px';
+            span.style.background = '#eff6ff';
+            span.style.borderRadius = '8px';
+            span.title = `Occurrences: ${word.size}`;
+            wcDiv.appendChild(span);
+        });
+
+        this.dom.answersDisplay.appendChild(wcDiv);
+        this.updateStatus('Word cloud generated and revealed');
     }
 
     // ===== STATUS DASHBOARD =====

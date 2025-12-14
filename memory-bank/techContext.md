@@ -34,6 +34,9 @@
 
 ## Dependencies
 ### Backend (Python) - Managed by uv
+
+> **All Python dependencies (install, upgrade, etc.) must use the [uv](https://github.com/astral-sh/uv) package manager. Never use pip, pip3, or python -m pip directly. All documentation, code, and installation instructions must always reference uv (e.g., `uv pip install sentence-transformers`).**
+
 - fastapi==0.104.1
 - uvicorn[standard]==0.24.0
 - websockets==12.0
