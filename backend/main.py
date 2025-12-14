@@ -41,16 +41,24 @@ class ConnectionManager:
 
     async def send_personal_message(self, message: dict, connection_id: str):
         if connection_id in self.active_connections:
-            await self.active_connections[connection_id].send_json(message)
+            try:
+                await self.active_connections[connection_id].send_json(message)
+            except Exception:
+                # Silently ignore errors when sending to a closed connection
+                if connection_id in self.active_connections:
+                    del self.active_connections[connection_id]
 
     async def broadcast(self, message: dict, exclude_connections: Optional[set] = None):
         exclude_connections = exclude_connections or set()
-        for connection_id, connection in self.active_connections.items():
+        # Iterate over a copy of items to allow safe removal of broken connections
+        for connection_id, connection in list(self.active_connections.items()):
             if connection_id not in exclude_connections:
                 try:
                     await connection.send_json(message)
-                except Exception as e:
-                    print(f"Error broadcasting to {connection_id}: {e}")
+                except Exception:
+                    # Silently ignore errors when broadcasting to a closed connection
+                    if connection_id in self.active_connections:
+                        del self.active_connections[connection_id]
 
     def get_participant_count(self):
         return len(self.active_connections)
@@ -188,13 +196,14 @@ async def participant_websocket(websocket: WebSocket):
             if current_question:
                 await participant_manager.send_personal_message({
                     "type": "question",
-                    "question": {
-                        "id": current_question.id,
-                        "type": current_question.type,
-                        "content": current_question.content,
-                        "options": json.loads(current_question.answers) if current_question.answers else None,
-                        "allow_multiple": getattr(current_question, 'allow_multiple', True)
-                    }
+                "question": {
+                    "id": current_question.id,
+                    "type": current_question.type,
+                    "content": current_question.content,
+                    "options": json.loads(current_question.answers) if current_question.answers else None,
+                    "allow_multiple": getattr(current_question, 'allow_multiple', True),
+                    # hidden_prompt removed – pictionary now uses correct_answer as the hint
+                }
                 }, connection_id)
 
         try:
@@ -279,160 +288,138 @@ async def participant_websocket(websocket: WebSocket):
 
 @app.websocket("/ws/admin")
 async def admin_websocket(websocket: WebSocket):
+    # Establish connection and obtain a unique connection ID
     connection_id = await admin_manager.connect(websocket, "admin")
 
-    # Send current timer state if quiz is active
+    # If a quiz is already active, send the current timer state to the new admin
     if current_game and current_game.status == "active" and current_question:
-        # Send current timer state (assume 30 seconds for new admin connections)
-        await admin_manager.send_personal_message({
-            "type": "timer_update",
-            "time_left": 30
-        }, connection_id)
+        await admin_manager.send_personal_message(
+            {"type": "timer_update", "time_left": 30},
+            connection_id,
+        )
 
     try:
         while True:
+            # Receive a message from the admin client
             data = await websocket.receive_json()
             db = SessionLocal()
-
             try:
+                # ---------- Quiz lifecycle ----------
                 if data["type"] == "start_quiz":
                     await start_quiz(db)
-                    # Send initial progress info with quiz started
-                    await admin_manager.send_personal_message({
-                        "type": "quiz_started",
-                        "progress": {
-                            "current": 0,
-                            "total": total_questions
-                        }
-                    }, connection_id)
-                    await participant_manager.broadcast({
-                        "type": "quiz_started",
-                        "progress": {
-                            "current": 0,
-                            "total": total_questions
-                        }
-                    })
-
+                    await admin_manager.send_personal_message(
+                        {"type": "quiz_started", "progress": {"current": 0, "total": total_questions}},
+                        connection_id,
+                    )
+                    await participant_manager.broadcast(
+                        {"type": "quiz_started", "progress": {"current": 0, "total": total_questions}}
+                    )
                 elif data["type"] == "next_question":
                     await next_question(db)
                     if current_question:
-                        question_data = {
+                        print(f"Pushing next question ID {current_question.id} (index {current_question_index}/{total_questions})")
+                        question_payload = {
                             "type": "question",
                             "question": {
                                 "id": current_question.id,
                                 "type": current_question.type,
                                 "content": current_question.content,
                                 "options": json.loads(current_question.answers) if current_question.answers else None,
-                                "allow_multiple": getattr(current_question, 'allow_multiple', True)
+                                "allow_multiple": getattr(current_question, "allow_multiple", True),
                             },
-                            "progress": {
-                                "current": current_question_index,
-                                "total": total_questions
-                            }
+                            "progress": {"current": current_question_index, "total": total_questions},
                         }
-                        print(f"Pushing question {current_question_index} of {total_questions}")
-                        await admin_manager.broadcast({"type": "question_pushed", "question": question_data["question"], "progress": question_data["progress"]})
-                        await participant_manager.broadcast(question_data)
-
-                        # Start timer
+                        await admin_manager.broadcast(
+                            {"type": "question_pushed", "question": question_payload["question"], "progress": question_payload["progress"]}
+                        )
+                        await participant_manager.broadcast(question_payload)
                         await start_question_timer()
-
                 elif data["type"] == "end_quiz":
                     await end_quiz(db)
                     await admin_manager.broadcast({"type": "quiz_ended"})
                     await participant_manager.broadcast({"type": "quiz_ended"})
-
+                # ---------- Question management ----------
                 elif data["type"] == "add_question":
-                    question_data = data["question"]
-                    question = Question(
-                        type=question_data["type"],
-                        content=question_data["content"],
-                        correct_answer=question_data["correct_answer"],
-                        category=question_data.get("category", "general"),
-                        allow_multiple=question_data.get("allow_multiple", True),
-                        answers=json.dumps(question_data.get("options", [])) if "options" in question_data else None
+                    qd = data["question"]
+                    new_question = Question(
+                        type=qd["type"],
+                        content=qd["content"],
+                        correct_answer=qd["correct_answer"],
+                        category=qd.get("category", "general"),
+                        allow_multiple=qd.get("allow_multiple", True),
+                        answers=json.dumps(qd.get("options", [])) if "options" in qd else None,
                     )
-                    db.add(question)
+                    db.add(new_question)
                     db.commit()
-
-                    # Notify admin that question was added
-                    await admin_manager.send_personal_message({
-                        "type": "question_added"
-                    }, connection_id)
-
-                elif data["type"] == "get_questions":
-                    print(f"Admin {connection_id} requested questions")
-                    questions = db.query(Question).all()
-                    print(f"Found {len(questions)} questions in database")
-                    questions_data = [{
-                        "id": q.id,
-                        "type": q.type,
-                        "content": q.content,
-                        "correct_answer": q.correct_answer,
-                        "category": q.category,
-                        "allow_multiple": q.allow_multiple
-                    } for q in questions]
-
-                    print(f"Sending {len(questions_data)} questions to admin")
-                    await admin_manager.send_personal_message({
-                        "type": "questions_loaded",
-                        "questions": questions_data
-                    }, connection_id)
-
-                elif data["type"] == "delete_question":
-                    question_index = data["index"]
-                    # Get all questions ordered by ID
-                    questions = db.query(Question).order_by(Question.id).all()
-                    if 0 <= question_index < len(questions):
-                        question_to_delete = questions[question_index]
-                        db.delete(question_to_delete)
+                    await admin_manager.send_personal_message({"type": "question_added"}, connection_id)
+                elif data["type"] == "edit_question":
+                    idx = data.get("index")
+                    qd = data["question"]
+                    question = db.query(Question).order_by(Question.id).offset(idx).first()
+                    if question:
+                        question.type = qd["type"]
+                        question.content = qd["content"]
+                        question.correct_answer = qd["correct_answer"]
+                        question.category = qd.get("category", question.category)
+                        question.allow_multiple = qd.get("allow_multiple", question.allow_multiple)
+                        if "options" in qd:
+                            question.answers = json.dumps(qd["options"])
                         db.commit()
-
-                        # Notify admin that question was deleted
-                        await admin_manager.send_personal_message({
-                            "type": "question_deleted"
-                        }, connection_id)
-
+                        await admin_manager.send_personal_message({"type": "question_updated"}, connection_id)
+                elif data["type"] == "get_questions":
+                    questions = db.query(Question).all()
+                    questions_payload = []
+                    for q in questions:
+                        parsed_answers = json.loads(q.answers) if q.answers else []
+                        payload = {
+                            "id": q.id,
+                            "type": q.type,
+                            "content": q.content,
+                            "correct_answer": q.correct_answer,
+                            "category": q.category,
+                            "allow_multiple": q.allow_multiple,
+                            "answers": parsed_answers,
+                        }
+                        if q.type in ("multiple_choice", "multiplechoice", "mcq"):
+                            payload["options"] = parsed_answers
+                        questions_payload.append(payload)
+                    await admin_manager.send_personal_message(
+                        {"type": "questions_loaded", "questions": questions_payload},
+                        connection_id,
+                    )
+                elif data["type"] == "delete_question":
+                    idx = data["index"]
+                    ordered = db.query(Question).order_by(Question.id).all()
+                    if 0 <= idx < len(ordered):
+                        db.delete(ordered[idx])
+                        db.commit()
+                        await admin_manager.send_personal_message({"type": "question_deleted"}, connection_id)
+                # ---------- Settings ----------
                 elif data["type"] == "save_settings":
-                    # For now, just acknowledge the settings save
-                    # In a real implementation, you'd save these to database/config
-                    settings = data["settings"]
-                    print(f"Settings saved: {settings}")
-
-                    await admin_manager.send_personal_message({
-                        "type": "settings_saved"
-                    }, connection_id)
-
+                    print(f"Settings saved: {data['settings']}")
+                    await admin_manager.send_personal_message({"type": "settings_saved"}, connection_id)
+                # ---------- Drawing ----------
                 elif data["type"] == "drawing_stroke":
-                    await participant_manager.broadcast({
-                        "type": "drawing_update",
-                        "stroke": data["stroke"]
-                    })
-
+                    await participant_manager.broadcast({"type": "drawing_update", "stroke": data["stroke"]})
+                # ---------- Reveal answer ----------
                 elif data["type"] == "reveal_answer":
                     if current_question:
-                        reveal_data = {
+                        reveal_payload = {
                             "type": "answer_revealed",
-                            "correct_answer": current_question.correct_answer,
+                            "correct_answer": current_question.correct_answer or "",
                             "question_id": current_question.id,
-                            "question_type": current_question.type,
-                            "options": json.loads(current_question.answers) if current_question.answers else None
+                            "question_type": current_question.type
                         }
-                        await admin_manager.broadcast(reveal_data)
-                        await participant_manager.broadcast(reveal_data)
-                        # Optionally send confirmation back to admin
-                        await admin_manager.send_personal_message({
-                            "type": "reveal_confirmed"
-                        }, connection_id)
+                        await admin_manager.broadcast(reveal_payload)
+                        await participant_manager.broadcast(reveal_payload)
+                        await admin_manager.send_personal_message({"type": "reveal_confirmed"}, connection_id)
                     else:
-                        await admin_manager.send_personal_message({
-                            "type": "reveal_error",
-                            "message": "No active question"
-                        }, connection_id)
-
+                        await admin_manager.send_personal_message(
+                            {"type": "reveal_error", "message": "No active question"},
+                            connection_id,
+                        )
             finally:
                 db.close()
-
     except WebSocketDisconnect:
         admin_manager.disconnect(connection_id)
     except Exception as e:

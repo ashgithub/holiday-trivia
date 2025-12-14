@@ -35,6 +35,8 @@ class Question(Base):
     correct_answer = Column(Text, nullable=False)
     category = Column(String, nullable=False)
     allow_multiple = Column(Boolean, default=True)
+    # Optional hidden prompt for pictionary questions
+    # (removed – pictionary now uses correct_answer as the hint)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Game(Base):

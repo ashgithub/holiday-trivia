@@ -34,22 +34,76 @@ The All-Hands Quiz Game is now production-ready with comprehensive features, rob
 - ✅ **Debug Infrastructure**: Extensive logging for troubleshooting WebSocket issues
 - ✅ **Documentation Overhaul**: Updated README, project brief, and memory bank
 
+## Current Refactoring Work (Question Types Overhaul)
+### New Question Type Specifications
+1. **fill_in_the_blank**
+   - Question shown as entered
+   - Multiple attempts allowed
+   - Score = time remaining when correct
+   - Input: voice or text
+   - Display: answer table line
+
+2. **multiple_choice**
+   - Question with checkbox options (only one correct)
+   - Multiple attempts allowed
+   - Score = time remaining when correct
+   - Input: checkbox selection (only one)
+   - Display: answer table line
+
+3. **wheel_of_fortune**
+   - Category shown, blank tiles revealed every 2 seconds
+   - Multiple guesses allowed until correct
+   - Score = time remaining when correct word guessed
+   - Input: voice or text
+   - Display: answer table line
+
+4. **word_cloud**
+   - Only question/prompt shown (no answer in database)
+   - All participants answer via voice/text
+   - Tally similar answers as word cloud on admin screen
+   - Score = 30 × (ratio of participants with similar answer)
+   - Display: word cloud visualization + answer table
+
+5. **pictionary**
+   - Admin draws based on hidden prompt (not shown to admin screen)
+   - Participants guess via voice/text, multiple attempts allowed
+   - If answer close enough, score = time remaining
+   - Custom similarity using embeddings and cosine distance
+   - Display: drawing canvas + answer table
+
+### Critical Issues Identified
+- **Admin Interface Incompatibility**: Current static form doesn't support different question type requirements
+- **Anti-Cheating Vulnerability**: Answers shown in real-time on admin screen (visible via Zoom)
+- **Missing Database Fields**: Need `hidden_prompt` for pictionary
+- **Similarity Algorithms**: Need embedding-based scoring for pictionary and word cloud grouping
+
 ## Open Questions
-- Word cloud similarity-based scoring implementation (backlog)
-- Optimal question sequencing algorithms for engagement
+- Optimal embedding model for pictionary similarity scoring
+- Word cloud similarity clustering algorithm thresholds
+- Question sequencing algorithms for engagement
 - Integration with external meeting platforms
 - Mobile device optimization for smaller screens
 
-## Next Steps
-- Deploy to production environment
-- Implement advanced word cloud scoring (embedding-based similarity)
-- Monitor real-world performance metrics
-- Gather user feedback for feature prioritization
-- Consider internationalization support
+## Next Steps (Refactoring Implementation)
+1. **Database Schema Updates**: Add hidden_prompt field, update question type names
+2. **Admin Interface Overhaul**: Dynamic forms for different question types
+3. **Anti-Cheating Logic**: Hide answers during questions, show only after reveal
+4. **Similarity Algorithms**: Implement embedding-based scoring for pictionary and word cloud
+5. **Frontend Updates**: Add drawing canvas display and word cloud visualization
+6. **Testing & Validation**: Comprehensive testing of new features
+7. **Production Deployment**: Deploy updated system with monitoring
 
 ## Risks and Mitigations
 - **Performance at Scale**: Comprehensive load testing completed with monitoring in place
 - **Browser Compatibility**: Tested across modern browsers with WebSocket and voice support
 - **Network Reliability**: WebSocket reconnection logic with graceful degradation
 - **Data Persistence**: SQLite for development, PostgreSQL migration path established
-- **Security**: Password-based admin access (consider OAuth for production)
+- **Security**: Password-based admin access DISABLED for development - re-enable before production deployment
+- **Refactoring Complexity**: Large-scale changes to question types - implementing incrementally with comprehensive testing
+- **Similarity Algorithm Accuracy**: New embedding-based scoring may need tuning - starting with basic implementations and iterating
+- **Admin UX Changes**: Dynamic forms may confuse users - providing clear visual cues and validation
+
+## Security Tasks (Pre-Production)
+- **CRITICAL**: Re-enable admin password protection once development is complete
+- **IMPROVE**: Replace hardcoded password with proper authentication (OAuth/token-based)
+- **TEST**: Verify authentication works across different browsers and sessions

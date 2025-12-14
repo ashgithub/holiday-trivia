@@ -31,6 +31,9 @@
                 <span class="status-label">Status:</span>
                 <span id="quiz-status" class="status-value">Waiting</span>
                 <span class="status-separator">|</span>
+                <span class="status-label">Question:</span>
+                <span id="current-question-status" class="status-value">None</span>
+                <span class="status-separator">|</span>
                 <span class="status-label">👥</span>
                 <span id="participant-count" class="status-value">0</span>
                 <span class="status-label">participants</span>
@@ -114,15 +117,30 @@
                     <div class="question-setup">
                         <h3>Add New Question</h3>
                         <select id="question-type">
-                            <option value="fill_blank">Fill in the Blank</option>
+                            <option value="fill_in_the_blank">Fill in the Blank</option>
                             <option value="word_cloud">Word Cloud</option>
-                            <option value="drawing">Drawing</option>
-                            <option value="wheel_fortune">Wheel of Fortune</option>
+                            <option value="pictionary">Pictionary</option>
+                            <option value="wheel_of_fortune">Wheel of Fortune</option>
                             <option value="multiple_choice">Multiple Choice</option>
                         </select>
-                        <textarea id="question-content" placeholder="Enter question content..."></textarea>
-                        <input type="text" id="correct-answer" placeholder="Correct answer">
+<div id="question-form-container">
+    <div class="form-group">
+        <label for="question-content">Question Content</label>
+        <textarea id="question-content" rows="3" placeholder="Enter question text"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="correct-answer">Correct Answer</label>
+        <input type="text" id="correct-answer" placeholder="Enter correct answer">
+    </div>
+    <div class="form-group" id="options-group" style="display:none;">
+        <label>Options</label>
+        <div id="mcq-options-list"></div>
+        <button type="button" id="add-mcq-option-btn" class="btn btn-small btn-outline">Add Option</button>
+        <small>Mark the radio for the correct answer (one only).</small>
+    </div>
+</div>
                         <button id="add-question-btn" class="btn btn-secondary">Add Question</button>
+                        <button id="cancel-edit-btn" class="btn btn-outline btn-danger" style="display:none; margin-left:6px;">Cancel Edit</button>
                     </div>
 
                     <div class="question-library">

@@ -3,13 +3,92 @@ class QuizAdmin {
     constructor() {
         this.ws = null;
         this.isAuthenticated = false;
-        this.drawingCanvas = null;
-        this.isDrawing = false;
-        this.lastPos = { x: 0, y: 0 };
         this.questions = [];
+        this.editingQuestionIndex = undefined;
         this.currentTab = 'quiz-control';
 
+        // Drawing state
+        this.drawing = {
+            isDrawing: false,
+            lastPos: { x: 0, y: 0 },
+            canvas: null,
+            ctx: null
+        };
+
+        // Quiz state
+        this.quizState = {
+            active: false,
+            currentQuestion: null,
+            participantCount: 0,
+            totalAnswered: 0,
+            correctAnswers: 0
+        };
+
+        // DOM element cache
+        this.dom = {};
+        this.cacheDOM();
         this.init();
+    }
+
+    cacheDOM() {
+        // Login
+        this.dom.loginScreen = document.getElementById('login-screen');
+        this.dom.adminInterface = document.getElementById('admin-interface');
+        this.dom.loginBtn = document.getElementById('login-btn');
+        this.dom.passwordInput = document.getElementById('password-input');
+        this.dom.loginError = document.getElementById('login-error');
+
+        // Cancel Edit
+        this.dom.cancelEditBtn = document.getElementById('cancel-edit-btn');
+
+        // Tabs
+        this.dom.quizControlTab = document.getElementById('quiz-control-tab');
+        this.dom.questionManagementTab = document.getElementById('question-management-tab');
+        this.dom.settingsTab = document.getElementById('settings-tab');
+
+        // Quiz controls
+        this.dom.startQuizBtn = document.getElementById('start-quiz-btn');
+        this.dom.revealAnswerBtn = document.getElementById('reveal-answer-btn');
+        this.dom.nextQuestionBtn = document.getElementById('next-question-btn');
+        this.dom.endQuizBtn = document.getElementById('end-quiz-btn');
+
+        // Question form
+        this.dom.questionType = document.getElementById('question-type');
+        this.dom.questionContent = document.getElementById('question-content');
+        this.dom.correctAnswer = document.getElementById('correct-answer');
+        this.dom.correctAnswerGroup = this.dom.correctAnswer?.parentElement;
+        this.dom.optionsGroup = document.getElementById('options-group');
+        this.dom.addQuestionBtn = document.getElementById('add-question-btn');
+        this.dom.addMcqOptionBtn = document.getElementById('add-mcq-option-btn');
+        this.dom.mcqOptionsList = document.getElementById('mcq-options-list');
+        this.dom.questionsList = document.getElementById('questions-list');
+        this.dom.setupHeader = document.querySelector('.question-setup h3');
+
+        // Status/display
+        this.dom.status = document.getElementById('status');
+        this.dom.participantCount = document.getElementById('participant-count');
+        this.dom.quizStatus = document.getElementById('quiz-status');
+        this.dom.currentQuestionStatus = document.getElementById('current-question-status');
+        this.dom.answerCounter = document.getElementById('answer-counter');
+        this.dom.questionText = document.getElementById('question-text');
+        this.dom.adminQuestionProgress = document.getElementById('admin-question-progress');
+        this.dom.adminTimeRemaining = document.getElementById('admin-time-remaining');
+
+        // Answers/Leaderboard
+        this.dom.answersDisplay = document.getElementById('answers-display');
+        this.dom.answersTbody = document.getElementById('answers-tbody');
+        this.dom.leaderboardTbody = document.getElementById('leaderboard-tbody');
+
+        // Drawing
+        this.dom.adminDrawCanvas = document.getElementById('admin-draw-canvas');
+        this.dom.drawingArea = document.getElementById('drawing-area');
+        this.dom.clearCanvasBtn = document.getElementById('clear-canvas');
+        this.dom.finishDrawingBtn = document.getElementById('finish-drawing');
+
+        // Settings
+        this.dom.questionTimer = document.getElementById('question-timer');
+        this.dom.maxParticipants = document.getElementById('max-participants');
+        this.dom.saveSettingsBtn = document.getElementById('save-settings-btn');
     }
 
     init() {
@@ -18,79 +97,43 @@ class QuizAdmin {
         this.updateStatus('Ready to login');
     }
 
-    setupTabs() {
-        // Tab switching
-        document.getElementById('quiz-control-tab').addEventListener('click', () => {
-            this.switchTab('quiz-control');
-        });
-
-        document.getElementById('question-management-tab').addEventListener('click', () => {
-            this.switchTab('question-management');
-        });
-
-        document.getElementById('settings-tab').addEventListener('click', () => {
-            this.switchTab('settings');
-        });
-
-        // Settings
-        document.getElementById('save-settings-btn').addEventListener('click', () => {
-            this.saveSettings();
-        });
-    }
-
-    switchTab(tabName) {
-        // Remove active class from all tabs
-        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-        // Add active class to selected tab
-        document.getElementById(`${tabName}-tab`).classList.add('active');
-        document.getElementById(`${tabName}-content`).classList.add('active');
-
-        this.currentTab = tabName;
-    }
-
+    // ===== LOGIN =====
     setupLogin() {
-        const loginBtn = document.getElementById('login-btn');
-        const passwordInput = document.getElementById('password-input');
-
-        loginBtn.addEventListener('click', () => {
-            this.attemptLogin();
-        });
-
-        passwordInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.attemptLogin();
-            }
+        this.dom.loginBtn.addEventListener('click', () => this.attemptLogin());
+        this.dom.passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') this.attemptLogin();
         });
     }
 
     attemptLogin() {
-        const password = document.getElementById('password-input').value;
-        const correctPassword = 'quizzer'; // Hardcoded password
-
-        if (password === correctPassword) {
-            this.isAuthenticated = true;
-
-            const loginScreen = document.getElementById('login-screen');
-            const adminInterface = document.getElementById('admin-interface');
-
-            loginScreen.classList.add('hidden');
-            adminInterface.classList.remove('hidden');
-
-
-
-            this.setupWebSocket();
-            this.setupAdminControls();
-            this.updateStatus('Logged in - Setting up quiz controls');
-        } else {
-            document.getElementById('login-error').classList.remove('hidden');
-            setTimeout(() => {
-                document.getElementById('login-error').classList.add('hidden');
-            }, 3000);
-        }
+        this.isAuthenticated = true;
+        this.dom.loginScreen.classList.add('hidden');
+        this.dom.adminInterface.classList.remove('hidden');
+        this.setupWebSocket();
+        this.setupAdminControls();
+        this.updateStatus('Logged in - Setting up quiz controls');
     }
 
+    // ===== TABS =====
+    setupTabs() {
+        this.dom.quizControlTab.addEventListener('click', () => this.switchTab('quiz-control'));
+        this.dom.questionManagementTab.addEventListener('click', () => {
+            this.switchTab('question-management');
+            this.loadQuestions();
+        });
+        this.dom.settingsTab.addEventListener('click', () => this.switchTab('settings'));
+    }
+
+    switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+        document.getElementById(`${tabName}-tab`).classList.add('active');
+        document.getElementById(`${tabName}-content`).classList.add('active');
+        this.currentTab = tabName;
+    }
+
+    // ===== WEBSOCKET =====
     setupWebSocket() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${protocol}//${window.location.host}/ws/admin`;
@@ -99,10 +142,7 @@ class QuizAdmin {
 
         this.ws.onopen = () => {
             this.updateStatus('Connected to quiz server');
-            // Load existing questions after connection is established
-            setTimeout(() => {
-                this.loadQuestions();
-            }, 100); // Small delay to ensure connection is ready
+            setTimeout(() => this.loadQuestions(), 100);
         };
 
         this.ws.onmessage = (event) => {
@@ -120,114 +160,428 @@ class QuizAdmin {
         };
     }
 
+    sendMessage(message) {
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.send(JSON.stringify(message));
+        } else {
+            console.error('WebSocket not connected');
+        }
+    }
+
+    // ===== ADMIN CONTROLS SETUP =====
     setupAdminControls() {
-        // Quiz controls
-        document.getElementById('start-quiz-btn').addEventListener('click', () => {
+        this.setupQuizButtons();
+        this.setupQuestionForm();
+        this.setupDrawingCanvas();
+        this.setupSettings();
+    }
+
+    setupQuizButtons() {
+        this.dom.startQuizBtn.addEventListener('click', () => {
             this.sendMessage({ type: 'start_quiz' });
         });
 
-        document.getElementById('reveal-answer-btn').addEventListener('click', () => {
+        this.dom.revealAnswerBtn.addEventListener('click', () => {
             this.sendMessage({ type: 'reveal_answer' });
         });
 
-        document.getElementById('next-question-btn').addEventListener('click', () => {
+        this.dom.nextQuestionBtn.addEventListener('click', () => {
             this.sendMessage({ type: 'next_question' });
         });
 
-        document.getElementById('end-quiz-btn').addEventListener('click', () => {
+        this.dom.endQuizBtn.addEventListener('click', () => {
             this.sendMessage({ type: 'end_quiz' });
         });
-
-        // Question setup
-        document.getElementById('add-question-btn').addEventListener('click', () => {
-            this.addQuestion();
-        });
-
-        // Drawing controls
-        this.setupDrawingCanvas();
     }
 
+    setupQuestionForm() {
+        this.dom.questionsList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('edit-btn')) {
+                const idx = parseInt(e.target.dataset.index, 10);
+                this.startEditQuestion(idx);
+            }
+            if (e.target.classList.contains('delete-btn')) {
+                const idx = parseInt(e.target.dataset.index, 10);
+                this.deleteQuestion(idx);
+            }
+        });
+
+        this.dom.addQuestionBtn.addEventListener('click', () => this.addQuestion());
+
+        this.dom.questionType.addEventListener('change', (e) => {
+            this.toggleMCQOptions(e.target.value === 'multiple_choice');
+        });
+
+        this.dom.addMcqOptionBtn.onclick = () => this.appendMCQOptionRow();
+
+        this.dom.cancelEditBtn.addEventListener('click', () => this.clearQuestionForm());
+    }
+
+    setupSettings() {
+        this.dom.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+    }
+
+    // ===== QUESTION TYPE TOGGLING =====
+toggleMCQOptions(showMCQ) {
+    if (showMCQ) {
+        this.dom.optionsGroup.style.display = 'block';
+        this.dom.correctAnswerGroup.style.display = 'none';
+        // Do NOT clear or re-render options here; let add or edit handlers invoke renderMCQOptions as needed.
+    } else {
+        this.dom.optionsGroup.style.display = 'none';
+        this.dom.correctAnswerGroup.style.display = 'block';
+        this.dom.correctAnswer.value = '';
+        // When leaving MCQ mode, clear any MCQ option rows (optional, or just leave for UX)
+    }
+}
+
+    // ===== MCQ OPTIONS =====
+    renderMCQOptions(options, correctIdx) {
+        this.dom.mcqOptionsList.innerHTML = '';
+        const rows = (options && options.length > 0) ? options.length : 2;
+        for (let i = 0; i < rows; i++) {
+            const value = (options && options[i]) ? options[i] : '';
+            this.appendMCQOptionRow(value, correctIdx === i);
+        }
+    }
+
+    appendMCQOptionRow(value = '', checked = false) {
+        const row = document.createElement('div');
+        row.className = 'mcq-option-row';
+
+        row.innerHTML = `
+            <input type="radio" name="mcq-correct-radio" style="margin-right:4px;" ${checked ? 'checked' : ''} />
+            <input type="text" class="mcq-option-input" placeholder="Option text" style="width:180px; margin-right:4px;" />
+            <button type="button" class="btn btn-small btn-outline mcq-remove-option" title="Remove Option">&times;</button>
+        `;
+
+        row.querySelector('.mcq-option-input').value = value;
+
+        row.querySelector('.mcq-remove-option').onclick = () => {
+            if (this.dom.mcqOptionsList.childElementCount > 2) row.remove();
+        };
+
+        row.querySelector('input[type="radio"]').onclick = () => {
+            document.querySelectorAll('#mcq-options-list input[type="radio"]').forEach(r => r.checked = false);
+            row.querySelector('input[type="radio"]').checked = true;
+        };
+
+        this.dom.mcqOptionsList.appendChild(row);
+    }
+
+    getMCQOptionsAndCorrect() {
+        const rows = document.querySelectorAll('#mcq-options-list .mcq-option-row');
+        const options = [];
+        let correctIndex = null;
+
+        rows.forEach((row, idx) => {
+            const txt = row.querySelector('.mcq-option-input').value.trim();
+            options.push(txt);
+            if (row.querySelector('input[type="radio"]').checked) correctIndex = idx;
+        });
+
+        return { options, correctIndex };
+    }
+
+    // ===== QUESTION MANAGEMENT =====
+    validateQuestion(type, content, correctAnswer, options = null, correctIndex = null) {
+        if (!content.trim()) {
+            return 'Please enter a question';
+        }
+
+        if (type === 'multiple_choice') {
+            if (options.some(o => !o.trim())) {
+                return 'All options must be filled in';
+            }
+            if (correctIndex === null) {
+                return 'Please select the correct answer';
+            }
+        } else {
+            if (!correctAnswer.trim()) {
+                return 'Please enter the correct answer';
+            }
+        }
+
+        return null;
+    }
+
+    addQuestion() {
+        const type = this.dom.questionType.value;
+        const content = this.dom.questionContent.value.trim();
+
+        let question;
+        let error;
+
+        if (type === 'multiple_choice') {
+            const { options, correctIndex } = this.getMCQOptionsAndCorrect();
+            error = this.validateQuestion(type, content, '', options, correctIndex);
+
+            if (error) {
+                this.showMessage(error, 'error');
+                return;
+            }
+
+            question = {
+                type,
+                content,
+                options,
+                correct_answer: options[correctIndex],
+                correct_index: correctIndex,
+                category: 'general'
+            };
+        } else {
+            const correctAnswer = this.dom.correctAnswer.value.trim();
+            error = this.validateQuestion(type, content, correctAnswer);
+
+            if (error) {
+                this.showMessage(error, 'error');
+                return;
+            }
+
+            question = {
+                type,
+                content,
+                correct_answer: correctAnswer,
+                category: 'general'
+            };
+        }
+
+        const messageType = this.editingQuestionIndex !== undefined ? 'edit_question' : 'add_question';
+        const message = { type: messageType, question };
+
+        if (this.editingQuestionIndex !== undefined) {
+            message.index = this.editingQuestionIndex;
+        }
+
+        this.sendMessage(message);
+        this.clearQuestionForm();
+        const msg = this.editingQuestionIndex !== undefined ? 'Question updated!' : 'Question added!';
+        this.showMessage(msg, 'success');
+    }
+
+    clearQuestionForm() {
+        this.editingQuestionIndex = undefined;
+        this.dom.questionType.value = 'text';
+        this.dom.questionContent.value = '';
+        this.dom.correctAnswer.value = '';
+        this.dom.addQuestionBtn.textContent = 'Add Question';
+        this.dom.setupHeader.textContent = 'Add New Question';
+        this.toggleMCQOptions(false);
+        this.renderMCQOptions([], null);
+        if (this.dom.cancelEditBtn) {
+            this.dom.cancelEditBtn.style.display = 'none';
+        }
+    }
+
+    startEditQuestion(index) {
+        const question = this.questions[index];
+        if (!question) return;
+
+        this.editingQuestionIndex = index;
+
+        // Normalize type for compatibility with select options
+        const typeMap = {
+            "fill_blank": "fill_in_the_blank",
+            "fill-blank": "fill_in_the_blank",
+            "fillintheblank": "fill_in_the_blank",
+            "drawing": "pictionary",
+            "draw": "pictionary",
+            "multiplechoice": "multiple_choice",
+            "mcq": "multiple_choice",
+            "wordcloud": "word_cloud",
+            "wheeloffortune": "wheel_of_fortune"
+        };
+
+        let normType = question.type;
+        if (!document.querySelector(`#question-type option[value="${normType}"]`)) {
+            normType = typeMap[question.type] || "fill_in_the_blank";
+        }
+        // Optionally notify admin/user if normalization occurred
+
+        this.dom.questionType.value = normType;
+        this.dom.questionContent.value = question.content;
+
+        if (normType === 'multiple_choice') {
+            // Debug logging for MCQ parsing
+            let opts = [];
+            let optsRaw = question.options;
+            console.log('[MCQ debug] startEditQuestion: raw question.options:', optsRaw);
+            try {
+                if (Array.isArray(optsRaw)) {
+                    opts = optsRaw;
+                    console.log('[MCQ debug] options is already an array:', opts);
+                } else if (typeof optsRaw === 'string') {
+                    let attempted = 0;
+                    while (typeof optsRaw === 'string' && attempted < 3) {
+                        console.log('[MCQ debug] Parsing options JSON (level', attempted, '):', optsRaw);
+                        optsRaw = JSON.parse(optsRaw);
+                        attempted++;
+                    }
+                    if (Array.isArray(optsRaw)) {
+                        opts = optsRaw;
+                        console.log('[MCQ debug] unwrapped array after JSON parse(s):', opts);
+                    } else {
+                        console.log('[MCQ debug] did not resolve to array after JSON parse(s):', optsRaw);
+                    }
+                } else {
+                    console.log('[MCQ debug] options is unknown type:', typeof optsRaw, optsRaw);
+                }
+            } catch (e) {
+                console.log('[MCQ debug] error parsing options:', e, 'optsRaw:', optsRaw);
+                opts = [];
+            }
+            // Guarantee minimum 2 rows for user input
+            if (!opts || !Array.isArray(opts) || opts.length === 0) {
+                console.log('[MCQ debug] options fallback to blanks. Value was:', opts);
+                opts = ['', ''];
+            }
+
+            const correctIdx = typeof question.correct_index !== 'undefined'
+                ? question.correct_index
+                : (Array.isArray(opts) ? opts.findIndex(o => o === (question.correct_answer || '')) : null);
+
+            console.log('[MCQ debug] final options for renderMCQOptions:', opts, 'correctIdx:', correctIdx);
+
+            this.toggleMCQOptions(true);
+            this.renderMCQOptions(opts, correctIdx >= 0 ? correctIdx : null);
+        } else {
+            this.toggleMCQOptions(false);
+            this.dom.correctAnswer.value = question.correct_answer;
+        }
+
+        this.dom.addQuestionBtn.textContent = 'Update Question';
+        this.dom.setupHeader.textContent = 'Edit Question';
+
+        if (this.dom.cancelEditBtn) {
+            this.dom.cancelEditBtn.style.display = '';
+        }
+    }
+
+    deleteQuestion(index) {
+        if (confirm('Are you sure you want to delete this question?')) {
+            this.sendMessage({ type: 'delete_question', index });
+        }
+    }
+
+    updateQuestionsList(questions) {
+        this.questions = questions;
+        this.dom.questionsList.innerHTML = '';
+
+        if (!questions || questions.length === 0) {
+            this.dom.questionsList.textContent = 'No questions added yet...';
+            return;
+        }
+
+        const categoryCounts = {};
+        questions.forEach(q => {
+            categoryCounts[q.category] = (categoryCounts[q.category] || 0) + 1;
+        });
+
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className = 'questions-summary';
+        summaryDiv.innerHTML = `
+            <h4>Question Library Summary</h4>
+            <div class="category-counts">
+                ${Object.entries(categoryCounts).map(([cat, count]) =>
+                    `<span class="category-badge">${this.escapeHtml(cat)}: ${count}</span>`
+                ).join('')}
+            </div>
+            <div class="total-count">Total: ${questions.length} questions</div>
+        `;
+        this.dom.questionsList.appendChild(summaryDiv);
+
+        const questionsHeader = document.createElement('h4');
+        questionsHeader.textContent = 'Individual Questions';
+        questionsHeader.style.marginTop = '20px';
+        this.dom.questionsList.appendChild(questionsHeader);
+
+        questions.forEach((question, index) => {
+            const div = document.createElement('div');
+            div.className = 'question-item';
+            div.innerHTML = `
+                <div class="question-header">
+                    <strong>${question.type.replace('_', ' ').toUpperCase()}</strong>
+                    <span class="question-category">${this.escapeHtml(question.category)}</span>
+                    <button class="btn btn-primary btn-small edit-btn" data-index="${index}">Edit</button>
+                    <button class="btn btn-danger btn-small delete-btn" data-index="${index}">Delete</button>
+                </div>
+                <div class="question-content">${this.escapeHtml(question.content)}</div>
+                <div class="question-answer">Answer: ${this.escapeHtml(question.correct_answer)}</div>
+            `;
+            this.dom.questionsList.appendChild(div);
+        });
+    }
+
+    loadQuestions() {
+        this.sendMessage({ type: 'get_questions' });
+    }
+
+    // ===== DRAWING =====
     setupDrawingCanvas() {
-        const canvas = document.getElementById('admin-draw-canvas');
+        const canvas = this.dom.adminDrawCanvas;
         const ctx = canvas.getContext('2d');
 
-        // Set canvas size
+        this.drawing.canvas = canvas;
+        this.drawing.ctx = ctx;
+
         canvas.width = 800;
         canvas.height = 600;
 
-        // Set drawing style
         ctx.strokeStyle = '#000000';
         ctx.lineWidth = 3;
         ctx.lineCap = 'round';
         ctx.lineJoin = 'round';
 
-        // Drawing event listeners
-        canvas.addEventListener('mousedown', (e) => {
-            this.startDrawing(e, canvas);
-        });
+        canvas.addEventListener('mousedown', (e) => this.startDrawing(e, canvas));
+        canvas.addEventListener('mousemove', (e) => this.draw(e, canvas));
+        canvas.addEventListener('mouseup', () => this.stopDrawing());
+        canvas.addEventListener('mouseout', () => this.stopDrawing());
 
-        canvas.addEventListener('mousemove', (e) => {
-            this.draw(e, canvas);
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            this.stopDrawing();
-        });
-
-        canvas.addEventListener('mouseout', () => {
-            this.stopDrawing();
-        });
-
-        // Touch events for mobile
+        // Touch events
         canvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
             const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousedown', {
+            canvas.dispatchEvent(new MouseEvent('mousedown', {
                 clientX: touch.clientX,
                 clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
+            }));
         });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
             const touch = e.touches[0];
-            const mouseEvent = new MouseEvent('mousemove', {
+            canvas.dispatchEvent(new MouseEvent('mousemove', {
                 clientX: touch.clientX,
                 clientY: touch.clientY
-            });
-            canvas.dispatchEvent(mouseEvent);
+            }));
         });
 
-        canvas.addEventListener('touchend', (e) => {
-            const mouseEvent = new MouseEvent('mouseup');
-            canvas.dispatchEvent(mouseEvent);
+        canvas.addEventListener('touchend', () => {
+            canvas.dispatchEvent(new MouseEvent('mouseup'));
         });
 
-        // Clear button
-        document.getElementById('clear-canvas').addEventListener('click', () => {
+        this.dom.clearCanvasBtn.addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
 
-        // Finish drawing button
-        document.getElementById('finish-drawing').addEventListener('click', () => {
+        this.dom.finishDrawingBtn.addEventListener('click', () => {
             this.sendMessage({ type: 'push_drawing' });
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            document.getElementById('drawing-area').classList.add('hidden');
+            this.dom.drawingArea.classList.add('hidden');
         });
     }
 
     startDrawing(e, canvas) {
-        this.isDrawing = true;
+        this.drawing.isDrawing = true;
         const rect = canvas.getBoundingClientRect();
-        this.lastPos = {
+        this.drawing.lastPos = {
             x: e.clientX - rect.left,
             y: e.clientY - rect.top
         };
     }
 
     draw(e, canvas) {
-        if (!this.isDrawing) return;
+        if (!this.drawing.isDrawing) return;
 
         const rect = canvas.getBoundingClientRect();
         const currentPos = {
@@ -235,67 +589,30 @@ class QuizAdmin {
             y: e.clientY - rect.top
         };
 
-        const ctx = canvas.getContext('2d');
+        const ctx = this.drawing.ctx;
         ctx.beginPath();
-        ctx.moveTo(this.lastPos.x, this.lastPos.y);
+        ctx.moveTo(this.drawing.lastPos.x, this.drawing.lastPos.y);
         ctx.lineTo(currentPos.x, currentPos.y);
         ctx.stroke();
 
-        // Send stroke to participants
         this.sendMessage({
             type: 'drawing_stroke',
             stroke: {
-                from: this.lastPos,
+                from: this.drawing.lastPos,
                 to: currentPos,
                 color: ctx.strokeStyle,
                 width: ctx.lineWidth
             }
         });
 
-        this.lastPos = currentPos;
+        this.drawing.lastPos = currentPos;
     }
 
     stopDrawing() {
-        this.isDrawing = false;
+        this.drawing.isDrawing = false;
     }
 
-    addQuestion() {
-        const type = document.getElementById('question-type').value;
-        const content = document.getElementById('question-content').value.trim();
-        const correctAnswer = document.getElementById('correct-answer').value.trim();
-
-        if (!content || !correctAnswer) {
-            alert('Please fill in all fields');
-            return;
-        }
-
-        const question = {
-            type: type,
-            content: content,
-            correct_answer: correctAnswer,
-            category: 'general' // Could be expanded
-        };
-
-        // For multiple choice, parse options from content
-        if (type === 'multiple_choice') {
-            // Assume options are separated by newlines in content
-            const lines = content.split('\n');
-            question.content = lines[0]; // First line is question
-            question.options = lines.slice(1).filter(line => line.trim()); // Rest are options
-        }
-
-        this.sendMessage({
-            type: 'add_question',
-            question: question
-        });
-
-        // Clear form
-        document.getElementById('question-content').value = '';
-        document.getElementById('correct-answer').value = '';
-
-        alert('Question added successfully!');
-    }
-
+    // ===== MESSAGE HANDLING =====
     handleMessage(data) {
         switch (data.type) {
             case 'status_update':
@@ -303,60 +620,34 @@ class QuizAdmin {
                 break;
 
             case 'quiz_started':
-                document.getElementById('start-quiz-btn').disabled = true;
-                document.getElementById('reveal-answer-btn').classList.remove('hidden');
-                document.getElementById('reveal-answer-btn').disabled = false;
-                document.getElementById('next-question-btn').disabled = false;
-                document.getElementById('end-quiz-btn').disabled = false;
-                // Update progress display if provided
+                this.setQuizUIState('started');
                 if (data.progress) {
-                    document.getElementById('admin-question-progress').textContent = `Question ${data.progress.current} of ${data.progress.total}`;
+                    this.dom.adminQuestionProgress.textContent = 
+                        `Question ${data.progress.current} of ${data.progress.total}`;
                 }
                 this.updateStatus('Quiz started');
                 break;
 
             case 'question_pushed':
-                // Clear any existing revealed answer from previous question
-                const existingReveal = document.getElementById('admin-reveal');
-                if (existingReveal) {
-                    existingReveal.remove();
-                }
-
-                document.getElementById('question-text').textContent = data.question.content;
-                if (data.progress) {
-                    document.getElementById('admin-question-progress').textContent = `Question ${data.progress.current} of ${data.progress.total}`;
-                    // Disable next-question button if we've reached the final question
-                    if (data.progress.current >= data.progress.total) {
-                        document.getElementById('next-question-btn').disabled = true;
-                    } else {
-                        document.getElementById('next-question-btn').disabled = false;
-                    }
-                }
-                // Reset answer counter for new question - show 0 answered (0 correct)
-                const currentParticipantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
-                document.getElementById('answer-counter').textContent = `0 answered (0 correct) out of ${currentParticipantCount} participants`;
-                if (data.question.type === 'drawing') {
-                    document.getElementById('drawing-area').classList.remove('hidden');
-                }
-                // Enable reveal button when question is pushed
-                document.getElementById('reveal-answer-btn').disabled = false;
+                this.handleQuestionPushed(data);
                 break;
 
             case 'answer_revealed':
                 this.showRevealedAnswer(data);
+                this.setButtonState(this.dom.nextQuestionBtn, false);
                 break;
 
-    case 'reveal_confirmed':
-        this.updateStatus('Answer revealed to all participants');
-        document.getElementById('reveal-answer-btn').disabled = true;
-        break;
+            case 'reveal_confirmed':
+                this.updateStatus('Answer revealed to all participants');
+                this.setButtonState(this.dom.revealAnswerBtn, true);
+                break;
 
             case 'reveal_error':
-                alert('Error: ' + data.message);
+                this.showMessage('Error: ' + data.message, 'error');
                 break;
 
             case 'timer_update':
-                document.getElementById('admin-time-remaining').textContent = data.time_left;
+                this.dom.adminTimeRemaining.textContent = data.time_left;
                 break;
 
             case 'answer_received':
@@ -371,11 +662,7 @@ class QuizAdmin {
                 break;
 
             case 'quiz_ended':
-                document.getElementById('start-quiz-btn').disabled = false;
-                document.getElementById('reveal-answer-btn').classList.add('hidden');
-                document.getElementById('reveal-answer-btn').disabled = true;
-                document.getElementById('next-question-btn').disabled = true;
-                document.getElementById('end-quiz-btn').disabled = true;
+                this.setQuizUIState('ended');
                 this.updateStatus('Quiz ended');
                 break;
 
@@ -384,106 +671,109 @@ class QuizAdmin {
                 break;
 
             case 'question_added':
-                this.loadQuestions(); // Refresh the question list
-                break;
-
+            case 'question_updated':
             case 'question_deleted':
-                this.loadQuestions(); // Refresh the question list
+                this.loadQuestions();
                 break;
 
             case 'time_expired':
-                document.getElementById('reveal-answer-btn').disabled = false;
+                this.setButtonState(this.dom.revealAnswerBtn, false);
                 break;
         }
     }
 
-    updateAnswersList(answers) {
-        const tbody = document.getElementById('answers-tbody');
-        tbody.innerHTML = '';
+    handleQuestionPushed(data) {
+        const existingReveal = document.getElementById('admin-reveal');
+        if (existingReveal) existingReveal.remove();
 
-        const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
+        this.dom.questionText.textContent = data.question.content;
+
+        if (data.progress) {
+            this.dom.adminQuestionProgress.textContent = 
+                `Question ${data.progress.current} of ${data.progress.total}`;
+            const isLastQuestion = data.progress.current >= data.progress.total;
+            this.setButtonState(this.dom.nextQuestionBtn, isLastQuestion);
+        }
+
+        this.resetAnswerCounter();
+
+        if (data.question.type === 'drawing') {
+            this.dom.drawingArea.classList.remove('hidden');
+        }
+
+        this.setButtonState(this.dom.revealAnswerBtn, false);
+    }
+
+    // ===== UI STATE HELPERS =====
+    setQuizUIState(state) {
+        if (state === 'started') {
+            this.setButtonState(this.dom.startQuizBtn, true);
+            this.setButtonState(this.dom.revealAnswerBtn, false);
+            this.setButtonState(this.dom.nextQuestionBtn, false);
+            this.setButtonState(this.dom.endQuizBtn, false);
+            this.dom.revealAnswerBtn.classList.remove('hidden');
+        } else if (state === 'ended') {
+            this.setButtonState(this.dom.startQuizBtn, false);
+            this.setButtonState(this.dom.revealAnswerBtn, true);
+            this.dom.revealAnswerBtn.classList.add('hidden');
+            this.setButtonState(this.dom.nextQuestionBtn, false);
+            this.setButtonState(this.dom.endQuizBtn, true);
+        }
+    }
+
+    setButtonState(btn, disabled) {
+        btn.disabled = disabled;
+    }
+
+    resetAnswerCounter() {
+        const participantCount = parseInt(this.dom.participantCount.textContent) || 0;
+        this.dom.answerCounter.textContent = 
+            `0 answered (0 correct) out of ${participantCount} participants`;
+    }
+
+    // ===== ANSWERS & LEADERBOARD =====
+    updateAnswersList(answers) {
+        this.dom.answersTbody.innerHTML = '';
+        const participantCount = parseInt(this.dom.participantCount.textContent) || 0;
 
         if (answers.length === 0) {
-            const row = tbody.insertRow();
+            const row = this.dom.answersTbody.insertRow();
             row.className = 'no-answers';
             const cell = row.insertCell();
             cell.colSpan = 4;
             cell.textContent = 'Waiting for answers...';
-            // Update counter to correct format
-            document.getElementById('answer-counter').textContent = `0 answered (0 correct) out of ${participantCount} participants`;
+            this.resetAnswerCounter();
             return;
         }
 
-        // Calculate counts
         const totalAnswered = answers.length;
-        const correctCount = answers.filter(answer => answer.correct).length;
-        const totalScore = answers.reduce((sum, answer) => sum + (answer.score || 0), 0);
+        const correctCount = answers.filter(a => a.correct).length;
 
-        // Update counter with simplified format
-        document.getElementById('answer-counter').textContent = `${totalAnswered}/${participantCount} answered (${correctCount} correct)`;
+        this.dom.answerCounter.textContent = 
+            `${totalAnswered}/${participantCount} answered (${correctCount} correct)`;
 
-        // Sort answers by score (highest first) for question rankings
         answers.sort((a, b) => (b.score || 0) - (a.score || 0));
 
         answers.forEach((answer, index) => {
-            const row = tbody.insertRow();
-
-            // Rank column
-            const rankCell = row.insertCell();
-            rankCell.className = 'rank';
-            rankCell.textContent = `#${index + 1}`;
-
-            // Participant column
-            const participantCell = row.insertCell();
-            participantCell.textContent = answer.user;
-
-            // Score column
-            const scoreCell = row.insertCell();
-            scoreCell.className = 'score';
-            scoreCell.textContent = answer.score || 0;
-
-            // Answer column (merged with status)
-            const answerCell = row.insertCell();
-            const indicator = answer.correct ? '✓' : '✗';
-            const indicatorClass = answer.correct ? 'correct' : 'incorrect';
-            answerCell.innerHTML = `<span class="${indicatorClass}">${indicator} ${answer.content}</span>`;
+            this.addTableRow(this.dom.answersTbody, [
+                `#${index + 1}`,
+                answer.user,
+                answer.score || 0,
+                answer.correct ? '✓' : '✗'
+            ], [
+                'rank',
+                '',
+                'score',
+                answer.correct ? 'correct' : 'incorrect'
+            ]);
         });
     }
 
-    showRevealedAnswer(data) {
-        // Disable reveal button
-        document.getElementById('reveal-answer-btn').disabled = true;
-
-        // Show reveal in admin view
-        const revealDiv = document.createElement('div');
-        revealDiv.id = 'admin-reveal';
-        revealDiv.className = 'reveal-answer';
-        revealDiv.innerHTML = `<h3>Revealed Answer: ${data.correct_answer}</h3>`;
-        if (data.options) {
-            const optionsList = document.createElement('ul');
-            data.options.forEach(opt => {
-                const li = document.createElement('li');
-                li.textContent = opt;
-                if (opt.toLowerCase() === data.correct_answer.toLowerCase()) {
-                    li.className = 'correct-option';
-                }
-                optionsList.appendChild(li);
-            });
-            revealDiv.appendChild(optionsList);
-        }
-
-        const answersDisplay = document.getElementById('answers-display');
-        answersDisplay.appendChild(revealDiv);
-
-        this.updateStatus('Answer revealed');
-    }
-
     updateLeaderboard(scores) {
-        const tbody = document.getElementById('leaderboard-tbody');
-        tbody.innerHTML = '';
+        this.dom.leaderboardTbody.innerHTML = '';
 
         if (scores.length === 0) {
-            const row = tbody.insertRow();
+            const row = this.dom.leaderboardTbody.insertRow();
             row.className = 'no-answers';
             const cell = row.insertCell();
             cell.colSpan = 3;
@@ -491,178 +781,95 @@ class QuizAdmin {
             return;
         }
 
-        // Show top 10 scores
         const topScores = scores.slice(0, 10);
 
         topScores.forEach((score, index) => {
-            const row = tbody.insertRow();
-
-            // Rank column
-            const rankCell = row.insertCell();
-            rankCell.className = 'rank';
-            rankCell.textContent = `#${index + 1}`;
-
-            // Name column
-            const nameCell = row.insertCell();
-            nameCell.className = 'name';
-            nameCell.textContent = score.user_name;
-
-            // Score column
-            const scoreCell = row.insertCell();
-            scoreCell.className = 'points';
-            scoreCell.textContent = `${score.total_score} pts`;
+            this.addTableRow(this.dom.leaderboardTbody, [
+                `#${index + 1}`,
+                score.user_name,
+                `${score.total_score} pts`
+            ], [
+                'rank',
+                'name',
+                'points'
+            ]);
         });
     }
 
-    sendMessage(message) {
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.send(JSON.stringify(message));
-        } else {
-            console.error('WebSocket not connected');
-        }
+    addTableRow(tbody, values, classes = []) {
+        const row = tbody.insertRow();
+        values.forEach((value, idx) => {
+            const cell = row.insertCell();
+            cell.textContent = value;
+            if (classes[idx]) cell.className = classes[idx];
+        });
     }
 
-    updateStatusDashboard(data) {
-        // Update participant count
-        const oldCount = parseInt(document.getElementById('participant-count').textContent) || 0;
-        document.getElementById('participant-count').textContent = data.participant_count;
+    showRevealedAnswer(data) {
+        this.setButtonState(this.dom.revealAnswerBtn, true);
 
-        // Update answer counter if participant count changed and we have answers
+        const revealDiv = document.createElement('div');
+        revealDiv.id = 'admin-reveal';
+        revealDiv.className = 'reveal-answer';
+        revealDiv.innerHTML = `<h3>Revealed Answer: ${this.escapeHtml(data.correct_answer)}</h3>`;
+
+        this.dom.answersDisplay.appendChild(revealDiv);
+        this.updateStatus('Answer revealed');
+    }
+
+    // ===== STATUS DASHBOARD =====
+    updateStatusDashboard(data) {
+        const oldCount = parseInt(this.dom.participantCount.textContent) || 0;
+        this.dom.participantCount.textContent = data.participant_count;
+
         if (oldCount !== data.participant_count) {
             this.updateAnswerCounter();
         }
 
-        // Update quiz status
-        const quizStatus = data.quiz_active ? 'Active' : 'Waiting';
-        document.getElementById('quiz-status').textContent = quizStatus;
+        this.dom.quizStatus.textContent = data.quiz_active ? 'Active' : 'Waiting';
 
-        // Update current question status
         const questionStatus = data.current_question ?
             (data.current_question.length > 20 ?
                 data.current_question.substring(0, 20) + '...' :
                 data.current_question) :
             'None';
-        document.getElementById('current-question-status').textContent = questionStatus;
+        this.dom.currentQuestionStatus.textContent = questionStatus;
 
-        // Update answered and correct answers count if available
         if (data.hasOwnProperty('total_answered') && data.hasOwnProperty('correct_answers')) {
             const participantCount = data.participant_count;
             const totalAnswered = data.total_answered || 0;
             const correctCount = data.correct_answers || 0;
-            document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
+            this.dom.answerCounter.textContent = 
+                `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
         }
 
-        // Update leaderboard if available
         if (data.leaderboard && data.leaderboard.length > 0) {
             this.updateLeaderboard(data.leaderboard);
-        } else {
-            // Clear leaderboard if no data
-            const tbody = document.getElementById('leaderboard-tbody');
-            tbody.innerHTML = '<tr class="no-scores"><td colspan="3">No scores yet...</td></tr>';
         }
     }
 
     updateAnswerCounter() {
-        // Get current answered and correct counts from table
-        const tbody = document.getElementById('answers-tbody');
-        const rows = tbody.querySelectorAll('tr:not(.no-answers)');
+        const rows = this.dom.answersTbody.querySelectorAll('tr:not(.no-answers)');
         const totalAnswered = rows.length;
         const correctCount = Array.from(rows).filter(row => row.querySelector('.correct')).length;
+        const participantCount = parseInt(this.dom.participantCount.textContent) || 0;
 
-        // Get current participant count
-        const participantCount = parseInt(document.getElementById('participant-count').textContent) || 0;
-
-        // Update counter
-        document.getElementById('answer-counter').textContent = `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
+        this.dom.answerCounter.textContent = 
+            `${totalAnswered} answered (${correctCount} correct) out of ${participantCount} participants`;
     }
 
-    loadQuestions() {
-        console.log('Loading questions...');
-        // Send request to load existing questions
-        this.sendMessage({ type: 'get_questions' });
-    }
-
-    updateQuestionsList(questions) {
-        console.log('Updating questions list with:', questions);
-        const container = document.getElementById('questions-list');
-        container.innerHTML = '';
-
-        if (!questions || questions.length === 0) {
-            console.log('No questions to display');
-            container.textContent = 'No questions added yet...';
-            return;
-        }
-
-        // Calculate category counts
-        const categoryCounts = {};
-        questions.forEach(question => {
-            categoryCounts[question.category] = (categoryCounts[question.category] || 0) + 1;
-        });
-
-        // Create category summary section
-        const summaryDiv = document.createElement('div');
-        summaryDiv.className = 'questions-summary';
-        summaryDiv.innerHTML = `
-            <h4>Question Library Summary</h4>
-            <div class="category-counts">
-                ${Object.entries(categoryCounts).map(([category, count]) =>
-                    `<span class="category-badge">${category}: ${count}</span>`
-                ).join('')}
-            </div>
-            <div class="total-count">Total: ${questions.length} questions</div>
-        `;
-        container.appendChild(summaryDiv);
-
-        // Create individual questions list
-        const questionsHeader = document.createElement('h4');
-        questionsHeader.textContent = 'Individual Questions';
-        questionsHeader.style.marginTop = '20px';
-        container.appendChild(questionsHeader);
-
-        questions.forEach((question, index) => {
-            const div = document.createElement('div');
-            div.className = 'question-item';
-            div.innerHTML = `
-                <div class="question-header">
-                    <strong>${question.type.replace('_', ' ').toUpperCase()}</strong>
-                    <span class="question-category">${question.category}</span>
-                    <button class="btn btn-danger btn-small delete-btn" data-index="${index}">Delete</button>
-                </div>
-                <div class="question-content">${question.content}</div>
-                <div class="question-answer">Answer: ${question.correct_answer}</div>
-            `;
-            container.appendChild(div);
-        });
-
-        // Add event listeners for delete buttons
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                this.deleteQuestion(index);
-            });
-        });
-    }
-
-    deleteQuestion(index) {
-        if (confirm('Are you sure you want to delete this question?')) {
-            this.sendMessage({
-                type: 'delete_question',
-                index: index
-            });
-        }
-    }
-
+    // ===== SETTINGS =====
     saveSettings() {
-        const questionTimer = parseInt(document.getElementById('question-timer').value);
-        const maxParticipants = parseInt(document.getElementById('max-participants').value);
+        const questionTimer = parseInt(this.dom.questionTimer.value);
+        const maxParticipants = parseInt(this.dom.maxParticipants.value);
 
         if (questionTimer < 10 || questionTimer > 120) {
-            alert('Question timer must be between 10 and 120 seconds');
+            this.showMessage('Question timer must be between 10 and 120 seconds', 'error');
             return;
         }
 
         if (maxParticipants < 1 || maxParticipants > 500) {
-            alert('Max participants must be between 1 and 500');
+            this.showMessage('Max participants must be between 1 and 500', 'error');
             return;
         }
 
@@ -674,15 +881,26 @@ class QuizAdmin {
             }
         });
 
-        alert('Settings saved successfully!');
+        this.showMessage('Settings saved successfully!', 'success');
+    }
+
+    // ===== UTILITIES =====
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    showMessage(message, type = 'info') {
+        // Simple alert for now, can be enhanced with toast notifications later
+        alert(message);
     }
 
     updateStatus(status) {
-        document.getElementById('status').textContent = status;
+        this.dom.status.textContent = status;
     }
 }
 
-// Initialize when page loads
 document.addEventListener('DOMContentLoaded', () => {
     new QuizAdmin();
 });

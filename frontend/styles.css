@@ -1,4 +1,12 @@
-/* All-Hands Quiz Game Styles - Christmas Theme */
+/* All-Hands Quiz Game Styles - Christmas Theme *//* === Glass Panel Translucency === */
+.control-section, .festive-panel, .status-dashboard, .question-management, .question-library {
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(4px);
+  border-radius: 14px;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.16);
+  /* For fallback in browsers not supporting backdrop-filter: */
+  -webkit-backdrop-filter: blur(4px);
+}
 
 :root {
     --christmas-red: #dc143c;
