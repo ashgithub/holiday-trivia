@@ -15,6 +15,11 @@
 - **Persistent Storage**: Questions and historical data stored in database (SQLite for simplicity)
 - **Caching**: Frequently accessed data (current question, leaderboard) cached for performance
 
+### Strict Question Type Pattern
+- **Canonical literal question.type convention**: All logic (frontend and backend) relies on the database value as the sole source of truth for each question type string (`pictionary`, `multiple_choice`, `fill_in_the_blank`, `word_cloud`, `wheel_of_fortune`, etc).
+- **No normalization, mapping, or aliasing:** All UI, API, and backend logic (including drawing canvas, MCQ behavior, word cloud, etc) uses direct equality checking on the literal type (e.g. `if (type === 'pictionary') ...`).
+- **Benefits:** Removes confusion, simplifies debugging, maintains a single source of truth for type handling.
+
 ### Similarity Scoring & Clustering Pattern (Word Cloud)
 
 - **Goal:** For word cloud questions, automatically group similar answers using semantic embeddings without any admin intervention.

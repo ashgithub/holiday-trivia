@@ -49,7 +49,9 @@ The All-Hands Quiz Game is now production-ready with comprehensive features, rob
 - ✅ **Documentation Overhaul**: Updated README, project brief, and memory bank
 
 ## Current Refactoring Work (Question Types Overhaul)
-### New Question Type Specifications
+### New Question Type Specifications (Strict Type Convention - No Aliasing)
+- **Each question type uses the literal DB value everywhere—no mappings/normalizations in backend or frontend.**
+
 1. **fill_in_the_blank**
    - Question shown as entered
    - Multiple attempts allowed
@@ -58,8 +60,7 @@ The All-Hands Quiz Game is now production-ready with comprehensive features, rob
    - Display: answer table line
 
 2. **multiple_choice**
-   - Question with checkbox options (only one correct)
-   - Multiple attempts allowed
+   - Only one correct: first selection submits answer and disables choices, no green or highlight on selection
    - Score = time remaining when correct
    - Input: checkbox selection (only one)
    - Display: answer table line
@@ -79,7 +80,8 @@ The All-Hands Quiz Game is now production-ready with comprehensive features, rob
    - Display: word cloud visualization + answer table
 
 5. **pictionary**
-   - Admin draws based on hidden prompt (not shown to admin screen)
+   - Admin draws based on hidden prompt
+   - Drawing canvas is always shown and cleared for each new question, hidden for non-pictionary
    - Participants guess via voice/text, multiple attempts allowed
    - If answer close enough, score = time remaining
    - Custom similarity using embeddings and cosine distance

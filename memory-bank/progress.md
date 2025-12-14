@@ -18,6 +18,21 @@
 - [x] **Cross-Platform Compatibility**: Browser-tested with fallbacks implemented
 
 ## Recently Completed (Major Updates)
+- [x] **Strict question.type Convention (No Aliasing or Normalization):**
+    - All frontend and backend logic now uses the canonical database value for question.type everywhere (e.g., 'pictionary', 'multiple_choice', 'word_cloud').
+    - No normalization, mapping, or type aliasing remains for any question type.
+
+- [x] **Drawing/Pictionary UX:** 
+    - Admin canvas is shown only for "pictionary", always cleared for each new pictionary round, and hidden for all other types (including wheel_of_fortune).
+    - Button is always labeled "Hide Drawing".
+
+- [x] **MCQ Experience:** 
+    - MCQ submits only on first option click—no button highlight/selection, disables all after click.
+
+- [x] **Word Cloud:** 
+    - Workflow and scoring based on strict DB type.
+    - Backend and frontend feedback robust, no ambiguity.
+
 - [x] **Time-Based Scoring System**: Implemented seconds-remaining scoring for correct answers (0-30 points)
 - [x] **Enhanced Participant Experience**: Current + cumulative score display in real-time feedback
 - [x] **Cumulative Leaderboard**: Live leaderboard showing accumulated scores across all questions

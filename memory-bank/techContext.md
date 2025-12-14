@@ -62,6 +62,7 @@
 ## Data Models
 - **User**: id, name, role (quiz_master/participant), session_id
 - **Question**: id, type, content, answers, correct_answer, category
+  - **type**: always a literal string from canonical set: 'fill_in_the_blank', 'multiple_choice', 'pictionary', 'wheel_of_fortune', 'word_cloud'. No mapping in code.
 - **Game**: id, status, current_question, participants, scores
 - **Answer**: id, user_id, question_id, content, timestamp, correct
 
