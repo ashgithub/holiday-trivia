@@ -15,6 +15,18 @@
 - **Persistent Storage**: Questions and historical data stored in database (SQLite for simplicity)
 - **Caching**: Frequently accessed data (current question, leaderboard) cached for performance
 
+### Similarity Scoring & Clustering Pattern (Word Cloud)
+
+- **Goal:** For word cloud questions, automatically group similar answers using semantic embeddings without any admin intervention.
+- **How it works:**
+  - All free-text responses for a word cloud question are embedded into vectors using sentence-transformers (MiniLM or similar).
+  - Answers are clustered or grouped based on cosine similarity (e.g., thresholded or via DBSCAN).
+  - Each cluster “represents” a collective answer; its frequency/popularity is the count of members.
+  - Scoring: Each participant receives points proportional to the size of their cluster (Score = 30 × participation ratio).
+  - No correct answer is defined in the question; all logic is based on grouping.
+  - Admin UI displays the cloud (words sized by cluster size), participant UI confirms score and popularity.
+  - Library: sentence-transformers (pip install sentence-transformers), runs locally, fast.
+- **Pattern fit:** Cleanly plugs into event-driven submission and update flow. No changes needed in persistent schema beyond allowing “blank answer” for word cloud questions.
 ## UI Patterns
 - **Role-Based Interfaces**: Different screens for quiz master vs participants
 - **Real-Time Updates**: Automatic UI refreshes without user interaction

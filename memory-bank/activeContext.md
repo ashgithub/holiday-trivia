@@ -9,6 +9,20 @@ The All-Hands Quiz Game is now production-ready with comprehensive features, rob
 3. **User Feedback Integration**: Collect and analyze real-world usage data
 4. **Advanced Scoring**: Implement word cloud similarity-based scoring (backlog)
 
+---
+
+### Backlog: Word Cloud Embedding-Based Auto-Scoring & Clustering
+
+- **Goal:** Implement word cloud question type with _no admin-set “correct” answer_. Answers are grouped via semantic similarity using sentence-transformers (MiniLM or similar). Participants receive scores proportional to the size of their answer’s semantic cluster.
+- **Algorithm:** 
+  - Collect all participant responses.
+  - Embed using sentence-transformers.
+  - Group by cosine similarity threshold or clustering (e.g., DBSCAN or flat threshold).
+  - Score = 30 × (cluster size ratio).
+  - Cluster representatives are displayed in a word cloud on the admin screen (popular answers shown larger).
+- **Frontend:** Admin screen displays live word cloud; participant screen provides feedback on their cluster size.
+- **No correct answer required in question library for this type.**
+- **Library:** Use sentence-transformers for fast, local embedding/similarity.
 ## Key Decisions Made
 - **Time-Based Scoring**: Correct answers = seconds remaining (0-30 points), incorrect = 0
 - **WebSocket Architecture**: Full real-time bidirectional communication with connection management

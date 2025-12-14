@@ -71,6 +71,16 @@
 - **Scalability**: Horizontal scaling support with load balancer compatibility
 
 ## Future Enhancements
+
+- **Word Cloud Semantic Grouping & Auto-Scoring (Backlog)**
+  - Implement a word cloud question type with *no admin-set correct answer*.
+  - All participant answers are clustered using sentence-transformers (MiniLM or equivalent) based on cosine similarity in embedding space (simple local model).
+  - Scoring: Each participant gets points proportional to the size of the semantic cluster their answer belongs to (Score = 30 × [cluster size ratio]).
+  - The admin screen displays a word cloud where most popular (largest cluster) answers are displayed larger.
+  - Participant UI displays feedback on their answer’s popularity and score.
+  - Library: Use `sentence-transformers` (pip install sentence-transformers).
+  - *No updates needed to the question management UI beyond allowing “word cloud” type with no correct answer entry.*
+
 - Production deployment and monitoring
 - Advanced scoring algorithms with time bonuses
 - Mobile device optimization

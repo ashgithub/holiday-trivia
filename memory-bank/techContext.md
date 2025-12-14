@@ -40,7 +40,15 @@
 - sqlalchemy==2.0.23 (ORM)
 - alembic==1.12.1 (migrations)
 - python-multipart==0.0.6
+- **sentence-transformers==2.x** (semantic answer grouping and similarity for word cloud and pictionary questions)
 
+#### Technical Design Note (Word Cloud/Pictionary Similarity)
+- For word cloud (and pictionary) questions, all answers are embedded into vectors using sentence-transformers (MiniLM or similar).
+- Answers are clustered by cosine similarity to identify semantically similar responses automatically.
+- Scoring is assigned by cluster size; most popular (largest cluster) answers are displayed as largest in admin word cloud.
+- *No correct answer is needed for word cloud questions in the admin UI or database—auto-scoring only.*
+- Embedding model runs CPU-only, no GPU required, and is fast for short phrases.
+- No frontend JS libraries are added; only backend changes.
 ### Frontend (JavaScript)
 - No external libraries (pure JS)
 - Web Speech API (native browser support)
