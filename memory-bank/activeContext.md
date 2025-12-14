@@ -1,7 +1,8 @@
 # Active Context
 
 ## Current Work Focus
-The All-Hands Quiz Game is now production-ready with comprehensive features, robust testing infrastructure, and full scalability to 150 concurrent users. The system includes time-based scoring, enhanced participant experience, refactored admin interface, and comprehensive load testing capabilities.
+- Refining and implementing the **simplified Wheel of Fortune logic**: live phrase board, automatic tile-by-tile reveal for all users, category-based guessing, multiple full-phrase submissions, ends on correct guess or full reveal.
+- The All-Hands Quiz Game is now production-ready with comprehensive features, robust testing infrastructure, and full scalability to 150 concurrent users. The system includes time-based scoring, enhanced participant experience, refactored admin interface, and comprehensive load testing capabilities.
 
 ## Immediate Priorities
 1. **Production Deployment**: Prepare for cloud deployment with proper configuration
@@ -66,11 +67,15 @@ The All-Hands Quiz Game is now production-ready with comprehensive features, rob
    - Display: answer table line
 
 3. **wheel_of_fortune**
-   - Category shown, blank tiles revealed every 2 seconds
-   - Multiple guesses allowed until correct
-   - Score = time remaining when correct word guessed
+   - Category prompt shown (e.g., “Guess the phrase in <category>”)
+   - Both admin and participants see the phrase as blank tiles/underscores; the solution is revealed one letter at a time at a configurable interval (default: 2s per tile)
+   - The board is updated live for all users (admin and participants) with each tile revealed
+   - Participants may guess the full phrase at any moment during the round (multiple full-phrase guesses allowed)
+   - No per-letter guessing, no randomness/spinning
+   - Round ends on correct guess or when all letters are revealed
+   - Score = time remaining when correct phrase guessed
    - Input: voice or text
-   - Display: answer table line
+   - Display: live board + answer table line
 
 4. **word_cloud**
    - Only question/prompt shown (no answer in database)

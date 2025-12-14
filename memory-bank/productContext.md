@@ -12,6 +12,7 @@ An interactive quiz game that transforms passive meetings into engaging, competi
 - **Ease of Use**: Simple setup and operation for quiz masters, intuitive interface for participants
 - **Variety**: Multiple question types to suit different content and engagement needs
 - **Real-time Feedback**: Immediate response aggregation and scoring for dynamic gameplay
+- **Wheel of Fortune™ Round**: Provide a unique round where participants guess a hidden phrase in a category. The phrase is revealed one letter at a time (at a set interval), with all participants and the admin seeing the board update live. Participants can make multiple full-phrase guesses at any moment during the reveal, sustaining engagement and suspense throughout the round.
 - **Robust Testing**: Comprehensive load testing infrastructure to validate performance at scale
 - **Admin Control**: Advanced question management and real-time analytics for quiz masters
 

@@ -178,6 +178,14 @@ class QuizParticipant {
                 this.displayQuestion(data.question, data.progress);
                 break;
 
+            case 'wof_update':
+                this.handleWofUpdate(data);
+                break;
+
+            case 'wof_winner':
+                this.handleWofWinner(data);
+                break;
+
             case 'personal_feedback':
                 this.showPersonalFeedback(data);
                 break;
@@ -195,7 +203,6 @@ class QuizParticipant {
                 break;
 
             case 'timer_update':
-                // Only update timer if question is still active (timeLeft > 0) and participant hasn't submitted
                 if (this.timeLeft > 0 && !this.hasSubmitted) {
                     this.updateTimer(data.time_left);
                 }
@@ -205,6 +212,40 @@ class QuizParticipant {
                 this.showWaitingMessage();
                 break;
         }
+    }
+
+    handleWofUpdate(data) {
+        // For participants, do NOT display the tiles or input.
+        // Only update the status with winner or "Wheel of Fortune running..."
+        this.updateStatus(data.winner ? `Winner: ${data.winner}` : "Wheel of Fortune running...");
+    }
+
+    handleWofWinner(data) {
+        // Show winner prominently
+        const msg = document.getElementById('wof-winner-msg') || document.createElement('div');
+        msg.id = 'wof-winner-msg';
+        msg.className = 'wof-winner-msg';
+        msg.innerHTML = `<h3>Winner: ${this.escapeHtml(data.winner)}</h3>
+          <div>The answer was: <strong>${this.escapeHtml(data.answer)}</strong></div>`;
+        document.getElementById('question-container').appendChild(msg);
+        // Lock input if present
+        let inp = document.getElementById('wof-input');
+        let btn = document.getElementById('wof-submit-btn');
+        if (inp) inp.disabled = true;
+        if (btn) btn.disabled = true;
+        this.updateStatus(`Winner: ${data.winner}`);
+    }
+
+    submitWofGuess() {
+        const inp = document.getElementById('wof-input');
+        if (!inp || !inp.value.trim()) return;
+        if (!this.currentQuestion) return;
+        this.ws.send(JSON.stringify({
+            type: "answer",
+            question_id: this.currentQuestion.id,
+            answer: inp.value
+        }));
+        inp.value = "";
     }
 
     showQuestionContainer() {
@@ -244,12 +285,21 @@ class QuizParticipant {
     }
 
     displayQuestion(question, progress) {
+        // DEBUG LOG: see exactly what the participant client sees
+        console.log("[PARTICIPANT DEBUG] displayQuestion payload:", question);
+        console.log("[PARTICIPANT DEBUG] .category =", question.category);
         this.currentQuestion = question;
         this.hasSubmitted = false; // Reset submission flag for new question
         this.allowMultiple = question.allow_multiple || true;
 
         // Show question container and hide waiting message
         this.showQuestionContainer();
+
+        // Remove any old WoF board, input, or winner UI
+        ['wof-board', 'wof-input', 'wof-submit-btn', 'wof-winner-msg'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.remove();
+        });
 
         // Restore timer markup for new question
         const timer = document.getElementById('timer');
@@ -260,16 +310,22 @@ class QuizParticipant {
             document.getElementById('question-progress').textContent = `Question ${progress.current} of ${progress.total}`;
         }
 
-        document.getElementById('question-content').textContent = question.content;
+        // Always show the WoF prompt format for all questions
+        document.getElementById('question-content').innerHTML =
+            `Guess the word in category: <span class="wof-category">${this.escapeHtml(question.content)}</span>`;
 
         // Re-enable input fields for new question
         const textAnswer = document.getElementById('text-answer');
         const submitBtn = document.getElementById('submit-btn');
-
-        textAnswer.disabled = false;
-        textAnswer.value = ''; // Clear any previous answer
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Submit';
+        if (question.type !== "wheel_of_fortune") {
+            textAnswer.disabled = false;
+            textAnswer.value = ''; // Clear any previous answer
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Submit';
+        } else {
+            textAnswer.disabled = true;
+            submitBtn.disabled = true;
+        }
 
         // Clear feedback and revealed answers
         this.clearFeedback();

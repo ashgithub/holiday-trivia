@@ -129,6 +129,12 @@ total_questions: int = 0
 question_timer: Optional[asyncio.Task] = None
 question_start_time: Optional[float] = None  # Timestamp when current question was pushed
 
+# --- Wheel of Fortune state ---
+wof_revealed_indices: Optional[List[bool]] = None  # Indices in current phrase that are revealed (now List[bool])
+wof_reveal_task: Optional[asyncio.Task] = None   # Background tile reveal task
+wof_winner: Optional[str] = None                 # Winning participant name
+wof_tile_duration: float = 2.0                   # seconds per tile (could be set via admin/settings)
+
 async def cleanup_database():
     """Clean up users and answers tables at startup for fresh sessions"""
     db = SessionLocal()
@@ -251,16 +257,18 @@ async def participant_websocket(websocket: WebSocket):
             }, connection_id)
 
             if current_question:
-                await participant_manager.send_personal_message({
-                    "type": "question",
-                "question": {
+                debug_question_payload = {
                     "id": current_question.id,
                     "type": current_question.type,
                     "content": current_question.content,
+                    # No category: always just use content for prompt
                     "options": json.loads(current_question.answers) if current_question.answers else None,
                     "allow_multiple": getattr(current_question, 'allow_multiple', True),
-                    # hidden_prompt removed – pictionary now uses correct_answer as the hint
                 }
+                print("[DEBUG] SENDING QUESTION TO PARTICIPANT:", debug_question_payload)
+                await participant_manager.send_personal_message({
+                    "type": "question",
+                    "question": debug_question_payload
                 }, connection_id)
 
         try:
@@ -269,23 +277,98 @@ async def participant_websocket(websocket: WebSocket):
 
 
                 if data["type"] == "answer":
-                    global word_cloud_scored
+                    global word_cloud_scored, wof_winner, wof_reveal_task
                     existing = db.query(Answer).filter(
                         Answer.user_id == participant.id,
                         Answer.question_id == data["question_id"],
                         Answer.game_id == current_game.id if current_game else None
                     ).first()
-
-                    # CUSTOM: For word_cloud, always accept and ignore is_correct/scoring at this stage
+                    
                     is_word_cloud = current_question and current_question.type == "word_cloud"
+                    is_wof = current_question and current_question.type == "wheel_of_fortune"
                     is_correct = False
                     score = 0
 
-                    if current_question and data["question_id"] == current_question.id and not is_word_cloud:
-                        # Only use text match scoring for non-word_cloud
-                        is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
+                    # ---- WHEEL OF FORTUNE LOGIC ----
+                    if is_wof and current_question and data["question_id"] == current_question.id and not wof_winner:
+                        # Accept full phrase guess, ignore case and whitespace; don't allow partial answers
+                        guess = (data["answer"] or "").strip().lower()
+                        answer = (current_question.correct_answer or "").strip().lower()
+                        if guess == answer:
+                            is_correct = True
+                            wof_winner = participant.name
+                            # Kill the letter-reveal engine if still running
+                            if wof_reveal_task:
+                                wof_reveal_task.cancel()
+                                wof_reveal_task = None
+                            # Mark all tiles revealed
+                            if wof_revealed_indices is not None:
+                                for idx in range(len(wof_revealed_indices)):
+                                    wof_revealed_indices[idx] = True
+                            # Score = seconds remaining (from main timer, or max if timer is not running)
+                            seconds_remaining = 30
+                            if question_start_time is not None:
+                                elapsed_time = asyncio.get_event_loop().time() - question_start_time
+                                seconds_remaining = max(0, 30 - int(elapsed_time))
+                            score = seconds_remaining
 
-                        # Calculate time-based score: seconds remaining if correct, 0 if wrong
+                            # Insert a new Answer or update previous (to track leaderboard as normal)
+                            if existing:
+                                existing.content = data["answer"]
+                                existing.is_correct = True
+                                existing.score = score
+                                existing.retry_count += 1
+                                existing.timestamp = datetime.utcnow()
+                            else:
+                                answer_obj = Answer(
+                                    user_id=participant.id,
+                                    question_id=data["question_id"],
+                                    game_id=current_game.id if current_game else None,
+                                    content=data["answer"],
+                                    is_correct=True,
+                                    score=score,
+                                    retry_count=1
+                                )
+                                db.add(answer_obj)
+                            db.commit()
+
+                            await broadcast_wof_state(current_question.correct_answer or "", finished=True, winner=wof_winner)
+                            await participant_manager.send_personal_message({
+                                "type": "personal_feedback",
+                                "correct": True,
+                                "score": score,
+                                "total_score": score,  # optionally sum, for now single-question
+                                "retry_count": existing.retry_count+1 if existing else 1,
+                                "allow_multiple": False
+                            }, connection_id)
+                            # Notify all clients that the round is done and who won
+                            await admin_manager.broadcast({
+                                "type": "wof_winner",
+                                "winner": wof_winner,
+                                "answer": current_question.correct_answer
+                            })
+                            await participant_manager.broadcast({
+                                "type": "wof_winner",
+                                "winner": wof_winner,
+                                "answer": current_question.correct_answer
+                            })
+                            continue  # Don't do normal answer/leaderboard logic
+
+                        # Wrong guess – feedback only
+                        await participant_manager.send_personal_message({
+                            "type": "personal_feedback",
+                            "correct": False,
+                            "score": 0,
+                            "total_score": 0,
+                            "retry_count": existing.retry_count+1 if existing else 1,
+                            "allow_multiple": True
+                        }, connection_id)
+                        continue  # Do not record incorrect guesses for leaderboard (if desired)
+                    # ---- END OF WOF LOGIC ----
+
+                    # CUSTOM: For word_cloud, always accept and ignore is_correct/scoring at this stage
+                    if current_question and data["question_id"] == current_question.id and not is_word_cloud:
+                        is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
                         if is_correct and question_start_time is not None:
                             elapsed_time = asyncio.get_event_loop().time() - question_start_time
                             seconds_remaining = max(0, 30 - elapsed_time)
@@ -368,6 +451,14 @@ async def participant_websocket(websocket: WebSocket):
         print(f"Error in participant websocket: {e}")
         db.close()
 
+ALLOWED_QUESTION_TYPES = {
+    "fill_in_the_blank",
+    "multiple_choice",
+    "word_cloud",
+    "pictionary",
+    "wheel_of_fortune"
+}
+
 @app.websocket("/ws/admin")
 async def admin_websocket(websocket: WebSocket):
     # Establish connection and obtain a unique connection ID
@@ -425,6 +516,9 @@ async def admin_websocket(websocket: WebSocket):
                 # ---------- Question management ----------
                 elif data["type"] == "add_question":
                     qd = data["question"]
+                    if qd["type"] not in ALLOWED_QUESTION_TYPES:
+                        await admin_manager.send_personal_message({"type": "question_add_error", "error": f"Unknown question type '{qd['type']}'. Must be one of {sorted(ALLOWED_QUESTION_TYPES)}."}, connection_id)
+                        continue
                     new_question = Question(
                         type=qd["type"],
                         content=qd["content"],
@@ -439,6 +533,9 @@ async def admin_websocket(websocket: WebSocket):
                 elif data["type"] == "edit_question":
                     idx = data.get("index")
                     qd = data["question"]
+                    if qd["type"] not in ALLOWED_QUESTION_TYPES:
+                        await admin_manager.send_personal_message({"type": "question_edit_error", "error": f"Unknown question type '{qd['type']}'. Must be one of {sorted(ALLOWED_QUESTION_TYPES)}."}, connection_id)
+                        continue
                     question = db.query(Question).order_by(Question.id).offset(idx).first()
                     if question:
                         question.type = qd["type"]
@@ -451,7 +548,8 @@ async def admin_websocket(websocket: WebSocket):
                         db.commit()
                         await admin_manager.send_personal_message({"type": "question_updated"}, connection_id)
                 elif data["type"] == "get_questions":
-                    questions = db.query(Question).all()
+                    # Sort questions by .order if present; fallback to id for legacy
+                    questions = db.query(Question).order_by(getattr(Question, "order", Question.id)).all()
                     questions_payload = []
                     for q in questions:
                         parsed_answers = json.loads(q.answers) if q.answers else []
@@ -471,6 +569,23 @@ async def admin_websocket(websocket: WebSocket):
                         {"type": "questions_loaded", "questions": questions_payload},
                         connection_id,
                     )
+                # ----- REORDER QUESTIONS: new logic -----
+                elif data["type"] == "reorder_questions":
+                    # Data: {"order": [q1id, q2id, ...]}
+                    id_list = data.get("order", [])
+                    order_field_exists = hasattr(Question, "order")
+                    # Only proceed if .order field exists (otherwise suggest migration)
+                    if order_field_exists and id_list:
+                        for idx, qid in enumerate(id_list):
+                            qobj = db.query(Question).filter(Question.id == qid).first()
+                            if qobj:
+                                setattr(qobj, "order", idx)
+                        db.commit()
+                        print(f"[DEBUG] Updated question order: {id_list}")
+                        await admin_manager.send_personal_message({"type": "questions_reordered"}, connection_id)
+                    else:
+                        print("[WARN] Question ordering failed: 'order' field missing or bad id_list.")
+                        await admin_manager.send_personal_message({"type": "questions_reorder_failed"}, connection_id)
                 elif data["type"] == "delete_question":
                     idx = data["index"]
                     ordered = db.query(Question).order_by(Question.id).all()
@@ -480,7 +595,15 @@ async def admin_websocket(websocket: WebSocket):
                         await admin_manager.send_personal_message({"type": "question_deleted"}, connection_id)
                 # ---------- Settings ----------
                 elif data["type"] == "save_settings":
-                    print(f"Settings saved: {data['settings']}")
+                    # Handle settings sent from admin UI (including WoF tile duration)
+                    s = data["settings"]
+                    global wof_tile_duration
+                    if "wof_tile_duration" in s:
+                        try:
+                            wof_tile_duration = float(s["wof_tile_duration"])
+                        except Exception:
+                            print("Invalid value for wof_tile_duration, keeping previous.")
+                    print(f"Settings saved: {data['settings']}, wof_tile_duration now {wof_tile_duration}")
                     await admin_manager.send_personal_message({"type": "settings_saved"}, connection_id)
                 # ---------- Drawing ----------
                 elif data["type"] == "drawing_stroke":
@@ -517,6 +640,10 @@ async def admin_websocket(websocket: WebSocket):
 # Game management functions
 async def start_quiz(db):
     global current_game, current_question_index, total_questions
+    # Clear all previous answers and participant scores for a fresh leaderboard
+    db.query(Answer).delete()
+    db.commit()
+
     current_game = Game(status="active")
     db.add(current_game)
     db.commit()
@@ -529,6 +656,7 @@ async def start_quiz(db):
 
 async def next_question(db):
     global current_question, question_timer, current_question_index, question_start_time
+    global wof_revealed_indices, wof_reveal_task, wof_winner
 
     # Only allow next question if quiz is active and not exhausted
     if not current_game or current_game.status != "active":
@@ -549,13 +677,89 @@ async def next_question(db):
             "time_left": 30
         })
 
-    # Get next question
-    question = db.query(Question).offset(current_question_index).first()
+    # Cancel any existing WoF letter-reveal
+    if wof_reveal_task:
+        wof_reveal_task.cancel()
+        wof_reveal_task = None
+
+    wof_revealed_indices = None
+    wof_winner = None
+
+    # Get full quiz order for debug
+    ordered_questions = db.query(Question).order_by(getattr(Question, "order", Question.id)).all()
+    print("[DEBUG] Question order for quiz play:")
+    for q in ordered_questions:
+        print(f"    id={q.id} order={getattr(q, 'order', 'none')} content={q.content[:40]!r}")
+
+    # Get next question IN PERSISTED ORDER
+    question = db.query(Question).order_by(getattr(Question, "order", Question.id)).offset(current_question_index).first()
     if question:
+        print(f"[DEBUG] PUSHING question idx={current_question_index} id={question.id} order={getattr(question, 'order', 'none')} content={question.content[:60]!r}")
         current_question = question
         current_question_index += 1
         # Record when this question was pushed for time-based scoring
         question_start_time = asyncio.get_event_loop().time()
+
+        # Start reveal engine if wheel_of_fortune
+        if question.type == "wheel_of_fortune":
+            phrase = question.correct_answer or ""
+            # Reveal only letters (not spaces/punctuation), tiles in order (L->R)
+            wof_revealed_indices = [False] * len(phrase)
+            # Always reveal non-letters (space, punct) immediately
+            for idx, c in enumerate(phrase):
+                if not c.isalnum():
+                    wof_revealed_indices[idx] = True
+            # Start async reveal engine
+            wof_reveal_task = asyncio.create_task(wof_phrase_reveal_engine(phrase))
+
+async def wof_phrase_reveal_engine(phrase):
+    """
+    This async task is started when a WoF round begins,
+    revealing letters at intervals and notifying clients of current state.
+    """
+    global wof_revealed_indices, wof_winner
+
+    try:
+        if wof_revealed_indices is None:
+            return
+        while not wof_winner and not all(wof_revealed_indices):
+            # Reveal the next unrevealed letter in L->R order
+            for idx, flag in enumerate(wof_revealed_indices):
+                if not flag:
+                    wof_revealed_indices[idx] = True
+                    break
+
+            await broadcast_wof_state(phrase)
+            # If puzzle is now complete with no winner, broadcast solution/end
+            if all(wof_revealed_indices):
+                await broadcast_wof_state(phrase, finished=True)
+                break
+            await asyncio.sleep(wof_tile_duration)
+    except asyncio.CancelledError:
+        # Clean up if question is skipped/canceled
+        pass
+
+async def broadcast_wof_state(phrase, finished=False, winner=None):
+    """
+    Broadcasts masked phrase board, revealed indices, and winner to all clients.
+    """
+    board = ""
+    if wof_revealed_indices is not None:
+        board = "".join(c if revealed else "_" for c, revealed in zip(phrase, wof_revealed_indices))
+    await participant_manager.broadcast({
+        "type": "wof_update",
+        "board": board,
+        "revealed_indices": wof_revealed_indices,
+        "winner": winner,
+        "finished": finished
+    })
+    await admin_manager.broadcast({
+        "type": "wof_update",
+        "board": board,
+        "revealed_indices": wof_revealed_indices,
+        "winner": winner,
+        "finished": finished
+    })
 
 async def end_quiz(db):
     global current_game, current_question, question_timer
@@ -616,7 +820,7 @@ async def start_question_timer():
     question_timer = asyncio.create_task(timer_task())
 
 async def get_current_answers(db):
-    if not current_question:
+    if not current_question or not getattr(current_question, "id", None):
         return [], 0
 
     answers = db.query(Answer, User).join(User).filter(
@@ -642,7 +846,7 @@ async def get_current_answers(db):
 
 async def get_cumulative_scores(db):
     """Get cumulative scores for all users in the current game"""
-    if not current_game:
+    if not current_game or not getattr(current_game, "id", None):
         return []
 
     # Get all answers for the current game
@@ -680,10 +884,12 @@ async def score_word_cloud_and_reveal(db, admin_connection_id=None):
         return
     word_cloud_scored = True
     # Fetch all answers
-    answer_objs = db.query(Answer).filter(
-        Answer.question_id == current_question.id,
-        Answer.game_id == current_game.id if current_game else None
-    ).all()
+    answer_objs = []
+    if current_question and getattr(current_question, "id", None) and current_game and getattr(current_game, "id", None):
+        answer_objs = db.query(Answer).filter(
+            Answer.question_id == current_question.id,
+            Answer.game_id == current_game.id
+        ).all()
     answers = [(ans.user_id, ans.content.strip()) for ans in answer_objs if ans.content and ans.content.strip()]
 
     cluster_map, answer_to_cluster = cluster_word_cloud_answers(answers)

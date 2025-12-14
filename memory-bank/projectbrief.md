@@ -17,14 +17,19 @@ The system supports comprehensive question libraries with 25+ questions across 4
 
 3. **Drawing**: The quiz master draws a phrase. Participants see the drawing being created in real-time and guess. Guesses appear on the screen. Participants can make multiple guesses. The nearest match wins.
 
-4. **Wheel of Fortune**: Quiz master selects a phrase. Participants see empty tiles as placeholders. One tile from the phrase appears at a time, every 2 seconds. Participants guess the phrase.
+4. **Wheel of Fortune**: The quiz master selects a phrase and a category. During this round:
+   - Both admin and participants see a prompt: “Guess the phrase in <category>.”
+   - The phrase is displayed as blank tiles; the answer is revealed letter-by-letter (one tile at a time) at a pace determined by a configurable tile duration (e.g., 2 seconds per letter).
+   - Participants guess the **full phrase** at any time as tiles are revealed (no per-letter guessing, no spinning or randomness).
+   - Multiple attempts are allowed during the reveal.
+   - The round ends when a participant guesses correctly or the full phrase is revealed.
 
 5. **Multiple Choice**: Quiz master pushes a question with 4 answers. Participants choose one or more answers.
 
 The quiz master can configure questions beforehand via a UI page for entering questions and answers. Questions are pushed in real-time on demand. Participant answers appear on the quiz master's screen, sorted by time and correctness. The scoreboard shows winners.
 
 ## Answers
-Participants can type answers or speak. Browser-native voice-to-text converts speech to text. Pressing Enter sends responses. Some question types allow only one correct attempt. Drawing and Wheel of Fortune allow multiple guesses.
+Participants can type answers or speak. Browser-native voice-to-text converts speech to text. Pressing Enter sends responses. Some question types allow only one correct attempt. Drawing and Wheel of Fortune allow multiple full-phrase guesses during the round.
 
 ## Scoring
 Correct guesses win a point. The leaderboard shows top winners. Ties are decided by the quiz master.
@@ -43,6 +48,13 @@ Correct guesses win a point. The leaderboard shows top winners. Ties are decided
 - Screen displays 1 of 10 questions
 - Quiz master presses "Push Question" button
 - Participant screens display the question and timer starts
-- Answers come in and are evaluated on the quiz master's screen
+
+**Wheel of Fortune gameplay:**
+- The admin and participants see a prompt indicating the category and blank tiles for the phrase.
+- Each letter (tile) of the phrase is revealed automatically in sequence, at a set interval.
+- Participants may guess the phrase at any time (multiple attempts allowed), submitting their guess while the reveal is ongoing.
+- The round ends with a win on a correct guess, or proceeds until the full phrase is revealed.
+
+Answers come in and are evaluated on the quiz master's screen as usual.
 
 Participant screen starts with a welcome screen saying "Waiting for questions". Once a question is received, it resets the timer and allows the participant to answer by typing or speaking.

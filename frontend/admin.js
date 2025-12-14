@@ -179,6 +179,24 @@ class QuizAdmin {
     setupQuizButtons() {
         this.dom.startQuizBtn.addEventListener('click', () => {
             this.sendMessage({ type: 'start_quiz' });
+
+            // Immediately clear leaderboard and answers UI for new quiz
+            if (this.dom.leaderboardTbody) {
+                this.dom.leaderboardTbody.innerHTML = '';
+                const row = this.dom.leaderboardTbody.insertRow();
+                row.className = 'no-scores';
+                const cell = row.insertCell();
+                cell.colSpan = 3;
+                cell.textContent = 'No scores yet...';
+            }
+            if (this.dom.answersTbody) {
+                this.dom.answersTbody.innerHTML = '';
+                const row = this.dom.answersTbody.insertRow();
+                row.className = 'no-answers';
+                const cell = row.insertCell();
+                cell.colSpan = 4;
+                cell.textContent = 'Waiting for answers...';
+            }
         });
 
         this.dom.revealAnswerBtn.addEventListener('click', () => {
@@ -509,11 +527,21 @@ toggleMCQOptions(showMCQ) {
         this.dom.questionsList.appendChild(table);
         const tbody = table.querySelector('tbody');
 
+        // Drag & drop version of reorderable questions
+        let dragSrcIdx = null;
+
         questions.forEach((question, index) => {
             const tr = document.createElement('tr');
+            tr.setAttribute('draggable', 'true');
+            tr.setAttribute('data-index', index);
+            tr.classList.add('draggable-question-row');
             tr.innerHTML = `
                 <td>${index + 1}</td>
-                <td><strong>${this.escapeHtml(question.type.replace('_', ' ').toUpperCase())}</strong></td>
+                <td>
+                    <strong>${this.escapeHtml(question.type)}</strong>
+                    <br/>
+                    <small style="color:#aaa;">${this.escapeHtml(question.type.replaceAll('_', ' ').toUpperCase())}</small>
+                </td>
                 <td>${this.escapeHtml(question.category)}</td>
                 <td>${this.escapeHtml(question.content)}</td>
                 <td>${this.escapeHtml(question.correct_answer)}</td>
@@ -522,12 +550,64 @@ toggleMCQOptions(showMCQ) {
                     <button class="btn btn-danger btn-small delete-btn" data-index="${index}">Delete</button>
                 </td>
             `;
+
+            // DnD handlers
+            tr.addEventListener('dragstart', (ev) => {
+                dragSrcIdx = index;
+                tr.classList.add('dragging');
+                ev.dataTransfer.effectAllowed = 'move';
+            });
+            tr.addEventListener('dragover', (ev) => {
+                ev.preventDefault();
+                tr.classList.add('drag-over');
+            });
+            tr.addEventListener('dragleave', () => {
+                tr.classList.remove('drag-over');
+            });
+            tr.addEventListener('drop', (ev) => {
+                ev.preventDefault();
+                tr.classList.remove('drag-over');
+                tr.classList.remove('dragging');
+                const dragDestIdx = parseInt(tr.getAttribute('data-index'), 10);
+                if (dragSrcIdx !== null && dragDestIdx !== null && dragSrcIdx !== dragDestIdx) {
+                    this.moveQuestion(dragSrcIdx, dragDestIdx);
+                }
+                dragSrcIdx = null;
+            });
+            tr.addEventListener('dragend', () => {
+                tr.classList.remove('drag-over');
+                tr.classList.remove('dragging');
+                dragSrcIdx = null;
+            });
+
             tbody.appendChild(tr);
         });
     }
 
     loadQuestions() {
         this.sendMessage({ type: 'get_questions' });
+    }
+
+    // Move question from one index to another in local questions array and send update to backend
+    moveQuestion(fromIndex, toIndex) {
+        if (
+            fromIndex < 0 || fromIndex >= this.questions.length ||
+            toIndex < 0 || toIndex >= this.questions.length ||
+            fromIndex === toIndex
+        ) return;
+        // Swap in questions array
+        const temp = this.questions[fromIndex];
+        this.questions[fromIndex] = this.questions[toIndex];
+        this.questions[toIndex] = temp;
+        // Optimistically update displayed list
+        this.updateQuestionsList(this.questions);
+
+        // Send new order to backend as a list of IDs (minimal payload)
+        const newOrder = this.questions.map(q => q.id);
+        this.sendMessage({
+            type: 'reorder_questions',
+            order: newOrder
+        });
     }
 
     // ===== DRAWING =====
@@ -632,6 +712,16 @@ toggleMCQOptions(showMCQ) {
     // ===== MESSAGE HANDLING =====
     handleMessage(data) {
         switch (data.type) {
+            case 'question_add_error':
+            case 'question_edit_error':
+                this.showMessage(data.error || "Unknown error with question type.", 'error');
+                break;
+            case 'wof_update':
+                this.handleWofUpdate(data);
+                break;
+            case 'wof_winner':
+                this.handleWofWinner(data);
+                break;
             case 'status_update':
                 this.updateStatusDashboard(data);
                 break;
@@ -704,10 +794,16 @@ toggleMCQOptions(showMCQ) {
     }
 
     handleQuestionPushed(data) {
+        // Remove old WoF board/winner
+        const prevBoard = document.getElementById('wof-board');
+        if (prevBoard) prevBoard.remove();
+        const prevWinner = document.getElementById('wof-winner-msg');
+        if (prevWinner) prevWinner.remove();
+
         const existingReveal = document.getElementById('admin-reveal');
         if (existingReveal) existingReveal.remove();
 
-        this.dom.questionText.textContent = data.question.content;
+        this.dom.questionText.innerHTML = `Guess the word in category: <span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
 
         if (data.progress) {
             this.dom.adminQuestionProgress.textContent = 
@@ -732,6 +828,42 @@ toggleMCQOptions(showMCQ) {
         }
 
         this.setButtonState(this.dom.revealAnswerBtn, false);
+    }
+
+    handleWofUpdate(data) {
+        console.log("[ADMIN DEBUG] handleWofUpdate received:", data);
+
+        // Only show WoF board for wheel_of_fortune, never otherwise
+        if (!this.dom.questionText || !this.dom.questionText.textContent.toLowerCase().includes("wheel")) {
+            // Remove the board if not WoF question
+            const prevBoard = document.getElementById('wof-board');
+            if (prevBoard) prevBoard.remove();
+            return;
+        }
+
+        // Render board on admin side in quiz control/status panel
+        let wofBoardDiv = document.getElementById('wof-board');
+        if (!wofBoardDiv) {
+            wofBoardDiv = document.createElement('div');
+            wofBoardDiv.id = 'wof-board';
+            wofBoardDiv.className = 'wof-board';
+            // Place in admin quiz control/status panel
+            const container = document.getElementById('quiz-status-panel') || this.dom.adminInterface;
+            container.prepend(wofBoardDiv);
+        }
+        wofBoardDiv.innerHTML = `<div class="wof-status">Wheel of Fortune Board:</div><div class="wof-tiles">${this.escapeHtml(data.board)}</div>`;
+        console.log("[ADMIN DEBUG] Rendered board HTML:", wofBoardDiv.innerHTML);
+        this.updateStatus(data.winner ? `Winner: ${data.winner}` : "Wheel of Fortune running...");
+    }
+
+    handleWofWinner(data) {
+        const msg = document.getElementById('wof-winner-msg') || document.createElement('div');
+        msg.id = 'wof-winner-msg';
+        msg.className = 'wof-winner-msg';
+        msg.innerHTML = `<h3>Winner: ${this.escapeHtml(data.winner)}</h3>
+          <div>The answer was: <strong>${this.escapeHtml(data.answer)}</strong></div>`;
+        this.dom.adminInterface.appendChild(msg);
+        this.updateStatus(`Winner: ${data.winner}`);
     }
 
     // ===== UI STATE HELPERS =====
@@ -951,6 +1083,7 @@ toggleMCQOptions(showMCQ) {
     saveSettings() {
         const questionTimer = parseInt(this.dom.questionTimer.value);
         const maxParticipants = parseInt(this.dom.maxParticipants.value);
+        const wofTileDuration = parseFloat(document.getElementById('wof-tile-duration').value);
 
         if (questionTimer < 10 || questionTimer > 120) {
             this.showMessage('Question timer must be between 10 and 120 seconds', 'error');
@@ -962,11 +1095,17 @@ toggleMCQOptions(showMCQ) {
             return;
         }
 
+        if (isNaN(wofTileDuration) || wofTileDuration < 0.2 || wofTileDuration > 10) {
+            this.showMessage('WoF tile duration must be between 0.2 and 10 seconds', 'error');
+            return;
+        }
+
         this.sendMessage({
             type: 'save_settings',
             settings: {
                 question_timer: questionTimer,
-                max_participants: maxParticipants
+                max_participants: maxParticipants,
+                wof_tile_duration: wofTileDuration
             }
         });
 
