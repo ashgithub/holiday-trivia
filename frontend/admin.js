@@ -85,6 +85,9 @@ class QuizAdmin {
         this.dom.clearCanvasBtn = document.getElementById('clear-canvas');
         this.dom.finishDrawingBtn = document.getElementById('finish-drawing');
 
+        // WoF Board
+        this.dom.wofBoardArea = document.getElementById('wof-board-area');
+
         // Settings
         this.dom.questionTimer = document.getElementById('question-timer');
         this.dom.maxParticipants = document.getElementById('max-participants');
@@ -794,16 +797,19 @@ toggleMCQOptions(showMCQ) {
     }
 
     handleQuestionPushed(data) {
-        // Remove old WoF board/winner
-        const prevBoard = document.getElementById('wof-board');
-        if (prevBoard) prevBoard.remove();
+        // Remove old winner message (keep the static WoF board)
         const prevWinner = document.getElementById('wof-winner-msg');
         if (prevWinner) prevWinner.remove();
 
         const existingReveal = document.getElementById('admin-reveal');
         if (existingReveal) existingReveal.remove();
 
-        this.dom.questionText.innerHTML = `Guess the word in category: <span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
+        // Display question text based on type
+        if (data.question.type === 'wheel_of_fortune') {
+            this.dom.questionText.innerHTML = `Guess the word in category: <span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
+        } else {
+            this.dom.questionText.textContent = data.question.content;
+        }
 
         if (data.progress) {
             this.dom.adminQuestionProgress.textContent = 
@@ -827,32 +833,33 @@ toggleMCQOptions(showMCQ) {
             drawingArea.classList.add('hidden');
         }
 
+        // WoF board visibility
+        const wofBoardArea = this.dom.wofBoardArea;
+        if (data.question.type === 'wheel_of_fortune') {
+            console.log('[DEBUG] Showing WoF board for question:', data.question);
+            wofBoardArea.classList.remove('hidden');
+            // Initialize with all underscores
+            const boardDiv = wofBoardArea.querySelector('.wof-tiles');
+            if (boardDiv) {
+                const underscores = '_'.repeat(data.question.correct_answer?.length || 0);
+                console.log('[DEBUG] Initializing board with underscores:', underscores);
+                boardDiv.textContent = underscores;
+            } else {
+                console.error('[DEBUG] Could not find .wof-tiles element');
+            }
+        } else {
+            wofBoardArea.classList.add('hidden');
+        }
+
         this.setButtonState(this.dom.revealAnswerBtn, false);
     }
 
     handleWofUpdate(data) {
-        console.log("[ADMIN DEBUG] handleWofUpdate received:", data);
-
-        // Only show WoF board for wheel_of_fortune, never otherwise
-        if (!this.dom.questionText || !this.dom.questionText.textContent.toLowerCase().includes("wheel")) {
-            // Remove the board if not WoF question
-            const prevBoard = document.getElementById('wof-board');
-            if (prevBoard) prevBoard.remove();
-            return;
+        // Update the board content (visibility handled by handleQuestionPushed)
+        const boardDiv = document.querySelector('.wof-tiles');
+        if (boardDiv) {
+            boardDiv.textContent = data.board;
         }
-
-        // Render board on admin side in quiz control/status panel
-        let wofBoardDiv = document.getElementById('wof-board');
-        if (!wofBoardDiv) {
-            wofBoardDiv = document.createElement('div');
-            wofBoardDiv.id = 'wof-board';
-            wofBoardDiv.className = 'wof-board';
-            // Place in admin quiz control/status panel
-            const container = document.getElementById('quiz-status-panel') || this.dom.adminInterface;
-            container.prepend(wofBoardDiv);
-        }
-        wofBoardDiv.innerHTML = `<div class="wof-status">Wheel of Fortune Board:</div><div class="wof-tiles">${this.escapeHtml(data.board)}</div>`;
-        console.log("[ADMIN DEBUG] Rendered board HTML:", wofBoardDiv.innerHTML);
         this.updateStatus(data.winner ? `Winner: ${data.winner}` : "Wheel of Fortune running...");
     }
 

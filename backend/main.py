@@ -501,6 +501,7 @@ async def admin_websocket(websocket: WebSocket):
                                 "content": current_question.content,
                                 "options": json.loads(current_question.answers) if current_question.answers else None,
                                 "allow_multiple": getattr(current_question, "allow_multiple", True),
+                                "correct_answer": current_question.correct_answer if current_question.type == "wheel_of_fortune" else None,
                             },
                             "progress": {"current": current_question_index, "total": total_questions},
                         }
@@ -606,8 +607,9 @@ async def admin_websocket(websocket: WebSocket):
                     print(f"Settings saved: {data['settings']}, wof_tile_duration now {wof_tile_duration}")
                     await admin_manager.send_personal_message({"type": "settings_saved"}, connection_id)
                 # ---------- Drawing ----------
+                # Drawing updates only sent to admin (participants see via screen share)
                 elif data["type"] == "drawing_stroke":
-                    await participant_manager.broadcast({"type": "drawing_update", "stroke": data["stroke"]})
+                    pass  # No longer broadcast to participants
                 # ---------- Reveal answer ----------
                 elif data["type"] == "reveal_answer":
                     if not current_question:
@@ -741,18 +743,13 @@ async def wof_phrase_reveal_engine(phrase):
 
 async def broadcast_wof_state(phrase, finished=False, winner=None):
     """
-    Broadcasts masked phrase board, revealed indices, and winner to all clients.
+    Broadcasts masked phrase board, revealed indices, and winner to admin only.
+    Participants see the board via screen share.
     """
     board = ""
     if wof_revealed_indices is not None:
         board = "".join(c if revealed else "_" for c, revealed in zip(phrase, wof_revealed_indices))
-    await participant_manager.broadcast({
-        "type": "wof_update",
-        "board": board,
-        "revealed_indices": wof_revealed_indices,
-        "winner": winner,
-        "finished": finished
-    })
+    # Only send to admin - participants see via screen share
     await admin_manager.broadcast({
         "type": "wof_update",
         "board": board,

@@ -198,9 +198,7 @@ class QuizParticipant {
                 this.showDrawingCanvas();
                 break;
 
-            case 'drawing_update':
-                this.updateDrawing(data.stroke);
-                break;
+
 
             case 'timer_update':
                 if (this.timeLeft > 0 && !this.hasSubmitted) {
@@ -310,9 +308,13 @@ class QuizParticipant {
             document.getElementById('question-progress').textContent = `Question ${progress.current} of ${progress.total}`;
         }
 
-        // Always show the WoF prompt format for all questions
-        document.getElementById('question-content').innerHTML =
-            `Guess the word in category: <span class="wof-category">${this.escapeHtml(question.content)}</span>`;
+        // Display question text based on type
+        if (question.type === 'wheel_of_fortune') {
+            document.getElementById('question-content').innerHTML =
+                `Guess the word in category: <span class="wof-category">${this.escapeHtml(question.content)}</span>`;
+        } else {
+            document.getElementById('question-content').textContent = question.content;
+        }
 
         // Re-enable input fields for new question
         const textAnswer = document.getElementById('text-answer');
