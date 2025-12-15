@@ -207,7 +207,6 @@ async def export_questions_api():
                 "type": question.type,
                 "content": question.content,
                 "correct_answer": question.correct_answer,
-                "category": question.category,
                 "allow_multiple": question.allow_multiple,
                 "order": getattr(question, 'order', 0),
                 "created_at": question.created_at.isoformat() if question.created_at else None
@@ -281,7 +280,7 @@ async def import_questions_api(request: dict):
 
         for question_data in import_data:
             # Basic validation
-            required_fields = ["type", "content", "correct_answer", "category"]
+            required_fields = ["type", "content", "correct_answer"]
             if not all(field in question_data and question_data[field] for field in required_fields):
                 continue
 
@@ -301,7 +300,6 @@ async def import_questions_api(request: dict):
                     existing_question.type = question_data["type"]
                     existing_question.content = question_data["content"]
                     existing_question.correct_answer = question_data["correct_answer"]
-                    existing_question.category = question_data["category"]
                     existing_question.allow_multiple = question_data.get("allow_multiple", True)
 
                     if question_data["type"] in ["multiple_choice", "multiplechoice", "mcq"]:
@@ -317,7 +315,6 @@ async def import_questions_api(request: dict):
                 type=question_data["type"],
                 content=question_data["content"],
                 correct_answer=question_data["correct_answer"],
-                category=question_data["category"],
                 allow_multiple=question_data.get("allow_multiple", True),
                 answers=json.dumps(question_data["answers"]) if question_data.get("answers") else None,
                 order=question_data.get("order", db.query(Question).count())
@@ -408,18 +405,16 @@ async def participant_websocket(websocket: WebSocket):
             }, connection_id)
 
             if current_question:
-                debug_question_payload = {
-                    "id": current_question.id,
-                    "type": current_question.type,
-                    "content": current_question.content,
-                    # No category: always just use content for prompt
-                    "options": json.loads(current_question.answers) if current_question.answers else None,
-                    "allow_multiple": getattr(current_question, 'allow_multiple', True),
-                }
-                print("[DEBUG] SENDING QUESTION TO PARTICIPANT:", debug_question_payload)
                 await participant_manager.send_personal_message({
                     "type": "question",
-                    "question": debug_question_payload
+                    "question": {
+                        "id": current_question.id,
+                        "type": current_question.type,
+                        "content": current_question.content,
+                        # No category: always just use content for prompt
+                        "options": json.loads(current_question.answers) if current_question.answers else None,
+                        "allow_multiple": getattr(current_question, 'allow_multiple', True),
+                    }
                 }, connection_id)
 
         try:
@@ -565,6 +560,7 @@ async def participant_websocket(websocket: WebSocket):
                             "allow_multiple": False,
                             "scoring_status": "pending"
                         }, connection_id)
+                        print(f"[SCORING DEBUG] Word cloud answer from {participant.name}: score=0, total_score={total_score}")
                     else:
                         await participant_manager.send_personal_message({
                             "type": "personal_feedback",
@@ -574,12 +570,15 @@ async def participant_websocket(websocket: WebSocket):
                             "retry_count": existing.retry_count if existing else 1,
                             "allow_multiple": current_question.allow_multiple if current_question else True
                         }, connection_id)
+                        print(f"[SCORING DEBUG] Answer from {participant.name}: correct={is_correct}, score={score}, total_score={total_score}")
 
                     # Notify admin of updated answers
                     answers, _ = await get_current_answers(db)
                     leaderboard = await get_cumulative_scores(db)
+                    print(f"[SCORING DEBUG] Broadcasting to admin: {len(answers)} answers, leaderboard has {len(leaderboard)} entries")
                     await admin_manager.broadcast({
                         "type": "answer_received",
+                        "question_type": current_question.type if current_question else None,
                         "answers": answers,
                         "leaderboard": leaderboard
                     })
@@ -619,6 +618,11 @@ def calculate_question_hash(question_data):
 
 @app.websocket("/ws/admin")
 async def admin_websocket(websocket: WebSocket):
+    # Declare all global variables at function start to avoid "used before global declaration" errors
+    global current_game, current_question, current_question_index, total_questions
+    global question_timer, question_start_time, word_cloud_scored
+    global wof_revealed_indices, wof_reveal_task, wof_winner, wof_tile_duration
+
     # Establish connection and obtain a unique connection ID
     connection_id = await admin_manager.connect(websocket, "admin")
 
@@ -687,7 +691,6 @@ async def admin_websocket(websocket: WebSocket):
                         type=qd["type"],
                         content=qd["content"],
                         correct_answer=qd["correct_answer"],
-                        category=qd.get("category", "general"),
                         allow_multiple=qd.get("allow_multiple", True),
                         answers=json.dumps(qd.get("options", [])) if "options" in qd else None,
                     )
@@ -705,7 +708,6 @@ async def admin_websocket(websocket: WebSocket):
                         question.type = qd["type"]
                         question.content = qd["content"]
                         question.correct_answer = qd["correct_answer"]
-                        question.category = qd.get("category", question.category)
                         question.allow_multiple = qd.get("allow_multiple", question.allow_multiple)
                         if "options" in qd:
                             question.answers = json.dumps(qd["options"])
@@ -722,7 +724,6 @@ async def admin_websocket(websocket: WebSocket):
                             "type": q.type,
                             "content": q.content,
                             "correct_answer": q.correct_answer,
-                            "category": q.category,
                             "allow_multiple": q.allow_multiple,
                             "answers": parsed_answers,
                         }
@@ -745,10 +746,8 @@ async def admin_websocket(websocket: WebSocket):
                             if qobj:
                                 setattr(qobj, "order", idx)
                         db.commit()
-                        print(f"[DEBUG] Updated question order: {id_list}")
                         await admin_manager.send_personal_message({"type": "questions_reordered"}, connection_id)
                     else:
-                        print("[WARN] Question ordering failed: 'order' field missing or bad id_list.")
                         await admin_manager.send_personal_message({"type": "questions_reorder_failed"}, connection_id)
                 elif data["type"] == "delete_question":
                     idx = data["index"]
@@ -761,7 +760,6 @@ async def admin_websocket(websocket: WebSocket):
                 elif data["type"] == "save_settings":
                     # Handle settings sent from admin UI (including database switching)
                     s = data["settings"]
-                    global wof_tile_duration
 
                     # Handle database switching
                     if "database_file" in s and s["database_file"]:
@@ -776,10 +774,7 @@ async def admin_websocket(websocket: WebSocket):
                             # Switch database
                             old_db = switch_database(new_db)
 
-                            # Reset global state
-                            global current_game, current_question, current_question_index, total_questions
-                            global question_timer, question_start_time, word_cloud_scored
-                            global wof_revealed_indices, wof_reveal_task, wof_winner
+                            # Reset global state (globals already declared at function start)
 
                             current_game = None
                             current_question = None
@@ -817,9 +812,8 @@ async def admin_websocket(websocket: WebSocket):
                         try:
                             wof_tile_duration = float(s["wof_tile_duration"])
                         except Exception:
-                            print("Invalid value for wof_tile_duration, keeping previous.")
+                            pass  # Keep previous value on invalid input
 
-                    print(f"Settings saved: {data['settings']}, wof_tile_duration now {wof_tile_duration}")
                     await admin_manager.send_personal_message({"type": "settings_saved"}, connection_id)
                 # ---------- Drawing ----------
                 # Drawing updates only sent to admin (participants see via screen share)
@@ -927,16 +921,9 @@ async def next_question(db):
     wof_revealed_indices = None
     wof_winner = None
 
-    # Get full quiz order for debug
-    ordered_questions = db.query(Question).order_by(getattr(Question, "order", Question.id)).all()
-    print("[DEBUG] Question order for quiz play:")
-    for q in ordered_questions:
-        print(f"    id={q.id} order={getattr(q, 'order', 'none')} content={q.content[:40]!r}")
-
     # Get next question IN PERSISTED ORDER
     question = db.query(Question).order_by(getattr(Question, "order", Question.id)).offset(current_question_index).first()
     if question:
-        print(f"[DEBUG] PUSHING question idx={current_question_index} id={question.id} order={getattr(question, 'order', 'none')} content={question.content[:60]!r}")
         current_question = question
         current_question_index += 1
         # Record when this question was pushed for time-based scoring
@@ -986,7 +973,7 @@ async def broadcast_wof_state(phrase, finished=False, winner=None):
     """
     board = ""
     if wof_revealed_indices is not None:
-        board = "".join(c if revealed else "_" for c, revealed in zip(phrase, wof_revealed_indices))
+        board = "".join(c if revealed or not c.isalnum() else "_" for c, revealed in zip(phrase, wof_revealed_indices))
     # Only send to admin - participants see via screen share
     await admin_manager.broadcast({
         "type": "wof_update",

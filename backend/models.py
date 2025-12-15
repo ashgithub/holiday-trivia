@@ -63,7 +63,6 @@ class Question(Base):
     content = Column(Text, nullable=False)
     answers = Column(Text)  # JSON string for multiple choice options
     correct_answer = Column(Text, nullable=False)
-    category = Column(String, nullable=False)
     allow_multiple = Column(Boolean, default=True)
     order = Column(Integer, nullable=False, default=0)  # <-- Added for question reordering
     # Optional hidden prompt for pictionary questions

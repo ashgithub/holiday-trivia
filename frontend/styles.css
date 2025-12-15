@@ -579,7 +579,6 @@ canvas {
 
 #leaderboard-table .rank {
     font-weight: bold;
-    color: var(--christmas-red);
     text-align: center;
     width: 60px;
 }
@@ -590,7 +589,6 @@ canvas {
 
 #leaderboard-table .points {
     font-weight: bold;
-    color: var(--snow-white);
     text-align: center;
     width: 80px;
 }

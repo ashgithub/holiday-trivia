@@ -32,7 +32,6 @@ from models import SessionLocal, Question
 
 def export_questions_to_json(
     output_file: str,
-    category_filter: Optional[str] = None,
     type_filter: Optional[str] = None,
     pretty_print: bool = True
 ) -> Dict[str, Any]:
@@ -41,7 +40,6 @@ def export_questions_to_json(
 
     Args:
         output_file: Path to output JSON file
-        category_filter: Optional category filter
         type_filter: Optional question type filter
         pretty_print: Whether to pretty-print JSON
 
@@ -56,10 +54,6 @@ def export_questions_to_json(
         # Build query with optional filters
         query = db.query(Question)
 
-        if category_filter:
-            query = query.filter(Question.category == category_filter)
-            print(f"📂 Filtering by category: {category_filter}")
-
         if type_filter:
             query = query.filter(Question.type == type_filter)
             print(f"🔍 Filtering by type: {type_filter}")
@@ -69,11 +63,10 @@ def export_questions_to_json(
 
         if not questions:
             print("⚠️  No questions found matching the criteria")
-            return {"total_exported": 0, "categories": {}, "types": {}}
+            return {"total_exported": 0, "types": {}}
 
         # Convert questions to export format
         export_data = []
-        categories_count = {}
         types_count = {}
 
         for question in questions:
@@ -92,7 +85,6 @@ def export_questions_to_json(
                 "type": question.type,
                 "content": question.content,
                 "correct_answer": question.correct_answer,
-                "category": question.category,
                 "allow_multiple": question.allow_multiple,
                 "order": getattr(question, 'order', 0),
                 "created_at": question.created_at.isoformat() if question.created_at else None
@@ -105,7 +97,6 @@ def export_questions_to_json(
             export_data.append(question_data)
 
             # Update statistics
-            categories_count[question.category] = categories_count.get(question.category, 0) + 1
             types_count[question.type] = types_count.get(question.type, 0) + 1
 
         # Write to file
@@ -118,7 +109,6 @@ def export_questions_to_json(
         # Print statistics
         print(f"✅ Successfully exported {len(export_data)} questions to {output_file}")
         print("\n📊 Export Statistics:")
-        print(f"   📂 Categories: {dict(sorted(categories_count.items()))}")
         print(f"   🔍 Types: {dict(sorted(types_count.items()))}")
 
         # File size info
@@ -127,7 +117,6 @@ def export_questions_to_json(
 
         return {
             "total_exported": len(export_data),
-            "categories": categories_count,
             "types": types_count,
             "file_size": file_size,
             "output_file": output_file
@@ -159,11 +148,6 @@ Examples:
     )
 
     parser.add_argument(
-        "--category", "-c",
-        help="Filter by category (e.g., geography, science, history, general)"
-    )
-
-    parser.add_argument(
         "--type", "-t",
         help="Filter by question type (e.g., multiple_choice, fill_in_the_blank, word_cloud, pictionary, wheel_of_fortune)"
     )
@@ -179,7 +163,6 @@ Examples:
     try:
         export_questions_to_json(
             output_file=args.output_file,
-            category_filter=args.category,
             type_filter=args.type,
             pretty_print=not args.compact
         )

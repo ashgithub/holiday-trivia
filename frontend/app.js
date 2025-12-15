@@ -312,9 +312,6 @@ class QuizParticipant {
     }
 
     displayQuestion(question, progress) {
-        // DEBUG LOG: see exactly what the participant client sees
-        console.log("[PARTICIPANT DEBUG] displayQuestion payload:", question);
-        console.log("[PARTICIPANT DEBUG] .category =", question.category);
         this.currentQuestion = question;
         this.hasSubmitted = false; // Reset submission flag for new question
         this.allowMultiple = question.allow_multiple || true;
@@ -341,7 +338,7 @@ class QuizParticipant {
         // Display question text based on type
         if (question.type === 'wheel_of_fortune') {
             document.getElementById('question-content').innerHTML =
-                `Guess the word in category: <span class="wof-category">${this.escapeHtml(question.content)}</span>`;
+                `Guess the phrase: <span class="wof-category">${this.escapeHtml(question.content)}</span>`;
         } else {
             document.getElementById('question-content').textContent = question.content;
         }
@@ -392,8 +389,15 @@ class QuizParticipant {
     }
 
     selectChoice(index, text) {
+        console.log('[MCQ DEBUG] selectChoice called - index:', index, 'text:', text, 'hasSubmitted:', this.hasSubmitted);
+
         // Prevent multiple submissions/disables after submission
-        if (this.hasSubmitted) return;
+        if (this.hasSubmitted) {
+            console.log('[MCQ DEBUG] Preventing multiple submission - already submitted');
+            return;
+        }
+
+        console.log('[MCQ DEBUG] Proceeding with MCQ selection');
 
         // Submit answer
         this.submitAnswer(text);
@@ -401,6 +405,7 @@ class QuizParticipant {
         // Disable all MCQ buttons immediately; no visual "selected" class
         document.querySelectorAll('.choice-btn').forEach(btn => {
             btn.disabled = true;
+            console.log('[MCQ DEBUG] Disabled MCQ button');
         });
     }
 
@@ -412,8 +417,6 @@ class QuizParticipant {
     }
 
     showPersonalFeedback(data) {
-        // Debug: always log feedback received
-        console.log('[participant] showPersonalFeedback received:', data);
         const slot = document.getElementById('feedback-slot');
         if (!slot) return;
 

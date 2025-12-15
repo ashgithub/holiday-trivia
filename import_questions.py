@@ -62,7 +62,7 @@ def validate_question_data(question_data: Dict[str, Any]) -> Tuple[bool, List[st
     errors = []
 
     # Required fields
-    required_fields = ["type", "content", "correct_answer", "category"]
+    required_fields = ["type", "content", "correct_answer"]
     for field in required_fields:
         if field not in question_data or not question_data[field]:
             errors.append(f"Missing or empty required field: {field}")
@@ -93,10 +93,6 @@ def validate_question_data(question_data: Dict[str, Any]) -> Tuple[bool, List[st
         question_data["allow_multiple"] = True
     elif not isinstance(question_data["allow_multiple"], bool):
         errors.append("allow_multiple must be a boolean value")
-
-    # Validate category
-    if not isinstance(question_data["category"], str) or not question_data["category"].strip():
-        errors.append("Category must be a non-empty string")
 
     return len(errors) == 0, errors
 
@@ -200,19 +196,15 @@ def import_questions_from_json(
 
     if dry_run:
         print("\n📊 Dry Run Statistics:")
-        categories = {}
         types = {}
         for _, q in valid_questions:
-            categories[q["category"]] = categories.get(q["category"], 0) + 1
             types[q["type"]] = types.get(q["type"], 0) + 1
 
-        print(f"   📂 Categories: {dict(sorted(categories.items()))}")
         print(f"   🔍 Types: {dict(sorted(types.items()))}")
         return {
             "dry_run": True,
             "valid_questions": len(valid_questions),
             "validation_errors": len(validation_errors),
-            "categories": categories,
             "types": types
         }
 
@@ -266,7 +258,6 @@ def import_questions_from_json(
                     existing_question.type = question_data["type"]
                     existing_question.content = question_data["content"]
                     existing_question.correct_answer = question_data["correct_answer"]
-                    existing_question.category = question_data["category"]
                     existing_question.allow_multiple = question_data["allow_multiple"]
 
                     if question_data["type"] in ["multiple_choice", "multiplechoice", "mcq"]:
@@ -285,7 +276,6 @@ def import_questions_from_json(
                 type=question_data["type"],
                 content=question_data["content"],
                 correct_answer=question_data["correct_answer"],
-                category=question_data["category"],
                 allow_multiple=question_data["allow_multiple"],
                 answers=json.dumps(question_data["answers"]) if question_data.get("answers") else None,
                 order=question_data.get("order", max_order + imported) if preserve_order else max_order + imported

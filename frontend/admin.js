@@ -186,6 +186,7 @@ class QuizAdmin {
 
     setupQuizButtons() {
         this.dom.startQuizBtn.addEventListener('click', () => {
+            console.log('[BUTTON DEBUG] Start Quiz button clicked');
             this.sendMessage({ type: 'start_quiz' });
 
             // Immediately clear leaderboard and answers UI for new quiz
@@ -202,26 +203,30 @@ class QuizAdmin {
                 const row = this.dom.answersTbody.insertRow();
                 row.className = 'no-answers';
                 const cell = row.insertCell();
-                cell.colSpan = 4;
+                cell.colSpan = 3;
                 cell.textContent = 'Waiting for answers...';
             }
         });
 
         this.dom.startCountdownBtn.addEventListener('click', () => {
+            console.log('[BUTTON DEBUG] Start Countdown button clicked');
             this.sendMessage({ type: 'start_wof_countdown' });
             this.dom.startCountdownBtn.disabled = true;
             this.dom.startCountdownBtn.textContent = 'Countdown Started!';
         });
 
         this.dom.revealAnswerBtn.addEventListener('click', () => {
+            console.log('[BUTTON DEBUG] Reveal Answer button clicked');
             this.sendMessage({ type: 'reveal_answer' });
         });
 
         this.dom.nextQuestionBtn.addEventListener('click', () => {
+            console.log('[BUTTON DEBUG] Next Question button clicked');
             this.sendMessage({ type: 'next_question' });
         });
 
         this.dom.endQuizBtn.addEventListener('click', () => {
+            console.log('[BUTTON DEBUG] End Quiz button clicked');
             this.sendMessage({ type: 'end_quiz' });
         });
     }
@@ -530,8 +535,7 @@ toggleMCQOptions(showMCQ) {
                 content,
                 options,
                 correct_answer: options[correctIndex],
-                correct_index: correctIndex,
-                category: 'general'
+                correct_index: correctIndex
             };
         } else if (type === 'word_cloud') {
             // Do not require or include correct_answer for word_cloud
@@ -545,7 +549,6 @@ toggleMCQOptions(showMCQ) {
                 type,
                 content,
                 correct_answer: '', // explicit empty; backend ignores
-                category: 'general'
             };
         } else {
             const correctAnswer = this.dom.correctAnswer.value.trim();
@@ -559,8 +562,7 @@ toggleMCQOptions(showMCQ) {
             question = {
                 type,
                 content,
-                correct_answer: correctAnswer,
-                category: 'general'
+                correct_answer: correctAnswer
             };
         }
 
@@ -605,42 +607,30 @@ toggleMCQOptions(showMCQ) {
             // Debug logging for MCQ parsing
             let opts = [];
             let optsRaw = question.options;
-            console.log('[MCQ debug] startEditQuestion: raw question.options:', optsRaw);
             try {
                 if (Array.isArray(optsRaw)) {
                     opts = optsRaw;
-                    console.log('[MCQ debug] options is already an array:', opts);
                 } else if (typeof optsRaw === 'string') {
                     let attempted = 0;
                     while (typeof optsRaw === 'string' && attempted < 3) {
-                        console.log('[MCQ debug] Parsing options JSON (level', attempted, '):', optsRaw);
                         optsRaw = JSON.parse(optsRaw);
                         attempted++;
                     }
                     if (Array.isArray(optsRaw)) {
                         opts = optsRaw;
-                        console.log('[MCQ debug] unwrapped array after JSON parse(s):', opts);
-                    } else {
-                        console.log('[MCQ debug] did not resolve to array after JSON parse(s):', optsRaw);
                     }
-                } else {
-                    console.log('[MCQ debug] options is unknown type:', typeof optsRaw, optsRaw);
                 }
             } catch (e) {
-                console.log('[MCQ debug] error parsing options:', e, 'optsRaw:', optsRaw);
                 opts = [];
             }
             // Guarantee minimum 2 rows for user input
             if (!opts || !Array.isArray(opts) || opts.length === 0) {
-                console.log('[MCQ debug] options fallback to blanks. Value was:', opts);
                 opts = ['', ''];
             }
 
             const correctIdx = typeof question.correct_index !== 'undefined'
                 ? question.correct_index
                 : (Array.isArray(opts) ? opts.findIndex(o => o === (question.correct_answer || '')) : null);
-
-            console.log('[MCQ debug] final options for renderMCQOptions:', opts, 'correctIdx:', correctIdx);
 
             this.toggleMCQOptions(true);
             this.renderMCQOptions(opts, correctIdx >= 0 ? correctIdx : null);
@@ -672,18 +662,18 @@ toggleMCQOptions(showMCQ) {
             return;
         }
 
-        const categoryCounts = {};
+        const typeCounts = {};
         questions.forEach(q => {
-            categoryCounts[q.category] = (categoryCounts[q.category] || 0) + 1;
+            typeCounts[q.type] = (typeCounts[q.type] || 0) + 1;
         });
 
         const summaryDiv = document.createElement('div');
         summaryDiv.className = 'questions-summary';
         summaryDiv.innerHTML = `
             <h4>Question Library Summary</h4>
-            <div class="category-counts">
-                ${Object.entries(categoryCounts).map(([cat, count]) =>
-                    `<span class="category-badge">${this.escapeHtml(cat)}: ${count}</span>`
+            <div class="type-counts">
+                ${Object.entries(typeCounts).map(([type, count]) =>
+                    `<span class="type-badge">${this.escapeHtml(type.replace('_', ' '))}: ${count}</span>`
                 ).join('')}
             </div>
             <div class="total-count">Total: ${questions.length} questions</div>
@@ -703,7 +693,6 @@ toggleMCQOptions(showMCQ) {
             <tr>
                 <th style="width:3ch;">#</th>
                 <th>Type</th>
-                <th>Category</th>
                 <th>Content</th>
                 <th>Answer</th>
                 <th style="width:110px;">Actions</th>
@@ -727,7 +716,6 @@ toggleMCQOptions(showMCQ) {
                     <br/>
                     <small style="color:#aaa;">${this.escapeHtml(question.type.replaceAll('_', ' ').toUpperCase())}</small>
                 </td>
-                <td>${this.escapeHtml(question.category)}</td>
                 <td>${this.escapeHtml(question.content)}</td>
                 <td>${this.escapeHtml(question.correct_answer)}</td>
                 <td>
@@ -965,7 +953,7 @@ toggleMCQOptions(showMCQ) {
                 break;
 
             case 'answer_received':
-                this.updateAnswersList(data.answers);
+                this.updateAnswersList(data);
                 if (data.leaderboard && data.leaderboard.length > 0) {
                     this.updateLeaderboard(data.leaderboard);
                 }
@@ -1020,7 +1008,7 @@ toggleMCQOptions(showMCQ) {
 
         // Display question text based on type
         if (data.question.type === 'wheel_of_fortune') {
-            this.dom.questionText.innerHTML = `Guess the word in category: <span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
+            this.dom.questionText.innerHTML = `Guess the phrase: <span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
         } else {
             this.dom.questionText.textContent = data.question.content;
         }
@@ -1056,7 +1044,6 @@ toggleMCQOptions(showMCQ) {
         // WoF board and countdown button visibility
         const wofBoardArea = this.dom.wofBoardArea;
         if (data.question.type === 'wheel_of_fortune') {
-            console.log('[DEBUG] Showing WoF board for question:', data.question);
             wofBoardArea.classList.remove('hidden');
             this.dom.startCountdownBtn.classList.remove('hidden');
             this.dom.startCountdownBtn.disabled = false;
@@ -1065,10 +1052,7 @@ toggleMCQOptions(showMCQ) {
             const boardDiv = wofBoardArea.querySelector('.wof-tiles');
             if (boardDiv) {
                 const underscores = '_'.repeat(data.question.correct_answer?.length || 0);
-                console.log('[DEBUG] Initializing board with underscores:', underscores);
                 boardDiv.textContent = underscores;
-            } else {
-                console.error('[DEBUG] Could not find .wof-tiles element');
             }
         } else {
             wofBoardArea.classList.add('hidden');
@@ -1125,7 +1109,9 @@ toggleMCQOptions(showMCQ) {
     }
 
     // ===== ANSWERS & LEADERBOARD =====
-    updateAnswersList(answers) {
+    updateAnswersList(data) {
+        const answers = data.answers || [];
+        const questionType = data.question_type;
         this.dom.answersTbody.innerHTML = '';
         const participantCount = parseInt(this.dom.participantCount.textContent) || 0;
 
@@ -1133,17 +1119,13 @@ toggleMCQOptions(showMCQ) {
             const row = this.dom.answersTbody.insertRow();
             row.className = 'no-answers';
             const cell = row.insertCell();
-            cell.colSpan = 4;
+            cell.colSpan = 3;
             cell.textContent = 'Waiting for answers...';
             this.resetAnswerCounter();
             return;
         }
 
         const totalAnswered = answers.length;
-        // For word cloud: do not display "correct"/"✗" in admin table
-        // Heuristic: if every answer.correct === false and every answer.score === 0, it's likely word cloud question (robust if backend tags type)
-        const allUnknown = answers.every(a => a.correct === false && (!a.score || a.score === 0));
-
         const correctCount = answers.filter(a => a.correct).length;
 
         this.dom.answerCounter.textContent =
@@ -1154,8 +1136,8 @@ toggleMCQOptions(showMCQ) {
         // Limit to top 10 answers for display
         const topAnswers = answers.slice(0, 10);
 
-        if (allUnknown) {
-            // Word cloud: show only participant name and their submission
+        if (questionType === "word_cloud") {
+            // Word cloud: show participant name and their answer content
             topAnswers.forEach((answer, index) => {
                 this.addTableRow(this.dom.answersTbody, [
                     `#${index + 1}`,
@@ -1164,21 +1146,21 @@ toggleMCQOptions(showMCQ) {
                 ], [
                     'rank',
                     '',
-                    'submission'
+                    'result'
                 ]);
             });
         } else {
-            // Default: old logic, show ✓/✗ etc
+            // Regular questions: show score and status combined, never show answer content
             topAnswers.forEach((answer, index) => {
+                const score = answer.score || 0;
+                const status = answer.correct ? '✓' : '✗';
                 this.addTableRow(this.dom.answersTbody, [
                     `#${index + 1}`,
                     answer.user,
-                    answer.score || 0,
-                    answer.correct ? '✓' : '✗'
+                    `${score} ${status}`
                 ], [
                     'rank',
                     '',
-                    'score',
                     answer.correct ? 'correct' : 'incorrect'
                 ]);
             });
