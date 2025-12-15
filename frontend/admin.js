@@ -256,6 +256,7 @@ class QuizAdmin {
 
     setupSettings() {
         this.dom.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+        this.loadDatabaseList();
     }
 
     setupDataManagement() {
@@ -988,6 +989,10 @@ toggleMCQOptions(showMCQ) {
                 }
                 break;
 
+            case 'current_database_info':
+                this.updateDatabaseInfo(data.database, data.question_count);
+                break;
+
             case 'settings_error':
                 this.showMessage(`Settings error: ${data.error}`, 'error');
                 break;
@@ -1380,6 +1385,59 @@ toggleMCQOptions(showMCQ) {
 
     updateStatus(status) {
         this.dom.status.textContent = status;
+    }
+
+    // ===== DATABASE MANAGEMENT =====
+    async loadDatabaseList() {
+        try {
+            const response = await fetch('/api/databases');
+            const data = await response.json();
+
+            if (data.databases && Array.isArray(data.databases)) {
+                this.populateDatabaseDropdown(data.databases);
+            } else {
+                console.error('Invalid database list response:', data);
+                // Fallback to default options
+                this.populateDatabaseDropdown([]);
+            }
+        } catch (error) {
+            console.error('Failed to load database list:', error);
+            // Fallback to default options
+            this.populateDatabaseDropdown([]);
+        }
+    }
+
+    populateDatabaseDropdown(databases) {
+        const selectElement = this.dom.databaseFile;
+        if (!selectElement) return;
+
+        // Clear existing options
+        selectElement.innerHTML = '';
+
+        // Add database options
+        databases.forEach(db => {
+            const option = document.createElement('option');
+            option.value = db.path;
+            option.textContent = `${db.filename} (${this.formatFileSize(db.size)})`;
+            selectElement.appendChild(option);
+        });
+
+        // If no databases found, show a message
+        if (databases.length === 0) {
+            const option = document.createElement('option');
+            option.value = '';
+            option.textContent = 'No databases found';
+            option.disabled = true;
+            selectElement.appendChild(option);
+        }
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     }
 }
 

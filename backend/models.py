@@ -1,10 +1,10 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, Text, Boolean, DateTime, ForeignKey, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 
 # SQLite database URL - can be changed dynamically
-SQLALCHEMY_DATABASE_URL = "sqlite:///./quiz_game.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./database/warmup_trivia.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
@@ -28,7 +28,9 @@ def switch_database(new_db_path: str):
 
     # Test connection
     try:
-        new_engine.execute("SELECT 1")
+        with new_engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            conn.commit()
     except Exception as e:
         raise ValueError(f"Cannot connect to database {new_db_path}: {e}")
 

@@ -14,7 +14,7 @@ from datetime import datetime
 import uuid
 from pathlib import Path
 
-from models import SessionLocal, User, Question, Game, Answer, switch_database
+from models import SessionLocal, User, Question, Game, Answer, switch_database, SQLALCHEMY_DATABASE_URL
 
 # --- Word Cloud Embedding/Clustering Imports ---
 import numpy as np
@@ -345,6 +345,31 @@ async def debug():
     """Debug endpoint"""
     return {"working": True}
 
+@app.get("/api/databases")
+async def list_databases():
+    """List available database files in the database folder"""
+    try:
+        db_dir = Path("./database")
+        if not db_dir.exists():
+            return {"databases": []}
+
+        # Get all .db files in the database directory
+        db_files = []
+        for file_path in db_dir.glob("*.db"):
+            if file_path.is_file():
+                db_files.append({
+                    "filename": file_path.name,
+                    "path": f"database/{file_path.name}",
+                    "size": file_path.stat().st_size
+                })
+
+        # Sort by filename
+        db_files.sort(key=lambda x: x["filename"])
+
+        return {"databases": db_files}
+    except Exception as e:
+        return {"error": str(e), "databases": []}
+
 # Serve HTML pages at root level
 @app.get("/")
 async def participant_page():
@@ -633,6 +658,19 @@ async def admin_websocket(websocket: WebSocket):
             {"type": "timer_update", "time_left": timer_value},
             connection_id,
         )
+
+    # Send current database information to the admin
+    current_db_path = SQLALCHEMY_DATABASE_URL.replace("sqlite:///./", "")
+    db = SessionLocal()
+    try:
+        question_count = db.query(Question).count()
+        await admin_manager.send_personal_message({
+            "type": "current_database_info",
+            "database": current_db_path,
+            "question_count": question_count
+        }, connection_id)
+    finally:
+        db.close()
 
     try:
         while True:
