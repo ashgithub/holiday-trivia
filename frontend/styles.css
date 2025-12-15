@@ -1,6 +1,6 @@
 /* All-Hands Quiz Game Styles - Christmas Theme *//* === Glass Panel Translucency === */
-.control-section, .festive-panel, .status-dashboard, .question-management, .question-library {
-  background: rgba(255,255,255,0.70);
+.control-section, .status-dashboard, .question-management, .question-library {
+  background: var(--snow-white);
   backdrop-filter: blur(4px);
   border-radius: 14px;
   box-shadow: 0 2px 16px rgba(0,0,0,0.16);
@@ -12,9 +12,9 @@
     --christmas-red: #dc143c;
     --christmas-green: #228b22;
     --christmas-gold: #ffd700;
-    --snow-white: #ffffff;
+    --snow-white: rgba(255,255,255,0.9);
     --text-dark: #2c3e50;
-    --bg-light: #f8f9fa;
+    --bg-light: rgba(248,249,250,0.9);
     --shadow: rgba(0, 0, 0, 0.1);
 }
 
@@ -802,7 +802,7 @@ canvas {
 
 /* Festive Panel Tint */
 .festive-panel {
-  background: linear-gradient(to bottom, #FFE4E1 0%, #FFFFFF 100%);
+  background: var(--snow-white);
   border: 2px solid #FFD700;
 }
 
