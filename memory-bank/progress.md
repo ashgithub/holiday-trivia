@@ -33,6 +33,10 @@
 - ✅ Implementation complete and tested
 - ✅ Documentation updated to reflect working functionality
 - ✅ All game mechanics verified and functional
+- ✅ **FIXED: Timer interference between default 30s timer and WOF dynamic timer**
+- ✅ **FIXED: Timer showing "30s" before question pushed - now shows "Ready..."**
+- ✅ **FIXED: Timer showing "Ready...s" - now shows "Ready..." (no "s" for text)**
+- ✅ **FIXED: Timer hidden for ALL questions until countdown starts (ultra-clean UX - no "Ready..." text)**
 
 ---
 
@@ -148,11 +152,7 @@
   - Add eraser support to drawing canvas for quiz master/admin.
   - Use similarity-based matching for participant guesses (semantic/textual similarity) rather than exact string match; allow more creative/forgiving scoring.  
 
-- **Timer Synchronization Issues (Backlog)**
-  - Investigate and fix timer conflicts between admin and participant clients
-  - Ensure WoF dynamic timer displays correctly on both admin and participant screens
-  - Resolve timing discrepancies when WoF countdown starts
-  - Verify timer state consistency across WebSocket connections
+
 
 - **Proxy Deployment Configuration (Backlog)**
   - Deploy application behind reverse proxy (nginx/apache) for production use

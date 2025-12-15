@@ -734,8 +734,12 @@ toggleMCQOptions(showMCQ) {
                 break;
 
             case 'wof_countdown_started':
-                // Timer started with calculated duration
-                this.dom.adminTimeRemaining.textContent = data.timer_duration;
+                // Timer started with calculated duration - show timer now
+                const adminTimer = this.dom.adminTimer;
+                if (adminTimer) {
+                    adminTimer.classList.remove('hidden');
+                }
+                this.dom.adminTimeRemaining.textContent = `${data.timer_duration}s`;
                 break;
             case 'status_update':
                 this.updateStatusDashboard(data);
@@ -773,7 +777,16 @@ toggleMCQOptions(showMCQ) {
                 break;
 
             case 'timer_update':
-                this.dom.adminTimeRemaining.textContent = data.time_left;
+                // Show timer when countdown starts for regular questions
+                const adminTimerElement = this.dom.adminTimer;
+                if (adminTimerElement) {
+                    adminTimerElement.classList.remove('hidden');
+                }
+                // Conditionally add "s" only for numeric values
+                const timeText = (typeof data.time_left === 'number') ?
+                    `${data.time_left}s` :
+                    data.time_left;
+                this.dom.adminTimeRemaining.textContent = timeText;
                 break;
 
             case 'answer_received':
@@ -824,13 +837,19 @@ toggleMCQOptions(showMCQ) {
         }
 
         if (data.progress) {
-            this.dom.adminQuestionProgress.textContent = 
+            this.dom.adminQuestionProgress.textContent =
                 `Question ${data.progress.current} of ${data.progress.total}`;
             const isLastQuestion = data.progress.current >= data.progress.total;
             this.setButtonState(this.dom.nextQuestionBtn, isLastQuestion);
         }
 
         this.resetAnswerCounter();
+
+        // Hide timer initially for all questions - it will show when countdown starts
+        const adminTimer = this.dom.adminTimer;
+        if (adminTimer) {
+            adminTimer.classList.add('hidden');
+        }
 
         // Drawing area visibility and clearing logic
         const drawingArea = this.dom.drawingArea;

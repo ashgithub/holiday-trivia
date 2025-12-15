@@ -187,7 +187,11 @@ class QuizParticipant {
                 break;
 
             case 'wof_countdown_started':
-                // Start WoF timer with calculated duration
+                // Show timer and start WoF countdown
+                const timerElement = document.getElementById('timer');
+                if (timerElement) {
+                    timerElement.classList.remove('hidden');
+                }
                 this.timeLeft = data.timer_duration;
                 this.updateTimerDisplay();
                 // Start countdown
@@ -217,8 +221,17 @@ class QuizParticipant {
 
 
             case 'timer_update':
+                // Show timer when countdown starts for regular questions
+                const participantTimer = document.getElementById('timer');
+                if (participantTimer) {
+                    participantTimer.classList.remove('hidden');
+                }
+                // Conditionally add "s" only for numeric values
                 if (this.timeLeft > 0 && !this.hasSubmitted) {
-                    this.updateTimer(data.time_left);
+                    const timeText = (typeof data.time_left === 'number') ?
+                        `${data.time_left}s` :
+                        data.time_left;
+                    document.getElementById('time-remaining').textContent = timeText;
                 }
                 break;
 
@@ -315,9 +328,10 @@ class QuizParticipant {
             if (el) el.remove();
         });
 
-        // Restore timer markup for new question
+        // Restore timer markup for new question - hide timer initially
         const timer = document.getElementById('timer');
-        timer.innerHTML = '<span>Time remaining: <span id="time-remaining">30</span>s</span><span id="feedback-slot"></span>';
+        timer.innerHTML = '<span>Time remaining: <span id="time-remaining"></span></span><span id="feedback-slot"></span>';
+        timer.classList.add('hidden');
 
         // Update progress display
         if (progress) {

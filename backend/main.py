@@ -466,8 +466,9 @@ async def admin_websocket(websocket: WebSocket):
 
     # If a quiz is already active, send the current timer state to the new admin
     if current_game and current_game.status == "active" and current_question:
+        timer_value = "Ready..." if current_question.type == "wheel_of_fortune" else 30
         await admin_manager.send_personal_message(
-            {"type": "timer_update", "time_left": 30},
+            {"type": "timer_update", "time_left": timer_value},
             connection_id,
         )
 
@@ -510,9 +511,10 @@ async def admin_websocket(websocket: WebSocket):
                         )
                         await participant_manager.broadcast(question_payload)
 
-                        # Start default 30s timer for all questions (admin sees 30s initially)
-                        # For WoF, this gets replaced when countdown starts
-                        await start_question_timer()
+                        # Start default 30s timer only for non-WOF questions
+                        # WOF questions only start their timer when admin clicks "Start Countdown"
+                        if current_question.type != "wheel_of_fortune":
+                            await start_question_timer()
                 elif data["type"] == "end_quiz":
                     await end_quiz(db)
                     await admin_manager.broadcast({"type": "quiz_ended"})
@@ -700,10 +702,11 @@ async def next_question(db):
     # Cancel existing timer
     if question_timer:
         question_timer.cancel()
-        # Notify admin to reset the timer value immediately (force admin timer to 30)
+        # Notify admin to reset the timer value based on question type
+        timer_value = "Ready..." if current_question and current_question.type == "wheel_of_fortune" else 30
         await admin_manager.broadcast({
             "type": "timer_update",
-            "time_left": 30
+            "time_left": timer_value
         })
 
     # Cancel any existing WoF letter-reveal
@@ -941,13 +944,22 @@ async def score_word_cloud_and_reveal(db, admin_connection_id=None):
     if word_cloud_scored:
         return
     word_cloud_scored = True
+
+    # Early return if no active question/game
+    if not current_question or not current_game:
+        return
+
+    question_id = getattr(current_question, "id", None)
+    game_id = getattr(current_game, "id", None)
+    if not question_id or not game_id:
+        return
+
     # Fetch all answers
-    answer_objs = []
-    if current_question and getattr(current_question, "id", None) and current_game and getattr(current_game, "id", None):
-        answer_objs = db.query(Answer).filter(
-            Answer.question_id == current_question.id,
-            Answer.game_id == current_game.id
-        ).all()
+    answer_objs = db.query(Answer).filter(
+        Answer.question_id == question_id,
+        Answer.game_id == game_id
+    ).all()
+
     answers = [(ans.user_id, ans.content.strip()) for ans in answer_objs if ans.content and ans.content.strip()]
 
     cluster_map, answer_to_cluster = cluster_word_cloud_answers(answers)
@@ -975,7 +987,7 @@ async def score_word_cloud_and_reveal(db, admin_connection_id=None):
                 "type": "personal_feedback",
                 "correct": False,
                 "score": ans.score,
-                "total_score": sum(a.score for a in db.query(Answer).filter(Answer.user_id == ans.user_id, Answer.game_id == current_game.id).all()),
+                "total_score": sum(a.score for a in db.query(Answer).filter(Answer.user_id == ans.user_id, Answer.game_id == game_id).all()),
                 "retry_count": ans.retry_count,
                 "allow_multiple": False,
                 "cluster_size": cluster_size,
@@ -987,14 +999,14 @@ async def score_word_cloud_and_reveal(db, admin_connection_id=None):
     # Broadcast word cloud to admin only
     reveal_payload = {
         "type": "word_cloud_revealed",
-        "question_id": current_question.id,
+        "question_id": question_id,
         "word_cloud": word_cloud,
     }
     await admin_manager.broadcast(reveal_payload)
     if admin_connection_id:
         await admin_manager.send_personal_message({"type": "reveal_confirmed"}, admin_connection_id)
     await participant_manager.broadcast(
-        {"type": "word_cloud_scoring_complete", "question_id": current_question.id}
+        {"type": "word_cloud_scoring_complete", "question_id": question_id}
     )
 
 # Periodic status updates for admin
