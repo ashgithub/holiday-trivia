@@ -70,6 +70,77 @@ The project includes a comprehensive sample dataset with 25 questions across 5 c
 
 Run `uv run populate_sample_data.py` to populate the database with sample questions for testing.
 
+### Question Export/Import
+
+The application includes comprehensive CLI tools and web-based interfaces for managing question data:
+
+#### CLI Tools
+
+**Export Questions:**
+```bash
+# Export all questions
+uv run python export_questions.py questions.json
+
+# Export by category
+uv run python export_questions.py geography_questions.json --category geography
+
+# Export by question type
+uv run python export_questions.py mc_questions.json --type multiple_choice
+
+# Export in compact format
+uv run python export_questions.py questions_compact.json --compact
+```
+
+**Import Questions:**
+```bash
+# Import questions (dry run first)
+uv run python import_questions.py questions.json --dry-run
+
+# Import with duplicate handling
+uv run python import_questions.py questions.json --skip-duplicates
+
+# Update existing questions instead of skipping
+uv run python import_questions.py questions.json --update-existing
+
+# Replace all questions (WARNING: deletes all existing questions!)
+uv run python import_questions.py questions.json --drop-existing
+```
+
+#### Web Interface
+
+Use the **Data Management** tab in the admin interface (`/admin`) for:
+- **Export**: Click "Export Questions" to download all questions as JSON
+- **Import**: Select a JSON file, choose options, and click "Import Questions"
+- **Validation**: Automatic validation with detailed error messages
+
+#### JSON Format
+
+Questions are exported/imported as JSON arrays with this structure:
+```json
+[
+  {
+    "id": 1,
+    "type": "multiple_choice",
+    "content": "What is 2+2?",
+    "answers": ["3", "4", "5", "6"],
+    "correct_answer": "4",
+    "category": "math",
+    "allow_multiple": false,
+    "order": 0,
+    "created_at": "2025-12-15T12:00:00.000000"
+  }
+]
+```
+
+#### Features
+
+- **Validation**: Comprehensive validation of question types, required fields, and data integrity
+- **Duplicate Handling**: Options to skip, update, or allow duplicates during import
+- **Filtering**: Export specific categories or question types
+- **Statistics**: Detailed import/export statistics and progress reporting
+- **Error Recovery**: Graceful handling of malformed data with specific error messages
+- **Legacy Support**: Automatic conversion of old question type names
+
 ### During Zoom Meeting
 
 1. Quiz master shares their screen showing the admin panel

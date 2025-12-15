@@ -43,6 +43,7 @@
             <div class="tab-navigation">
                 <button id="quiz-control-tab" class="tab-btn active">Quiz Control</button>
                 <button id="question-management-tab" class="tab-btn">Question Management</button>
+                <button id="data-management-tab" class="tab-btn">Data Management</button>
                 <button id="settings-tab" class="tab-btn">Settings</button>
             </div>
 
@@ -165,6 +166,48 @@
                         <h3>Question Library</h3>
                         <div id="questions-list">No questions added yet...</div>
                     </div>
+                </div>
+            </div>
+
+            <div id="data-management-content" class="tab-content">
+                <div id="export-section" class="control-section festive-panel">
+                    <h3>📤 Export Questions</h3>
+                    <p>Download all questions as a JSON file for backup or sharing.</p>
+                    <button id="export-questions-btn" class="btn btn-primary">Export Questions</button>
+                    <div id="export-status" class="status-message hidden"></div>
+                </div>
+
+                <div id="import-section" class="control-section festive-panel">
+                    <h3>📥 Import Questions</h3>
+                    <p>Upload a JSON file to add questions to the database.</p>
+                    <div class="import-controls">
+                        <input type="file" id="import-file-input" accept=".json" style="margin-bottom: 10px;">
+                        <div class="import-options">
+                            <label>
+                                <input type="checkbox" id="drop-existing-import">
+                                <strong>Drop existing questions</strong> (WARNING: This will delete all current questions!)
+                            </label>
+                            <label>
+                                <input type="checkbox" id="skip-duplicates-import" checked>
+                                Skip duplicate questions
+                            </label>
+                            <label>
+                                <input type="checkbox" id="update-existing-import">
+                                Update existing questions
+                            </label>
+                        </div>
+                        <button id="import-questions-btn" class="btn btn-success" disabled>Import Questions</button>
+                    </div>
+                    <div id="import-status" class="status-message hidden"></div>
+                </div>
+
+                <div id="data-info-section" class="control-section festive-panel">
+                    <h4>💡 Usage Instructions</h4>
+                    <ul>
+                        <li><strong>Export:</strong> Click "Export Questions" to download a JSON file with all questions</li>
+                        <li><strong>Import:</strong> Select a JSON file, choose options, then click "Import Questions"</li>
+                        <li><strong>CLI Tools:</strong> Use <code>export_questions.py</code> and <code>import_questions.py</code> for advanced operations</li>
+                    </ul>
                 </div>
             </div>
 

@@ -63,5 +63,9 @@ Thumbs.db
 # Temp
 tmp/
 temp/
-# documentation
-.doc
+
+# Documentation
+doc/
+*.doc
+*.docx
+~$*

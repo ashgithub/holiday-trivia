@@ -7,6 +7,7 @@ import uvicorn
 import os
 import json
 import asyncio
+import hashlib
 from contextlib import asynccontextmanager
 from typing import Dict, List, Optional
 from datetime import datetime
@@ -190,6 +191,156 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+# Question Import/Export API Endpoints
+@app.post("/api/questions/export")
+async def export_questions_api():
+    """Export all questions to JSON format"""
+    try:
+        db = SessionLocal()
+        questions = db.query(Question).order_by(Question.created_at).all()
+
+        export_data = []
+        for question in questions:
+            question_data = {
+                "id": question.id,
+                "type": question.type,
+                "content": question.content,
+                "correct_answer": question.correct_answer,
+                "category": question.category,
+                "allow_multiple": question.allow_multiple,
+                "order": getattr(question, 'order', 0),
+                "created_at": question.created_at.isoformat() if question.created_at else None
+            }
+
+            # Only include answers for question types that use them
+            if question.type in ["multiple_choice", "multiplechoice", "mcq"]:
+                if question.answers:
+                    try:
+                        question_data["answers"] = json.loads(question.answers)
+                    except json.JSONDecodeError:
+                        question_data["answers"] = []
+
+            export_data.append(question_data)
+
+        return {
+            "success": True,
+            "questions": export_data,
+            "count": len(export_data)
+        }
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+    finally:
+        db.close()
+
+@app.post("/api/questions/import")
+async def import_questions_api(request: dict):
+    """Import questions from JSON data"""
+    try:
+        import_data = request.get("questions", [])
+        if not isinstance(import_data, list):
+            return {"success": False, "error": "Questions must be provided as a list"}
+
+        drop_existing = request.get("drop_existing", False)
+        skip_duplicates = request.get("skip_duplicates", True)
+        update_existing = request.get("update_existing", False)
+
+        db = SessionLocal()
+        imported = 0
+        skipped = 0
+        updated = 0
+        dropped = 0
+
+        # Drop existing questions if requested
+        if drop_existing:
+            existing_count = db.query(Question).count()
+            if existing_count > 0:
+                db.query(Question).delete()
+                db.commit()
+                dropped = existing_count
+
+        # Get existing questions for duplicate checking (only if not dropping all)
+        existing_hashes = {}
+        if not drop_existing and (skip_duplicates or update_existing):
+            existing_questions = db.query(Question).all()
+            for eq in existing_questions:
+                hash_data = {
+                    "type": eq.type,
+                    "content": eq.content,
+                    "correct_answer": eq.correct_answer,
+                    "answers": json.loads(eq.answers) if eq.answers else None
+                }
+                existing_hashes[calculate_question_hash(hash_data)] = eq
+
+        def calculate_question_hash(question_data):
+            """Calculate hash for deduplication"""
+            hash_content = f"{question_data['type']}|{question_data['content']}|{question_data['correct_answer']}"
+            if question_data.get("answers"):
+                hash_content += f"|{'|'.join(sorted(question_data['answers']))}"
+            return hashlib.sha256(hash_content.encode('utf-8')).hexdigest()
+
+        for question_data in import_data:
+            # Basic validation
+            required_fields = ["type", "content", "correct_answer", "category"]
+            if not all(field in question_data and question_data[field] for field in required_fields):
+                continue
+
+            if question_data["type"] not in ALLOWED_QUESTION_TYPES:
+                continue
+
+            question_hash = calculate_question_hash(question_data)
+
+            # Check for existing question
+            existing_question = existing_hashes.get(question_hash)
+            if existing_question and not drop_existing:
+                if skip_duplicates and not update_existing:
+                    skipped += 1
+                    continue
+                elif update_existing:
+                    # Update existing question
+                    existing_question.type = question_data["type"]
+                    existing_question.content = question_data["content"]
+                    existing_question.correct_answer = question_data["correct_answer"]
+                    existing_question.category = question_data["category"]
+                    existing_question.allow_multiple = question_data.get("allow_multiple", True)
+
+                    if question_data["type"] in ["multiple_choice", "multiplechoice", "mcq"]:
+                        existing_question.answers = json.dumps(question_data["answers"])
+                    else:
+                        existing_question.answers = None
+
+                    updated += 1
+                    continue
+
+            # Create new question
+            new_question = Question(
+                type=question_data["type"],
+                content=question_data["content"],
+                correct_answer=question_data["correct_answer"],
+                category=question_data["category"],
+                allow_multiple=question_data.get("allow_multiple", True),
+                answers=json.dumps(question_data["answers"]) if question_data.get("answers") else None,
+                order=question_data.get("order", db.query(Question).count())
+            )
+
+            db.add(new_question)
+            imported += 1
+
+        db.commit()
+
+        return {
+            "success": True,
+            "imported": imported,
+            "skipped": skipped,
+            "updated": updated,
+            "dropped": dropped,
+            "total": db.query(Question).count()
+        }
+    except Exception as e:
+        db.rollback()
+        return {"success": False, "error": str(e)}
+    finally:
+        db.close()
 
 # Debug route
 @app.get("/debug")
@@ -458,6 +609,13 @@ ALLOWED_QUESTION_TYPES = {
     "pictionary",
     "wheel_of_fortune"
 }
+
+def calculate_question_hash(question_data):
+    """Calculate hash for deduplication"""
+    hash_content = f"{question_data['type']}|{question_data['content']}|{question_data['correct_answer']}"
+    if question_data.get("answers"):
+        hash_content += f"|{'|'.join(sorted(question_data['answers']))}"
+    return hashlib.sha256(hash_content.encode('utf-8')).hexdigest()
 
 @app.websocket("/ws/admin")
 async def admin_websocket(websocket: WebSocket):

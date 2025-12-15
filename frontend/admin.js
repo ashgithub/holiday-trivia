@@ -44,6 +44,7 @@ class QuizAdmin {
         // Tabs
         this.dom.quizControlTab = document.getElementById('quiz-control-tab');
         this.dom.questionManagementTab = document.getElementById('question-management-tab');
+        this.dom.dataManagementTab = document.getElementById('data-management-tab');
         this.dom.settingsTab = document.getElementById('settings-tab');
 
         // Quiz controls
@@ -125,6 +126,7 @@ class QuizAdmin {
             this.switchTab('question-management');
             this.loadQuestions();
         });
+        this.dom.dataManagementTab.addEventListener('click', () => this.switchTab('data-management'));
         this.dom.settingsTab.addEventListener('click', () => this.switchTab('settings'));
     }
 
@@ -177,6 +179,7 @@ class QuizAdmin {
         this.setupQuizButtons();
         this.setupQuestionForm();
         this.setupDrawingCanvas();
+        this.setupDataManagement();
         this.setupSettings();
     }
 
@@ -247,6 +250,177 @@ class QuizAdmin {
 
     setupSettings() {
         this.dom.saveSettingsBtn.addEventListener('click', () => this.saveSettings());
+    }
+
+    setupDataManagement() {
+        // Export functionality
+        const exportBtn = document.getElementById('export-questions-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportQuestions());
+        }
+
+        // Import functionality
+        const importFileInput = document.getElementById('import-file-input');
+        const importBtn = document.getElementById('import-questions-btn');
+
+        if (importFileInput) {
+            importFileInput.addEventListener('change', (e) => {
+                this.handleFileSelection(e);
+            });
+        }
+
+        if (importBtn) {
+            importBtn.addEventListener('click', () => this.importQuestions());
+        }
+    }
+
+    async exportQuestions() {
+        try {
+            this.showExportStatus('Exporting questions...', 'info');
+            const response = await fetch('/api/questions/export', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Create download link
+                const dataStr = JSON.stringify(result.questions, null, 2);
+                const dataBlob = new Blob([dataStr], { type: 'application/json' });
+                const url = URL.createObjectURL(dataBlob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `quiz_questions_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                URL.revokeObjectURL(url);
+                this.showExportStatus(`✅ Successfully exported ${result.count} questions`, 'success');
+            } else {
+                this.showExportStatus(`❌ Export failed: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Export error:', error);
+            this.showExportStatus('❌ Export failed: Network error', 'error');
+        }
+    }
+
+    handleFileSelection(event) {
+        const file = event.target.files[0];
+        const importBtn = document.getElementById('import-questions-btn');
+
+        if (file) {
+            if (file.type !== 'application/json' && !file.name.endsWith('.json')) {
+                this.showImportStatus('❌ Please select a valid JSON file', 'error');
+                importBtn.disabled = true;
+                return;
+            }
+            importBtn.disabled = false;
+            this.selectedFile = file;
+            this.showImportStatus(`📁 Selected file: ${file.name}`, 'info');
+        } else {
+            importBtn.disabled = true;
+            this.selectedFile = null;
+        }
+    }
+
+    async importQuestions() {
+        if (!this.selectedFile) {
+            this.showImportStatus('❌ No file selected', 'error');
+            return;
+        }
+
+        try {
+            this.showImportStatus('📖 Reading file...', 'info');
+
+            const fileContent = await this.selectedFile.text();
+            let questionsData;
+
+            try {
+                questionsData = JSON.parse(fileContent);
+            } catch (parseError) {
+                this.showImportStatus('❌ Invalid JSON format', 'error');
+                return;
+            }
+
+            if (!Array.isArray(questionsData)) {
+                this.showImportStatus('❌ File must contain an array of questions', 'error');
+                return;
+            }
+
+            this.showImportStatus(`📤 Importing ${questionsData.length} questions...`, 'info');
+
+            // Get import options
+            const dropExisting = document.getElementById('drop-existing-import').checked;
+            const skipDuplicates = document.getElementById('skip-duplicates-import').checked;
+            const updateExisting = document.getElementById('update-existing-import').checked;
+
+            // Show warning for drop existing
+            if (dropExisting) {
+                const confirmed = confirm('⚠️ WARNING: You selected "Drop existing questions" which will DELETE ALL current questions!\n\nThis action cannot be undone. Are you sure you want to continue?');
+                if (!confirmed) {
+                    this.showImportStatus('Import cancelled by user', 'info');
+                    return;
+                }
+            }
+
+            const response = await fetch('/api/questions/import', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    questions: questionsData,
+                    drop_existing: dropExisting,
+                    skip_duplicates: skipDuplicates,
+                    update_existing: updateExisting
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                let message = `✅ Import completed! `;
+                message += `Imported: ${result.imported}, Skipped: ${result.skipped}`;
+                if (result.updated > 0) {
+                    message += `, Updated: ${result.updated}`;
+                }
+                this.showImportStatus(message, 'success');
+
+                // Refresh questions list if we're on that tab
+                if (this.currentTab === 'question-management') {
+                    this.loadQuestions();
+                }
+            } else {
+                this.showImportStatus(`❌ Import failed: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Import error:', error);
+            this.showImportStatus('❌ Import failed: Network error', 'error');
+        }
+    }
+
+    showExportStatus(message, type = 'info') {
+        const statusDiv = document.getElementById('export-status');
+        if (statusDiv) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.classList.remove('hidden');
+        }
+    }
+
+    showImportStatus(message, type = 'info') {
+        const statusDiv = document.getElementById('import-status');
+        if (statusDiv) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message ${type}`;
+            statusDiv.classList.remove('hidden');
+        }
     }
 
     // ===== QUESTION TYPE TOGGLING =====
