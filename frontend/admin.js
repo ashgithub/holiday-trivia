@@ -188,6 +188,7 @@ class QuizAdmin {
         this.dom.startQuizBtn.addEventListener('click', () => {
             console.log('[BUTTON DEBUG] Start Quiz button clicked');
             this.sendMessage({ type: 'start_quiz' });
+            soundManager.quizStarted();
 
             // Immediately clear leaderboard and answers UI for new quiz
             if (this.dom.leaderboardTbody) {
@@ -891,6 +892,7 @@ toggleMCQOptions(showMCQ) {
                 this.showMessage(data.error || "Unknown error with question type.", 'error');
                 break;
             case 'wof_update':
+                soundManager.wofReveal();
                 this.handleWofUpdate(data);
                 break;
             case 'wof_winner':
@@ -910,6 +912,7 @@ toggleMCQOptions(showMCQ) {
                 break;
 
             case 'quiz_started':
+                soundManager.quizStarted();
                 this.setQuizUIState('started');
                 if (data.progress) {
                     this.dom.adminQuestionProgress.textContent = 
@@ -919,6 +922,7 @@ toggleMCQOptions(showMCQ) {
                 break;
 
             case 'question_pushed':
+                soundManager.questionPosted();
                 this.handleQuestionPushed(data);
                 break;
 
@@ -951,9 +955,13 @@ toggleMCQOptions(showMCQ) {
                     `${data.time_left}s` :
                     data.time_left;
                 this.dom.adminTimeRemaining.textContent = timeText;
+                if (data.time_left <= 10 && data.time_left > 0) {
+                    soundManager.timerCountdown();
+                }
                 break;
 
             case 'answer_received':
+                soundManager.answerSubmitted();
                 this.updateAnswersList(data);
                 if (data.leaderboard && data.leaderboard.length > 0) {
                     this.updateLeaderboard(data.leaderboard);
@@ -998,6 +1006,7 @@ toggleMCQOptions(showMCQ) {
                 break;
 
             case 'time_expired':
+                soundManager.timerExpired();
                 this.setButtonState(this.dom.revealAnswerBtn, false);
                 break;
         }
@@ -1282,6 +1291,11 @@ toggleMCQOptions(showMCQ) {
         this.dom.participantCount.textContent = data.participant_count;
 
         if (oldCount !== data.participant_count) {
+            if (data.participant_count > oldCount) {
+                soundManager.userJoined();
+            } else {
+                soundManager.userLeft();
+            }
             this.updateAnswerCounter();
         }
 

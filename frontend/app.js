@@ -171,6 +171,7 @@ class QuizParticipant {
     handleMessage(data) {
         switch (data.type) {
             case 'quiz_started':
+                soundManager.quizStarted();
                 this.handleQuizStarted(data.progress);
                 break;
 
@@ -242,6 +243,7 @@ class QuizParticipant {
     }
 
     handleWofUpdate(data) {
+        soundManager.wofReveal();
         // For participants, do NOT display the tiles or input.
         // Only update the status with winner or "Wheel of Fortune running..."
         this.updateStatus(data.winner ? `Winner: ${data.winner}` : "Wheel of Fortune running...");
@@ -312,6 +314,7 @@ class QuizParticipant {
     }
 
     displayQuestion(question, progress) {
+        soundManager.questionPosted();
         this.currentQuestion = question;
         this.hasSubmitted = false; // Reset submission flag for new question
         this.allowMultiple = question.allow_multiple || true;
@@ -434,6 +437,7 @@ class QuizParticipant {
             document.getElementById('submit-btn').disabled = true;
             document.getElementById('submit-btn').textContent = 'Scored';
             this.hasSubmitted = true;
+            soundManager.answerCorrect(); // Treat as correct for scoring
         } else if (data.correct) {
             const currentScore = data.score || 0;
             const totalScore = data.total_score || 0;
@@ -443,6 +447,7 @@ class QuizParticipant {
             document.getElementById('submit-btn').disabled = true;
             document.getElementById('submit-btn').textContent = 'Correct!';
             this.hasSubmitted = true; // Keep as submitted
+            soundManager.answerCorrect();
         } else if (data.allow_multiple && this.timeLeft > 0) {
             const retryCount = data.retry_count || 1;
             const totalScore = data.total_score || 0;
@@ -452,12 +457,14 @@ class QuizParticipant {
             document.getElementById('submit-btn').disabled = false;
             document.getElementById('submit-btn').textContent = 'Submit';
             this.hasSubmitted = false;
+            soundManager.answerWrong();
         } else {
             const totalScore = data.total_score || 0;
             slot.innerHTML = `<span class="feedback incorrect">Incorrect (Total: ${totalScore} pts)</span>`;
             // Keep disabled if no retry or time expired
             document.getElementById('text-answer').disabled = true;
             document.getElementById('submit-btn').disabled = true;
+            soundManager.answerWrong();
         }
     }
 
@@ -508,6 +515,7 @@ class QuizParticipant {
         };
 
         this.ws.send(JSON.stringify(message));
+        soundManager.answerSubmitted();
         this.hasSubmitted = true; // Mark as submitted
 
         // Stop the timer
@@ -555,6 +563,7 @@ class QuizParticipant {
     }
 
     timeExpired() {
+        soundManager.timerExpired();
         // Disable input fields when time expires
         const textAnswer = document.getElementById('text-answer');
         const submitBtn = document.getElementById('submit-btn');
@@ -586,9 +595,13 @@ class QuizParticipant {
     updateTimer(timeLeft) {
         this.timeLeft = timeLeft;
         this.updateTimerDisplay();
+        if (this.timeLeft <= 10 && this.timeLeft > 0) {
+            soundManager.timerCountdown();
+        }
     }
 
     updateDrawing(stroke) {
+        soundManager.drawingUpdate();
         const canvas = document.getElementById('draw-canvas');
         const ctx = canvas.getContext('2d');
 
