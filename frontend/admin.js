@@ -48,6 +48,7 @@ class QuizAdmin {
 
         // Quiz controls
         this.dom.startQuizBtn = document.getElementById('start-quiz-btn');
+        this.dom.startCountdownBtn = document.getElementById('start-countdown-btn');
         this.dom.revealAnswerBtn = document.getElementById('reveal-answer-btn');
         this.dom.nextQuestionBtn = document.getElementById('next-question-btn');
         this.dom.endQuizBtn = document.getElementById('end-quiz-btn');
@@ -200,6 +201,12 @@ class QuizAdmin {
                 cell.colSpan = 4;
                 cell.textContent = 'Waiting for answers...';
             }
+        });
+
+        this.dom.startCountdownBtn.addEventListener('click', () => {
+            this.sendMessage({ type: 'start_wof_countdown' });
+            this.dom.startCountdownBtn.disabled = true;
+            this.dom.startCountdownBtn.textContent = 'Countdown Started!';
         });
 
         this.dom.revealAnswerBtn.addEventListener('click', () => {
@@ -725,6 +732,11 @@ toggleMCQOptions(showMCQ) {
             case 'wof_winner':
                 this.handleWofWinner(data);
                 break;
+
+            case 'wof_countdown_started':
+                // Timer started with calculated duration
+                this.dom.adminTimeRemaining.textContent = data.timer_duration;
+                break;
             case 'status_update':
                 this.updateStatusDashboard(data);
                 break;
@@ -833,11 +845,14 @@ toggleMCQOptions(showMCQ) {
             drawingArea.classList.add('hidden');
         }
 
-        // WoF board visibility
+        // WoF board and countdown button visibility
         const wofBoardArea = this.dom.wofBoardArea;
         if (data.question.type === 'wheel_of_fortune') {
             console.log('[DEBUG] Showing WoF board for question:', data.question);
             wofBoardArea.classList.remove('hidden');
+            this.dom.startCountdownBtn.classList.remove('hidden');
+            this.dom.startCountdownBtn.disabled = false;
+            this.dom.startCountdownBtn.textContent = 'Start Countdown ⏱️';
             // Initialize with all underscores
             const boardDiv = wofBoardArea.querySelector('.wof-tiles');
             if (boardDiv) {
@@ -849,6 +864,7 @@ toggleMCQOptions(showMCQ) {
             }
         } else {
             wofBoardArea.classList.add('hidden');
+            this.dom.startCountdownBtn.classList.add('hidden');
         }
 
         this.setButtonState(this.dom.revealAnswerBtn, false);

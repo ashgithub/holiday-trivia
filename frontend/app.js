@@ -186,6 +186,22 @@ class QuizParticipant {
                 this.handleWofWinner(data);
                 break;
 
+            case 'wof_countdown_started':
+                // Start WoF timer with calculated duration
+                this.timeLeft = data.timer_duration;
+                this.updateTimerDisplay();
+                // Start countdown
+                if (this.timer) clearInterval(this.timer);
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateTimerDisplay();
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timer);
+                        this.timeExpired();
+                    }
+                }, 1000);
+                break;
+
             case 'personal_feedback':
                 this.showPersonalFeedback(data);
                 break;
@@ -319,15 +335,10 @@ class QuizParticipant {
         // Re-enable input fields for new question
         const textAnswer = document.getElementById('text-answer');
         const submitBtn = document.getElementById('submit-btn');
-        if (question.type !== "wheel_of_fortune") {
-            textAnswer.disabled = false;
-            textAnswer.value = ''; // Clear any previous answer
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Submit';
-        } else {
-            textAnswer.disabled = true;
-            submitBtn.disabled = true;
-        }
+        textAnswer.disabled = false;
+        textAnswer.value = ''; // Clear any previous answer
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit';
 
         // Clear feedback and revealed answers
         this.clearFeedback();
@@ -340,7 +351,11 @@ class QuizParticipant {
             this.hideMultipleChoice();
         }
 
-        this.resetTimer();
+        // Only start timer for non-WoF questions
+        // WoF timer starts when admin clicks "Start Countdown"
+        if (question.type !== 'wheel_of_fortune') {
+            this.resetTimer();
+        }
     }
 
     showMultipleChoice(options) {

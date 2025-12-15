@@ -509,6 +509,9 @@ async def admin_websocket(websocket: WebSocket):
                             {"type": "question_pushed", "question": question_payload["question"], "progress": question_payload["progress"]}
                         )
                         await participant_manager.broadcast(question_payload)
+
+                        # Start default 30s timer for all questions (admin sees 30s initially)
+                        # For WoF, this gets replaced when countdown starts
                         await start_question_timer()
                 elif data["type"] == "end_quiz":
                     await end_quiz(db)
@@ -610,6 +613,30 @@ async def admin_websocket(websocket: WebSocket):
                 # Drawing updates only sent to admin (participants see via screen share)
                 elif data["type"] == "drawing_stroke":
                     pass  # No longer broadcast to participants
+
+                # ---------- Start WoF Countdown ----------
+                elif data["type"] == "start_wof_countdown":
+                    if current_question and current_question.type == "wheel_of_fortune":
+                        # Calculate timer duration: len(answer) * tile_duration
+                        answer_length = len(current_question.correct_answer or "")
+                        timer_duration = int(answer_length * wof_tile_duration)
+                        print(f"[WoF] Starting countdown with duration: {timer_duration}s ({answer_length} letters × {wof_tile_duration}s)")
+
+                        # Start the reveal engine
+                        wof_reveal_task = asyncio.create_task(wof_phrase_reveal_engine(current_question.correct_answer or ""))
+
+                        # Start the timer with calculated duration
+                        timer_task = asyncio.create_task(start_wof_timer(timer_duration))
+                        await admin_manager.broadcast({
+                            "type": "wof_countdown_started",
+                            "timer_duration": timer_duration
+                        })
+                        await participant_manager.broadcast({
+                            "type": "wof_countdown_started",
+                            "timer_duration": timer_duration
+                        })
+                    else:
+                        print("[WoF] Attempted to start countdown but no WoF question active")
                 # ---------- Reveal answer ----------
                 elif data["type"] == "reveal_answer":
                     if not current_question:
@@ -702,17 +729,15 @@ async def next_question(db):
         # Record when this question was pushed for time-based scoring
         question_start_time = asyncio.get_event_loop().time()
 
-        # Start reveal engine if wheel_of_fortune
+        # For WoF, initialize state but don't start reveal yet (wait for countdown)
         if question.type == "wheel_of_fortune":
             phrase = question.correct_answer or ""
-            # Reveal only letters (not spaces/punctuation), tiles in order (L->R)
+            # Initialize revealed indices (non-letters are always revealed)
             wof_revealed_indices = [False] * len(phrase)
-            # Always reveal non-letters (space, punct) immediately
             for idx, c in enumerate(phrase):
                 if not c.isalnum():
                     wof_revealed_indices[idx] = True
-            # Start async reveal engine
-            wof_reveal_task = asyncio.create_task(wof_phrase_reveal_engine(phrase))
+            # Don't start reveal engine yet - wait for start_wof_countdown
 
 async def wof_phrase_reveal_engine(phrase):
     """
@@ -813,6 +838,42 @@ async def start_question_timer():
                 await score_word_cloud_and_reveal(db)
             finally:
                 db.close()
+
+    question_timer = asyncio.create_task(timer_task())
+
+async def start_wof_timer(duration):
+    """Start a WoF timer with the specified duration in seconds"""
+    global question_timer
+
+    async def timer_task():
+        time_left = duration
+        # Send initial timer state
+        await participant_manager.broadcast({
+            "type": "timer_update",
+            "time_left": time_left
+        })
+        await admin_manager.broadcast({
+            "type": "timer_update",
+            "time_left": time_left
+        })
+
+        # Count down
+        while time_left > 0:
+            await asyncio.sleep(1)
+            time_left -= 1
+            # Send timer updates to both participants and admins
+            await participant_manager.broadcast({
+                "type": "timer_update",
+                "time_left": time_left
+            })
+            await admin_manager.broadcast({
+                "type": "timer_update",
+                "time_left": time_left
+            })
+        # Timer expired
+        await admin_manager.broadcast({
+            "type": "time_expired"
+        })
 
     question_timer = asyncio.create_task(timer_task())
 

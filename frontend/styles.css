@@ -590,7 +590,7 @@ canvas {
 
 #leaderboard-table .points {
     font-weight: bold;
-    color: var(--christmas-green);
+    color: var(--snow-white);
     text-align: center;
     width: 80px;
 }
@@ -879,7 +879,7 @@ canvas {
 
 /* Wheel of Fortune Board */
 .wof-board {
-  background: linear-gradient(135deg, #8B0000 0%, #DC143C 50%, #FFD700 100%);
+  background: #DC143C;
   border: 4px solid #FFD700;
   border-radius: 12px;
   padding: 20px;
