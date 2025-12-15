@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 
-# SQLite database URL
+# SQLite database URL - can be changed dynamically
 SQLALCHEMY_DATABASE_URL = "sqlite:///./quiz_game.db"
 
 engine = create_engine(
@@ -11,6 +11,36 @@ engine = create_engine(
     connect_args={"check_same_thread": False}  # Only for SQLite
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+# Function to switch database dynamically
+def switch_database(new_db_path: str):
+    """Switch to a different SQLite database file"""
+    global SQLALCHEMY_DATABASE_URL, engine, SessionLocal
+
+    # Create new database URL
+    new_url = f"sqlite:///./{new_db_path}"
+
+    # Create new engine and session factory
+    new_engine = create_engine(
+        new_url,
+        connect_args={"check_same_thread": False}
+    )
+
+    # Test connection
+    try:
+        new_engine.execute("SELECT 1")
+    except Exception as e:
+        raise ValueError(f"Cannot connect to database {new_db_path}: {e}")
+
+    # Update globals
+    SQLALCHEMY_DATABASE_URL = new_url
+    engine = new_engine
+    SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+    # Create tables if they don't exist
+    Base.metadata.create_all(bind=engine)
+
+    return new_db_path
 
 Base = declarative_base()
 

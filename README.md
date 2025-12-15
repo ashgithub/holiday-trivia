@@ -1,6 +1,6 @@
-# All-Hands Quiz Game 🎄
+# All-Hands Holiday Trivia 🎄
 
-An interactive real-time quiz game for Zoom all-hands meetings with up to 150 participants. Features multiple question types, live drawing, voice input, comprehensive admin controls, and Christmas-themed UI.
+An interactive real-time holiday trivia game for Zoom all-hands meetings with up to 150 participants. Features multiple question types, live drawing, voice input, comprehensive admin controls, and Christmas-themed UI.
 
 ## Features
 
@@ -58,7 +58,7 @@ An interactive real-time quiz game for Zoom all-hands meetings with up to 150 pa
 ### Usage
 
 1. **For Participants**: Open http://localhost:8000 in web browser
-2. **For Quiz Master**: Open http://localhost:8000/admin and login with password `quizzer`
+2. **For Trivia Master**: Open http://localhost:8000/admin and login with password `quizzer`
 
 ### Sample Data
 
@@ -141,11 +141,20 @@ Questions are exported/imported as JSON arrays with this structure:
 - **Error Recovery**: Graceful handling of malformed data with specific error messages
 - **Legacy Support**: Automatic conversion of old question type names
 
+### Database Switching
+
+The application supports switching between different SQLite databases dynamically from the admin interface:
+
+- **Database Selection**: Choose from available database files in the Settings tab
+- **Connection Preservation**: Participants stay connected during database switches
+- **Graceful Transitions**: Active trivia sessions end cleanly before switching
+- **Multiple Databases**: Support for production, development, and backup databases
+
 ### During Zoom Meeting
 
-1. Quiz master shares their screen showing the admin panel
+1. Trivia master shares their screen showing the admin panel
 2. Participants join via the participant page URL
-3. Quiz master adds questions and controls the game flow
+3. Trivia master adds questions and controls the game flow
 4. Real-time answers and scores are displayed
 
 ## Project Structure

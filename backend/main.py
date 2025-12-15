@@ -14,7 +14,7 @@ from datetime import datetime
 import uuid
 from pathlib import Path
 
-from models import SessionLocal, User, Question, Game, Answer
+from models import SessionLocal, User, Question, Game, Answer, switch_database
 
 # --- Word Cloud Embedding/Clustering Imports ---
 import numpy as np
@@ -759,14 +759,66 @@ async def admin_websocket(websocket: WebSocket):
                         await admin_manager.send_personal_message({"type": "question_deleted"}, connection_id)
                 # ---------- Settings ----------
                 elif data["type"] == "save_settings":
-                    # Handle settings sent from admin UI (including WoF tile duration)
+                    # Handle settings sent from admin UI (including database switching)
                     s = data["settings"]
                     global wof_tile_duration
+
+                    # Handle database switching
+                    if "database_file" in s and s["database_file"]:
+                        new_db = s["database_file"]
+                        try:
+                            # End current quiz gracefully if active
+                            if current_game and current_game.status == "active":
+                                await end_quiz(db)
+                                await admin_manager.broadcast({"type": "quiz_ended", "reason": "database_switch"})
+                                await participant_manager.broadcast({"type": "quiz_ended", "reason": "database_switch"})
+
+                            # Switch database
+                            old_db = switch_database(new_db)
+
+                            # Reset global state
+                            global current_game, current_question, current_question_index, total_questions
+                            global question_timer, question_start_time, word_cloud_scored
+                            global wof_revealed_indices, wof_reveal_task, wof_winner
+
+                            current_game = None
+                            current_question = None
+                            current_question_index = 0
+                            total_questions = 0
+                            question_timer = None
+                            question_start_time = None
+                            word_cloud_scored = False
+                            wof_revealed_indices = None
+                            wof_reveal_task = None
+                            wof_winner = None
+
+                            # Reload total questions count
+                            db = SessionLocal()
+                            total_questions = db.query(Question).count()
+                            db.close()
+
+                            print(f"Database switched from {old_db} to {new_db}")
+                            await admin_manager.send_personal_message({
+                                "type": "database_switched",
+                                "new_database": new_db,
+                                "total_questions": total_questions
+                            }, connection_id)
+
+                        except Exception as e:
+                            print(f"Database switch failed: {e}")
+                            await admin_manager.send_personal_message({
+                                "type": "settings_error",
+                                "error": f"Failed to switch database: {str(e)}"
+                            }, connection_id)
+                            continue
+
+                    # Handle other settings
                     if "wof_tile_duration" in s:
                         try:
                             wof_tile_duration = float(s["wof_tile_duration"])
                         except Exception:
                             print("Invalid value for wof_tile_duration, keeping previous.")
+
                     print(f"Settings saved: {data['settings']}, wof_tile_duration now {wof_tile_duration}")
                     await admin_manager.send_personal_message({"type": "settings_saved"}, connection_id)
                 # ---------- Drawing ----------

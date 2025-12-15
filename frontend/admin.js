@@ -93,6 +93,7 @@ class QuizAdmin {
         // Settings
         this.dom.questionTimer = document.getElementById('question-timer');
         this.dom.maxParticipants = document.getElementById('max-participants');
+        this.dom.databaseFile = document.getElementById('database-file');
         this.dom.saveSettingsBtn = document.getElementById('save-settings-btn');
     }
 
@@ -989,6 +990,20 @@ toggleMCQOptions(showMCQ) {
                 this.loadQuestions();
                 break;
 
+            case 'database_switched':
+                this.updateDatabaseInfo(data.new_database, data.total_questions);
+                this.updateStatus(`Database switched to ${data.new_database}`);
+                this.showMessage(`Database switched successfully! ${data.total_questions} questions loaded.`, 'success');
+                // Refresh questions list if on that tab
+                if (this.currentTab === 'question-management') {
+                    this.loadQuestions();
+                }
+                break;
+
+            case 'settings_error':
+                this.showMessage(`Settings error: ${data.error}`, 'error');
+                break;
+
             case 'time_expired':
                 this.setButtonState(this.dom.revealAnswerBtn, false);
                 break;
@@ -1303,6 +1318,7 @@ toggleMCQOptions(showMCQ) {
         const questionTimer = parseInt(this.dom.questionTimer.value);
         const maxParticipants = parseInt(this.dom.maxParticipants.value);
         const wofTileDuration = parseFloat(document.getElementById('wof-tile-duration').value);
+        const databaseFile = this.dom.databaseFile ? this.dom.databaseFile.value : null;
 
         if (questionTimer < 10 || questionTimer > 120) {
             this.showMessage('Question timer must be between 10 and 120 seconds', 'error');
@@ -1319,13 +1335,20 @@ toggleMCQOptions(showMCQ) {
             return;
         }
 
+        const settings = {
+            question_timer: questionTimer,
+            max_participants: maxParticipants,
+            wof_tile_duration: wofTileDuration
+        };
+
+        // Add database file if changed
+        if (databaseFile) {
+            settings.database_file = databaseFile;
+        }
+
         this.sendMessage({
             type: 'save_settings',
-            settings: {
-                question_timer: questionTimer,
-                max_participants: maxParticipants,
-                wof_tile_duration: wofTileDuration
-            }
+            settings: settings
         });
 
         this.showMessage('Settings saved successfully!', 'success');
@@ -1341,6 +1364,19 @@ toggleMCQOptions(showMCQ) {
     showMessage(message, type = 'info') {
         // Simple alert for now, can be enhanced with toast notifications later
         alert(message);
+    }
+
+    updateDatabaseInfo(databaseName, questionCount) {
+        const currentDbElement = document.getElementById('current-db');
+        const questionCountElement = document.getElementById('db-question-count');
+
+        if (currentDbElement) {
+            currentDbElement.textContent = databaseName || 'quiz_game.db';
+        }
+
+        if (questionCountElement) {
+            questionCountElement.textContent = questionCount || '0';
+        }
     }
 
     updateStatus(status) {
