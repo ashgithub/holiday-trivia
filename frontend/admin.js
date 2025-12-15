@@ -1048,11 +1048,20 @@ toggleMCQOptions(showMCQ) {
             this.dom.startCountdownBtn.classList.remove('hidden');
             this.dom.startCountdownBtn.disabled = false;
             this.dom.startCountdownBtn.textContent = 'Start Countdown ⏱️';
-            // Initialize with all underscores
+            // Initialize with word-formatted display (all hidden)
             const boardDiv = wofBoardArea.querySelector('.wof-tiles');
-            if (boardDiv) {
-                const underscores = '_'.repeat(data.question.correct_answer?.length || 0);
-                boardDiv.textContent = underscores;
+            if (boardDiv && data.question.correct_answer) {
+                // Clear existing content
+                boardDiv.innerHTML = '';
+                // Split answer into words and create hidden word elements
+                const words = data.question.correct_answer.split(/\s+/);
+                words.forEach(word => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.className = 'wof-word';
+                    // Create hidden version of the word (all letters become underscores)
+                    wordSpan.textContent = '_'.repeat(word.length);
+                    boardDiv.appendChild(wordSpan);
+                });
             }
         } else {
             wofBoardArea.classList.add('hidden');

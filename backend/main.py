@@ -828,6 +828,9 @@ async def admin_websocket(websocket: WebSocket):
                         timer_duration = int(answer_length * wof_tile_duration)
                         print(f"[WoF] Starting countdown with duration: {timer_duration}s ({answer_length} letters × {wof_tile_duration}s)")
 
+                        # Send initial display update to show word-formatted board immediately
+                        await broadcast_wof_state(current_question.correct_answer or "")
+
                         # Start the reveal engine
                         wof_reveal_task = asyncio.create_task(wof_phrase_reveal_engine(current_question.correct_answer or ""))
 
