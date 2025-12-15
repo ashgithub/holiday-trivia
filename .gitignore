@@ -63,3 +63,5 @@ Thumbs.db
 # Temp
 tmp/
 temp/
+# documentation
+.doc
