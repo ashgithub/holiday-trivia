@@ -338,7 +338,7 @@ class QuizParticipant {
         // Display question text based on type
         if (question.type === 'wheel_of_fortune') {
             document.getElementById('question-content').innerHTML =
-                `Guess the phrase: <span class="wof-category">${this.escapeHtml(question.content)}</span>`;
+                `<span class="wof-category">${this.escapeHtml(question.content)}</span>`;
         } else {
             document.getElementById('question-content').textContent = question.content;
         }

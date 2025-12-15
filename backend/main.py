@@ -942,19 +942,34 @@ async def next_question(db):
 async def wof_phrase_reveal_engine(phrase):
     """
     This async task is started when a WoF round begins,
-    revealing letters at intervals and notifying clients of current state.
+    revealing letters randomly and notifying clients of current state.
     """
     global wof_revealed_indices, wof_winner
+    import random
 
     try:
         if wof_revealed_indices is None:
             return
         while not wof_winner and not all(wof_revealed_indices):
-            # Reveal the next unrevealed letter in L->R order
-            for idx, flag in enumerate(wof_revealed_indices):
-                if not flag:
+            # Find all indices that are still hidden (not revealed and are letters)
+            hidden_indices = []
+            for idx, revealed in enumerate(wof_revealed_indices):
+                if not revealed and phrase[idx].isalpha():
+                    hidden_indices.append(idx)
+
+            if not hidden_indices:
+                # No more letters to reveal
+                await broadcast_wof_state(phrase, finished=True)
+                break
+
+            # Randomly select one hidden index
+            selected_idx = random.choice(hidden_indices)
+            selected_letter = phrase[selected_idx].upper()
+
+            # Reveal ALL instances of this letter in the phrase
+            for idx, char in enumerate(phrase):
+                if char.upper() == selected_letter:
                     wof_revealed_indices[idx] = True
-                    break
 
             await broadcast_wof_state(phrase)
             # If puzzle is now complete with no winner, broadcast solution/end
@@ -968,16 +983,33 @@ async def wof_phrase_reveal_engine(phrase):
 
 async def broadcast_wof_state(phrase, finished=False, winner=None):
     """
-    Broadcasts masked phrase board, revealed indices, and winner to admin only.
+    Broadcasts masked phrase words with borders, revealed indices, and winner to admin only.
     Participants see the board via screen share.
     """
-    board = ""
+    words = []
     if wof_revealed_indices is not None:
-        board = "".join(c if revealed or not c.isalnum() else "_" for c, revealed in zip(phrase, wof_revealed_indices))
+        # Split phrase into words by spaces
+        phrase_words = phrase.split()
+        idx = 0
+        for word in phrase_words:
+            word_display = ""
+            for char in word:
+                if wof_revealed_indices[idx]:
+                    word_display += char
+                elif char.isalpha():
+                    word_display += "_"
+                else:
+                    word_display += char
+                idx += 1
+            # Skip the space character after each word (except last)
+            if idx < len(phrase) and phrase[idx] == ' ':
+                idx += 1
+            words.append(word_display)
+
     # Only send to admin - participants see via screen share
     await admin_manager.broadcast({
         "type": "wof_update",
-        "board": board,
+        "words": words,
         "revealed_indices": wof_revealed_indices,
         "winner": winner,
         "finished": finished

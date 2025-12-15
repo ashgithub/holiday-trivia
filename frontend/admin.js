@@ -1008,7 +1008,7 @@ toggleMCQOptions(showMCQ) {
 
         // Display question text based on type
         if (data.question.type === 'wheel_of_fortune') {
-            this.dom.questionText.innerHTML = `Guess the phrase: <span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
+            this.dom.questionText.innerHTML = `<span class="wof-category">${this.escapeHtml(data.question.content)}</span>`;
         } else {
             this.dom.questionText.textContent = data.question.content;
         }
@@ -1063,10 +1063,18 @@ toggleMCQOptions(showMCQ) {
     }
 
     handleWofUpdate(data) {
-        // Update the board content (visibility handled by handleQuestionPushed)
+        // Update the board content with word-separated display (visibility handled by handleQuestionPushed)
         const boardDiv = document.querySelector('.wof-tiles');
-        if (boardDiv) {
-            boardDiv.textContent = data.board;
+        if (boardDiv && data.words) {
+            // Clear existing content
+            boardDiv.innerHTML = '';
+            // Create word elements with borders
+            data.words.forEach(word => {
+                const wordSpan = document.createElement('span');
+                wordSpan.className = 'wof-word';
+                wordSpan.textContent = word;
+                boardDiv.appendChild(wordSpan);
+            });
         }
         this.updateStatus(data.winner ? `Winner: ${data.winner}` : "Wheel of Fortune running...");
     }
