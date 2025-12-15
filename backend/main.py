@@ -861,10 +861,10 @@ async def admin_websocket(websocket: WebSocket):
                 # ---------- Start WoF Countdown ----------
                 elif data["type"] == "start_wof_countdown":
                     if current_question and current_question.type == "wheel_of_fortune":
-                        # Calculate timer duration: len(answer) * tile_duration
-                        answer_length = len(current_question.correct_answer or "")
-                        timer_duration = int(answer_length * wof_tile_duration)
-                        print(f"[WoF] Starting countdown with duration: {timer_duration}s ({answer_length} letters × {wof_tile_duration}s)")
+                        phrase = current_question.correct_answer or ""
+                        unique_letters = len(set(c.upper() for c in phrase if c.isalpha()))
+                        timer_duration = int(unique_letters * wof_tile_duration)
+                        print(f"[WoF] Starting countdown with duration: {timer_duration}s ({unique_letters} unique letters × {wof_tile_duration}s)")
 
                         # Send initial display update to show word-formatted board immediately
                         await broadcast_wof_state(current_question.correct_answer or "")
