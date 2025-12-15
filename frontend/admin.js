@@ -957,14 +957,17 @@ toggleMCQOptions(showMCQ) {
 
         const correctCount = answers.filter(a => a.correct).length;
 
-        this.dom.answerCounter.textContent = 
-            `${totalAnswered}/${participantCount} answered (${correctCount} correct)`;
+        this.dom.answerCounter.textContent =
+            `${totalAnswered}/${participantCount} answered (${correctCount} correct) - showing top 10`;
 
         answers.sort((a, b) => (b.score || 0) - (a.score || 0));
 
+        // Limit to top 10 answers for display
+        const topAnswers = answers.slice(0, 10);
+
         if (allUnknown) {
             // Word cloud: show only participant name and their submission
-            answers.forEach((answer, index) => {
+            topAnswers.forEach((answer, index) => {
                 this.addTableRow(this.dom.answersTbody, [
                     `#${index + 1}`,
                     answer.user,
@@ -977,7 +980,7 @@ toggleMCQOptions(showMCQ) {
             });
         } else {
             // Default: old logic, show ✓/✗ etc
-            answers.forEach((answer, index) => {
+            topAnswers.forEach((answer, index) => {
                 this.addTableRow(this.dom.answersTbody, [
                     `#${index + 1}`,
                     answer.user,

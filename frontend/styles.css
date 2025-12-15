@@ -877,21 +877,31 @@ canvas {
   text-align: center;
 }
 
+/* Central Display for WoF Board */
+.central-display {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30px 0;
+  min-height: 200px;
+}
+
 /* Wheel of Fortune Board */
 .wof-board {
   background: #DC143C;
-  border: 4px solid #FFD700;
-  border-radius: 12px;
-  padding: 20px;
-  margin: 20px 0;
+  border: 6px solid #FFD700;
+  border-radius: 16px;
+  padding: 30px;
   text-align: center;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+  box-shadow: 0 6px 30px rgba(0,0,0,0.4);
   animation: wof-glow 2s ease-in-out infinite alternate;
+  max-width: 800px;
+  width: 100%;
 }
 
 @keyframes wof-glow {
-  from { box-shadow: 0 4px 20px rgba(0,0,0,0.3); }
-  to { box-shadow: 0 4px 30px rgba(255,215,0,0.5); }
+  from { box-shadow: 0 6px 30px rgba(0,0,0,0.4); }
+  to { box-shadow: 0 6px 40px rgba(255,215,0,0.6); }
 }
 
 .wof-status {
@@ -904,19 +914,21 @@ canvas {
 
 .wof-tiles {
   font-family: 'Courier New', monospace;
-  font-size: 2.5rem;
+  font-size: 3.5rem;
   font-weight: bold;
   color: #FFFFFF;
-  letter-spacing: 0.2em;
+  letter-spacing: 0.3em;
   text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
   background: rgba(0,0,0,0.3);
-  padding: 15px;
-  border-radius: 8px;
-  min-height: 60px;
+  padding: 25px;
+  border-radius: 12px;
+  min-height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #FFD700;
+  border: 3px solid #FFD700;
+  word-break: break-all;
+  line-height: 1.2;
 }
 
 .wof-winner-msg {

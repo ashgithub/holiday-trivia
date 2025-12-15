@@ -54,18 +54,27 @@
                     <button id="end-quiz-btn" class="btn btn-danger" disabled>End Quiz</button>
                 </div>
 
+                <!-- Prominent Display Area for WoF and Drawing -->
+                <div id="wof-board-area" class="hidden central-display">
+                    <div id="wof-board" class="wof-board">
+                        <div class="wof-tiles"></div>
+                    </div>
+                </div>
+
+                <!-- Drawing Canvas for Quiz Master -->
+                <div id="drawing-area" class="hidden">
+                    <canvas id="admin-draw-canvas" width="800" height="600"></canvas>
+                    <div class="drawing-tools">
+                        <button id="clear-canvas" class="btn btn-secondary">Clear</button>
+                        <button id="finish-drawing" class="btn btn-primary">Hide Drawing</button>
+                    </div>
+                </div>
+
                 <div class="quiz-control-content">
                     <div id="current-question-display" class="control-section">
                         <h3>Current Question</h3>
                         <div id="admin-question-progress" class="question-progress">Ready to start quiz</div>
                         <div id="question-text">No question active</div>
-
-                        <!-- WoF Board Area (shown only for WoF questions) -->
-                        <div id="wof-board-area" class="hidden">
-                            <div id="wof-board" class="wof-board">
-                                <div class="wof-tiles"></div>
-                            </div>
-                        </div>
 
                         <div id="admin-timer" class="admin-timer">
                             <span>Time remaining: <span id="admin-time-remaining"></span></span>
@@ -178,14 +187,7 @@
                 </div>
             </div>
 
-            <!-- Drawing Canvas for Quiz Master -->
-            <div id="drawing-area" class="hidden">
-                <canvas id="admin-draw-canvas" width="800" height="600"></canvas>
-                <div class="drawing-tools">
-                    <button id="clear-canvas" class="btn btn-secondary">Clear</button>
-                    <button id="finish-drawing" class="btn btn-primary">Hide Drawing</button>
-                </div>
-            </div>
+
         </main>
     </div>
 
