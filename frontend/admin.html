@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <base href="{{ root_path or '/' }}">
+    <base href="{{ (root_path or '/') if (root_path or '/').endswith('/') else (root_path or '/') + '/' }}">
     <title>All-Hands Holiday Trivia - Admin</title>
     <link rel="stylesheet" href="assets/styles.css?v=20241211">
 </head>
