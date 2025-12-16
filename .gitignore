@@ -22,9 +22,6 @@ pip-delete-this-directory.txt
 # uv / Poetry
 uv.lock
 
-# SQLite database
-backend/quiz_game.db
-*.db
 
 # Logs
 *.log
