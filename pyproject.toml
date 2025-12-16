@@ -3,6 +3,9 @@ name = "all-hands-quiz"
 version = "0.1.0"
 description = "All-Hands Quiz Game with real-time multiplayer support"
 requires-python = ">=3.9"
+dependencies = [
+    "pytest>=8.4.2",
+]
 
 [tool.uv.workspace]
 members = ["backend"]

@@ -16,6 +16,8 @@ from pathlib import Path
 
 from models import SessionLocal, User, Question, Game, Answer, switch_database, SQLALCHEMY_DATABASE_URL
 
+from collections import Counter, defaultdict
+
 # --- Word Cloud Embedding/Clustering Imports ---
 import numpy as np
 import torch
@@ -24,12 +26,50 @@ from sentence_transformers import SentenceTransformer, util
 # Load the embedding model globally (MiniLM is fast and small)
 WORD_CLOUD_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
 
-def cluster_word_cloud_answers(answers, similarity_threshold=0.75):
+def compute_numeric_score(correct_str: str, user_str: str, max_score: int = 30) -> int:
+    """Compute score for numeric fill_in_the_blank based on closeness."""
+    try:
+        correct_num = float(correct_str.strip())
+        try:
+            user_num = float(user_str.strip())
+        except ValueError:
+            return 0  # Non-numeric gets 0
+
+        diff = abs(user_num - correct_num)
+        # Dynamic factor: 1% tolerance for scaling (e.g., for 150, diff=1.5 -> full, diff=15 -> 0)
+        tolerance = correct_num * 0.01 if correct_num > 0 else 1.0
+        if diff == 0:
+            return max_score
+        elif diff <= tolerance:
+            return max_score  # Within tolerance: full
+        else:
+            # Linear decay: score = max_score * (1 - (diff / (5 * tolerance)))
+            decay_factor = diff / (5 * tolerance)  # 5x tolerance for full decay
+            score = max(0, int(max_score * (1 - decay_factor)))
+            return score
+    except ValueError:
+        return 0
+
+def compute_semantic_score(correct_str: str, user_str: str, max_score: int = 30, threshold: float = 0.7) -> tuple[int, float]:
+    """Compute semantic similarity score for pictionary using cosine sim."""
+    if not user_str.strip() or not correct_str.strip():
+        return 0, 0.0
+
+    try:
+        emb1 = WORD_CLOUD_MODEL.encode([user_str.strip()])
+        emb2 = WORD_CLOUD_MODEL.encode([correct_str.strip()])
+        sim = util.pytorch_cos_sim(emb1, emb2).item()
+        score = int(max_score * sim) if sim >= threshold else 0
+        return score, sim
+    except Exception:
+        return 0, 0.0
+
+def cluster_word_cloud_answers(answers, similarity_threshold=0.7):
     """
-    Groups similar word cloud answers using sentence-transformers.
+    Groups similar word cloud answers using sentence-transformers with Counter for rep.
     Args:
         answers: List of (user_id, answer_string)
-        similarity_threshold: Cosine similarity threshold for grouping
+        similarity_threshold: Cosine similarity threshold for grouping (lowered to 0.7)
     Returns:
         cluster_map: dict {cluster_id: {"users": [user_id,...], "answers": [str], "rep": str}}
         answer_to_cluster: dict {user_id: cluster_id}
@@ -62,8 +102,9 @@ def cluster_word_cloud_answers(answers, similarity_threshold=0.75):
     for idx, cluster in enumerate(clusters):
         cluster_user_ids = [user_ids[i] for i in cluster]
         cluster_answers = [answer_texts[i] for i in cluster]
-        # Cluster representative: the most common answer, or first answer
-        rep = max(set(cluster_answers), key=cluster_answers.count)
+        # Better rep with Counter
+        rep_counter = Counter(cluster_answers)
+        rep = rep_counter.most_common(1)[0][0]
         cluster_map[idx] = {"users": cluster_user_ids, "answers": cluster_answers, "rep": rep}
         for user_id in cluster_user_ids:
             answer_to_cluster[user_id] = idx
@@ -258,6 +299,13 @@ async def import_questions_api(request: dict):
                 db.commit()
                 dropped = existing_count
 
+        def calculate_question_hash(question_data):
+            """Calculate hash for deduplication"""
+            hash_content = f"{question_data['type']}|{question_data['content']}|{question_data['correct_answer']}"
+            if question_data.get("answers"):
+                hash_content += f"|{'|'.join(sorted(question_data['answers']))}"
+            return hashlib.sha256(hash_content.encode('utf-8')).hexdigest()
+
         # Get existing questions for duplicate checking (only if not dropping all)
         existing_hashes = {}
         if not drop_existing and (skip_duplicates or update_existing):
@@ -270,13 +318,6 @@ async def import_questions_api(request: dict):
                     "answers": json.loads(eq.answers) if eq.answers else None
                 }
                 existing_hashes[calculate_question_hash(hash_data)] = eq
-
-        def calculate_question_hash(question_data):
-            """Calculate hash for deduplication"""
-            hash_content = f"{question_data['type']}|{question_data['content']}|{question_data['correct_answer']}"
-            if question_data.get("answers"):
-                hash_content += f"|{'|'.join(sorted(question_data['answers']))}"
-            return hashlib.sha256(hash_content.encode('utf-8')).hexdigest()
 
         for question_data in import_data:
             # Basic validation
@@ -1177,7 +1218,7 @@ async def get_current_answers(db):
 
 async def get_cumulative_scores(db):
     """Get cumulative scores for all users in the current game"""
-    if not current_game or not getattr(current_game, "id", None):
+    if not current_game or current_game.id is None:
         return []
 
     # Get all answers for the current game
