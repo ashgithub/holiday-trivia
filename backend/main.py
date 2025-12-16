@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
 from fastapi import WebSocket, WebSocketDisconnect
 import uvicorn
 import os
@@ -281,6 +283,9 @@ app.add_middleware(
 frontend_dir = Path(__file__).parent.parent / "frontend"
 app.mount("/assets", StaticFiles(directory=str(frontend_dir)), name="assets")
 
+# Set up Jinja2 templates
+templates = Jinja2Templates(directory=str(frontend_dir))
+
 # API routes under /api/
 @app.get("/api/")
 async def root():
@@ -472,14 +477,20 @@ async def list_databases():
 
 # Serve HTML pages at root level
 @app.get("/")
-async def participant_page():
+async def participant_page(request: Request):
     """Serve participant page"""
-    return FileResponse("frontend/index.html")
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request, "root_path": request.app.root_path}
+    )
 
 @app.get("/admin")
-async def admin_page():
+async def admin_page(request: Request):
     """Serve admin page"""
-    return FileResponse("frontend/admin.html")
+    return templates.TemplateResponse(
+        "admin.html",
+        {"request": request, "root_path": request.app.root_path}
+    )
 
 # WebSocket endpoints
 # --- Word cloud scoring tracking ---
