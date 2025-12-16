@@ -479,17 +479,23 @@ async def list_databases():
 @app.get("/")
 async def participant_page(request: Request):
     """Serve participant page"""
+    scope_root_path = request.scope.get("root_path", "")
+    app_root_path = request.app.root_path
+    print(f"[DEBUG] Participant page - scope root_path: '{scope_root_path}', app root_path: '{app_root_path}'")
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "root_path": request.app.root_path}
+        {"request": request, "root_path": scope_root_path}
     )
 
 @app.get("/admin")
 async def admin_page(request: Request):
     """Serve admin page"""
+    scope_root_path = request.scope.get("root_path", "")
+    app_root_path = request.app.root_path
+    print(f"[DEBUG] Admin page - scope root_path: '{scope_root_path}', app root_path: '{app_root_path}'")
     return templates.TemplateResponse(
         "admin.html",
-        {"request": request, "root_path": request.app.root_path}
+        {"request": request, "root_path": scope_root_path}
     )
 
 # WebSocket endpoints
