@@ -1,0 +1,12 @@
+# Quiz Game Settings
+# This file persists across server restarts
+
+# Wheel of Fortune settings
+wof_tile_duration: 4.0  # seconds per tile reveal
+
+# General quiz settings
+question_timer_default: 30  # default question timer in seconds
+max_participants: 150  # maximum number of participants allowed
+
+# Scoring settings
+semantic_similarity_threshold: 0.7  # threshold for semantic similarity matching

@@ -281,6 +281,13 @@ header h1 {
     border: 2px solid var(--christmas-green);
     border-radius: 8px;
     font-size: 1rem;
+    background: var(--snow-white);
+}
+
+#text-answer.interim-speech {
+    font-style: italic;
+    color: #888;
+    border-color: #ccc;
 }
 
 #multiple-choice-options {
@@ -292,12 +299,14 @@ header h1 {
 
 .choice-btn {
     padding: 15px;
-    background: var(--bg-light);
+    background: var(--christmas-red);
     border: 2px solid var(--christmas-green);
     border-radius: 8px;
     font-size: 1.1rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    color: var(--snow-white);
+    font-weight: bold;
 }
 
 .choice-btn:hover {

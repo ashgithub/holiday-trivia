@@ -15,23 +15,20 @@
 - **Persistent Storage**: Questions and historical data stored in database (SQLite for simplicity)
 - **Caching**: Frequently accessed data (current question, leaderboard) cached for performance
 
-### Strict Question Type Pattern
-- **Canonical literal question.type convention**: All logic (frontend and backend) relies on the database value as the sole source of truth for each question type string (`pictionary`, `multiple_choice`, `fill_in_the_blank`, `word_cloud`, `wheel_of_fortune`, etc).
-- **No normalization, mapping, or aliasing:** All UI, API, and backend logic (including drawing canvas, MCQ behavior, word cloud, etc) uses direct equality checking on the literal type (e.g. `if (type === 'pictionary') ...`).
-- **Benefits:** Removes confusion, simplifies debugging, maintains a single source of truth for type handling.
+## Question Type Patterns
+All logic uses literal DB `type` values (`pictionary`, `multiple_choice`, `fill_in_the_blank`, `word_cloud`, `wheel_of_fortune`) without normalization or mapping.
 
-### Similarity Scoring & Clustering Pattern (Word Cloud)
+1. **fill_in_the_blank**: Multiple attempts, time-based scoring, voice/text input
+2. **multiple_choice**: Single selection, time-based scoring, checkbox input
+3. **wheel_of_fortune**: Live tile reveal (2s default), full-phrase guessing, time-based scoring
+4. **word_cloud**: Semantic clustering (sentence-transformers), popularity scoring, no correct answer
+5. **pictionary**: Drawing canvas, fuzzy similarity matching, time-based scoring
 
-- **Goal:** For word cloud questions, automatically group similar answers using semantic embeddings without any admin intervention.
-- **How it works:**
-  - All free-text responses for a word cloud question are embedded into vectors using sentence-transformers (MiniLM or similar).
-  - Answers are clustered or grouped based on cosine similarity (e.g., thresholded or via DBSCAN).
-  - Each cluster “represents” a collective answer; its frequency/popularity is the count of members.
-  - Scoring: Each participant receives points proportional to the size of their cluster (Score = 30 × participation ratio).
-  - No correct answer is defined in the question; all logic is based on grouping.
-  - Admin UI displays the cloud (words sized by cluster size), participant UI confirms score and popularity.
-  - Library: sentence-transformers (pip install sentence-transformers), runs locally, fast.
-- **Pattern fit:** Cleanly plugs into event-driven submission and update flow. No changes needed in persistent schema beyond allowing “blank answer” for word cloud questions.
+## Similarity Scoring & Clustering Pattern
+- **Word Cloud**: Semantic clustering using sentence-transformers (MiniLM), cosine similarity thresholds, scoring proportional to cluster size
+- **Pictionary**: Fuzzy matching for drawing guesses (cosine threshold 0.7)
+- **Library**: sentence-transformers (CPU-only, local inference)
+
 ## UI Patterns
 - **Role-Based Interfaces**: Different screens for quiz master vs participants
 - **Real-Time Updates**: Automatic UI refreshes without user interaction

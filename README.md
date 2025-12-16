@@ -13,6 +13,7 @@ An interactive real-time holiday trivia game for Zoom all-hands meetings with up
 - **Advanced Admin Panel**: Password-protected quiz master controls with question management
 - **Question Library**: Categorized question management with summary statistics
 - **Load Testing**: Comprehensive 150-user performance testing infrastructure
+- **Smart Scoring**: Similarity-based scoring for fill-in-the-blanks (numeric closeness) and pictionary (semantic matching)
 - **Real-time Analytics**: Live participant tracking and answer statistics
 - **Robust Error Handling**: Debug logging and graceful failure recovery
 

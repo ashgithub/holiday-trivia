@@ -13,6 +13,8 @@ from typing import Dict, List, Optional
 from datetime import datetime
 import uuid
 from pathlib import Path
+import argparse
+import yaml
 
 from models import SessionLocal, User, Question, Game, Answer, switch_database, SQLALCHEMY_DATABASE_URL
 
@@ -22,18 +24,47 @@ from collections import Counter, defaultdict
 import numpy as np
 import torch
 from sentence_transformers import SentenceTransformer, util
+from word2number import w2n
 
 # Load the embedding model globally (MiniLM is fast and small)
 WORD_CLOUD_MODEL = SentenceTransformer('all-MiniLM-L6-v2')
 
+# Settings management
+SETTINGS_FILE = Path(__file__).parent / "settings.yaml"
+
+def load_settings():
+    """Load settings from YAML file"""
+    try:
+        if SETTINGS_FILE.exists():
+            with open(SETTINGS_FILE, 'r') as f:
+                return yaml.safe_load(f) or {}
+        return {}
+    except Exception as e:
+        print(f"Error loading settings: {e}")
+        return {}
+
+def save_settings(settings):
+    """Save settings to YAML file"""
+    try:
+        with open(SETTINGS_FILE, 'w') as f:
+            yaml.dump(settings, f, default_flow_style=False)
+        print("Settings saved to", SETTINGS_FILE)
+    except Exception as e:
+        print(f"Error saving settings: {e}")
+
+# Load initial settings
+SETTINGS = load_settings()
+
 def compute_numeric_score(correct_str: str, user_str: str, max_score: int = 30) -> int:
     """Compute score for numeric fill_in_the_blank based on closeness."""
     try:
-        correct_num = float(correct_str.strip())
-        try:
-            user_num = float(user_str.strip())
-        except ValueError:
-            return 0  # Non-numeric gets 0
+        correct_num = extract_number_from_text(correct_str)
+        if correct_num is None:
+            return 0
+
+        user_num = extract_number_from_text(user_str)
+        if user_num is None:
+            return 0  # Couldn't extract a number from user input
 
         diff = abs(user_num - correct_num)
         # Dynamic factor: 1% tolerance for scaling (e.g., for 150, diff=1.5 -> full, diff=15 -> 0)
@@ -47,8 +78,36 @@ def compute_numeric_score(correct_str: str, user_str: str, max_score: int = 30) 
             decay_factor = diff / (5 * tolerance)  # 5x tolerance for full decay
             score = max(0, int(max_score * (1 - decay_factor)))
             return score
-    except ValueError:
+    except Exception:
         return 0
+
+def extract_number_from_text(text: str) -> float:
+    """Extract numerical value from text containing written numbers or digits."""
+    if not text or not text.strip():
+        return None
+
+    text = text.strip().lower()
+
+    # First try direct float conversion (for "1500", "75.5", etc.)
+    try:
+        return float(text)
+    except ValueError:
+        pass
+
+    # Try word-to-number conversion
+    try:
+        # Handle phrases like "eight days" -> extract "eight"
+        words = text.split()
+        for word in words:
+            try:
+                return float(w2n.word_to_num(word))
+            except ValueError:
+                continue
+
+        # Try the whole phrase
+        return float(w2n.word_to_num(text))
+    except:
+        return None
 
 def compute_semantic_score(correct_str: str, user_str: str, max_score: int = 30, threshold: float = 0.7) -> tuple[int, float]:
     """Compute semantic similarity score for pictionary using cosine sim."""
@@ -175,7 +234,7 @@ question_start_time: Optional[float] = None  # Timestamp when current question w
 wof_revealed_indices: Optional[List[bool]] = None  # Indices in current phrase that are revealed (now List[bool])
 wof_reveal_task: Optional[asyncio.Task] = None   # Background tile reveal task
 wof_winner: Optional[str] = None                 # Winning participant name
-wof_tile_duration: float = 2.0                   # seconds per tile (could be set via admin/settings)
+wof_tile_duration: float = SETTINGS.get('wof_tile_duration', 2.0)  # seconds per tile (loaded from settings)
 
 async def cleanup_database():
     """Clean up users and answers tables at startup for fresh sessions"""
@@ -580,11 +639,32 @@ async def participant_websocket(websocket: WebSocket):
 
                     # CUSTOM: For word_cloud, always accept and ignore is_correct/scoring at this stage
                     if current_question and data["question_id"] == current_question.id and not is_word_cloud:
-                        is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
-                        if is_correct and question_start_time is not None:
-                            elapsed_time = asyncio.get_event_loop().time() - question_start_time
-                            seconds_remaining = max(0, 30 - elapsed_time)
-                            score = int(seconds_remaining)  # Convert to integer seconds
+                        if current_question.type == "fill_in_the_blank":
+                            # Use numerical scoring for fill_in_the_blank
+                            score = compute_numeric_score(
+                                current_question.correct_answer or "",
+                                data["answer"] or ""
+                            )
+                            is_correct = score > 0
+                            print(f"[NUMERIC DEBUG] fill_in_the_blank scoring: user='{data['answer']}', correct='{current_question.correct_answer}', score={score}, is_correct={is_correct}")
+                        elif current_question.type == "pictionary":
+                            # Use semantic similarity for pictionary questions
+                            score, similarity = compute_semantic_score(
+                                current_question.correct_answer or "",
+                                data["answer"] or ""
+                            )
+                            is_correct = score > 0  # Any score above 0 means it passed the similarity threshold
+                            print(f"[SEMANTIC DEBUG] pictionary scoring: user='{data['answer']}', correct='{current_question.correct_answer}', similarity={similarity:.3f}, score={score}, is_correct={is_correct}")
+                        else:
+                            # Use exact matching for other question types (like wheel_of_fortune full phrase)
+                            is_correct = (data["answer"].strip().lower() == current_question.correct_answer.strip().lower())
+                            if is_correct and question_start_time is not None:
+                                elapsed_time = asyncio.get_event_loop().time() - question_start_time
+                                seconds_remaining = max(0, 30 - elapsed_time)
+                                score = int(seconds_remaining)  # Convert to integer seconds
+                            else:
+                                score = 0
+                            print(f"[EXACT DEBUG] {current_question.type} scoring: user='{data['answer']}', correct='{current_question.correct_answer}', is_correct={is_correct}, score={score}")
 
                     if existing and (not existing.is_correct or is_word_cloud):
                         # Update existing answer
@@ -886,12 +966,22 @@ async def admin_websocket(websocket: WebSocket):
                             }, connection_id)
                             continue
 
-                    # Handle other settings
+                    # Handle other settings and persist to YAML
+                    settings_changed = False
                     if "wof_tile_duration" in s:
                         try:
-                            wof_tile_duration = float(s["wof_tile_duration"])
+                            new_duration = float(s["wof_tile_duration"])
+                            if new_duration != wof_tile_duration:
+                                wof_tile_duration = new_duration
+                                SETTINGS['wof_tile_duration'] = new_duration
+                                settings_changed = True
                         except Exception:
                             pass  # Keep previous value on invalid input
+
+                    # Save settings to YAML if anything changed
+                    if settings_changed:
+                        save_settings(SETTINGS)
+                        print(f"Settings updated and saved: wof_tile_duration={wof_tile_duration}")
 
                     await admin_manager.send_personal_message({"type": "settings_saved"}, connection_id)
                 # ---------- Drawing ----------
@@ -1117,8 +1207,9 @@ async def start_question_timer():
 
     async def timer_task():
         global word_cloud_scored
-        time_left = 30
-        # Send initial timer state (30 seconds)
+        # Use 60 seconds for pictionary, 30 seconds for other questions
+        time_left = 60 if current_question and current_question.type == "pictionary" else 30
+        # Send initial timer state
         await participant_manager.broadcast({
             "type": "timer_update",
             "time_left": time_left
@@ -1128,7 +1219,7 @@ async def start_question_timer():
             "time_left": time_left
         })
 
-        # Count down from 29 to 0
+        # Count down
         while time_left > 0:
             await asyncio.sleep(1)
             time_left -= 1
@@ -1350,4 +1441,22 @@ async def send_admin_status_updates():
         await asyncio.sleep(2)  # Update every 2 seconds
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    parser = argparse.ArgumentParser(description="All-Hands Quiz Game Server")
+    parser.add_argument("--host", default="0.0.0.0", help="Host to bind server to")
+    parser.add_argument("--port", type=int, default=8000, help="Port to bind server to")
+    parser.add_argument("--root-path", default="", help="Root path for reverse proxy (e.g., /all-hands)")
+    parser.add_argument("--reload", action="store_true", help="Enable auto-reload for development")
+
+    args = parser.parse_args()
+
+    # Set root path for FastAPI if specified
+    if args.root_path:
+        app.root_path = args.root_path
+
+    uvicorn.run(
+        "main:app",
+        host=args.host,
+        port=args.port,
+        reload=args.reload,
+        root_path=args.root_path
+    )

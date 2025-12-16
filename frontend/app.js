@@ -7,6 +7,7 @@ class QuizParticipant {
         this.timeLeft = 30;
         this.recognition = null;
         this.isListening = false;
+        this.isProcessing = false;
         this.participantName = null;
         this.hasSubmitted = false; // Track if participant has submitted answer
 
@@ -111,60 +112,143 @@ class QuizParticipant {
 
         // Voice button
         document.getElementById('voice-btn').addEventListener('click', () => {
-            this.toggleVoiceRecognition();
+            this.toggleVoiceRecognition('text-answer');
         });
+
+
     }
 
     setupVoiceRecognition() {
+        console.log('[VOICE DEBUG] Checking for speech recognition API...');
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            console.log('[VOICE DEBUG] Speech recognition API found');
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             this.recognition = new SpeechRecognition();
             this.recognition.continuous = false;
-            this.recognition.interimResults = false;
+            this.recognition.interimResults = true;
             this.recognition.lang = 'en-US';
 
+            this.recognition.onstart = () => {
+                console.log('[VOICE DEBUG] Speech recognition started');
+                this.isListening = true;
+                this.isProcessing = false;
+                this.updateVoiceButton(this.currentVoiceButton);
+            };
+
             this.recognition.onresult = (event) => {
-                const transcript = event.results[0][0].transcript;
-                document.getElementById('text-answer').value = transcript;
-                this.isListening = false;
-                this.updateVoiceButton();
+                console.log('[VOICE DEBUG] Speech recognition result received, processing...');
+
+                let finalTranscript = '';
+                let interimTranscript = '';
+
+                // Process all results - some may be interim, some final
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const result = event.results[i];
+                    const transcript = result[0].transcript;
+
+                    if (result.isFinal) {
+                        finalTranscript += transcript;
+                        console.log('[VOICE DEBUG] Final result:', transcript);
+                    } else {
+                        interimTranscript += transcript;
+                        console.log('[VOICE DEBUG] Interim result:', transcript);
+                    }
+                }
+
+                const targetInput = document.getElementById(this.currentVoiceInput);
+                if (targetInput) {
+                    // Show interim results with special styling, final results normally
+                    if (interimTranscript && !finalTranscript) {
+                        // Still getting interim results
+                        targetInput.value = interimTranscript;
+                        targetInput.classList.add('interim-speech');
+                        this.isListening = true; // Keep listening state for interim
+                        this.isProcessing = false;
+                    } else if (finalTranscript) {
+                        // Final result received
+                        targetInput.value = finalTranscript;
+                        targetInput.classList.remove('interim-speech');
+                        this.isListening = false;
+                        this.isProcessing = true;
+                        this.updateVoiceButton(this.currentVoiceButton);
+
+                        // Small delay to show processing state before returning to idle
+                        setTimeout(() => {
+                            this.isProcessing = false;
+                            this.updateVoiceButton(this.currentVoiceButton);
+                        }, 500);
+                    }
+                } else {
+                    console.error('[VOICE DEBUG] Target input field not found:', this.currentVoiceInput);
+                }
             };
 
             this.recognition.onend = () => {
+                console.log('[VOICE DEBUG] Speech recognition ended');
                 this.isListening = false;
-                this.updateVoiceButton();
+                if (!this.isProcessing) {
+                    this.updateVoiceButton(this.currentVoiceButton);
+                }
             };
 
             this.recognition.onerror = (error) => {
-                console.error('Speech recognition error:', error);
+                console.error('[VOICE DEBUG] Speech recognition error:', error);
                 this.isListening = false;
-                this.updateVoiceButton();
+                this.isProcessing = false;
+                this.updateVoiceButton(this.currentVoiceButton);
+                this.showVoiceError(error);
             };
+
+            console.log('[VOICE DEBUG] Speech recognition initialized successfully');
         } else {
+            console.warn('[VOICE DEBUG] Speech recognition API not available, hiding voice button');
             document.getElementById('voice-btn').style.display = 'none';
         }
     }
 
-    toggleVoiceRecognition() {
-        if (!this.recognition) return;
+    toggleVoiceRecognition(targetInputId) {
+        console.log('[VOICE DEBUG] Voice button clicked for', targetInputId, 'recognition available:', !!this.recognition, 'isListening:', this.isListening);
+        if (!this.recognition) {
+            console.error('[VOICE DEBUG] Speech recognition not available');
+            return;
+        }
+
+        // Store which input field to update and which button to style
+        this.currentVoiceInput = targetInputId;
+        this.currentVoiceButton = 'voice-btn';
 
         if (this.isListening) {
+            console.log('[VOICE DEBUG] Stopping speech recognition');
             this.recognition.stop();
         } else {
-            this.recognition.start();
-            this.isListening = true;
-            this.updateVoiceButton();
+            console.log('[VOICE DEBUG] Starting speech recognition');
+            try {
+                this.recognition.start();
+                this.isListening = true;
+                this.updateVoiceButton(this.currentVoiceButton);
+            } catch (error) {
+                console.error('[VOICE DEBUG] Failed to start speech recognition:', error);
+                this.showVoiceError(error);
+            }
         }
     }
 
-    updateVoiceButton() {
-        const btn = document.getElementById('voice-btn');
-        if (this.isListening) {
-            btn.textContent = '🎤 Listening...';
-            btn.classList.add('listening');
-        } else {
-            btn.textContent = '🎤 Voice';
-            btn.classList.remove('listening');
+    updateVoiceButton(targetButtonId) {
+        const btn = document.getElementById(targetButtonId || 'voice-btn');
+        if (btn) {
+            // Remove all state classes first
+            btn.classList.remove('listening', 'processing');
+
+            if (this.isListening) {
+                btn.textContent = '🎤 Listening...';
+                btn.classList.add('listening');
+            } else if (this.isProcessing) {
+                btn.textContent = '🎤 Processing...';
+                btn.classList.add('processing');
+            } else {
+                btn.textContent = '🎤 Voice';
+                // No additional classes for idle state
+            }
         }
     }
 
@@ -215,9 +299,7 @@ class QuizParticipant {
                 this.showRevealedAnswer(data);
                 break;
 
-            case 'drawing_start':
-                this.showDrawingCanvas();
-                break;
+
 
 
 
@@ -280,7 +362,6 @@ class QuizParticipant {
     showQuestionContainer() {
         document.getElementById('waiting-message').classList.add('hidden');
         document.getElementById('question-container').classList.remove('hidden');
-        document.getElementById('drawing-canvas').classList.add('hidden');
     }
 
     handleQuizStarted(progress) {
@@ -295,15 +376,10 @@ class QuizParticipant {
         this.updateStatus('Quiz started - Waiting for first question');
     }
 
-    showDrawingCanvas() {
-        document.getElementById('waiting-message').classList.add('hidden');
-        document.getElementById('question-container').classList.add('hidden');
-        document.getElementById('drawing-canvas').classList.remove('hidden');
-    }
+
 
     showWaitingMessage() {
         document.getElementById('question-container').classList.add('hidden');
-        document.getElementById('drawing-canvas').classList.add('hidden');
         document.getElementById('waiting-message').classList.remove('hidden');
         document.getElementById('waiting-message').innerHTML = `
             <h2>Quiz Finished!</h2>
@@ -342,6 +418,8 @@ class QuizParticipant {
         if (question.type === 'wheel_of_fortune') {
             document.getElementById('question-content').innerHTML =
                 `<span class="wof-category">${this.escapeHtml(question.content)}</span>`;
+        } else if (question.type === 'pictionary') {
+            document.getElementById('question-content').textContent = "Look at the screen and guess what is being drawn!";
         } else {
             document.getElementById('question-content').textContent = question.content;
         }
@@ -600,18 +678,7 @@ class QuizParticipant {
         }
     }
 
-    updateDrawing(stroke) {
-        soundManager.drawingUpdate();
-        const canvas = document.getElementById('draw-canvas');
-        const ctx = canvas.getContext('2d');
 
-        ctx.beginPath();
-        ctx.moveTo(stroke.from.x, stroke.from.y);
-        ctx.lineTo(stroke.to.x, stroke.to.y);
-        ctx.strokeStyle = stroke.color || '#000000';
-        ctx.lineWidth = stroke.width || 2;
-        ctx.stroke();
-    }
 
     updateStatus(status) {
         document.getElementById('status').textContent = status;
@@ -629,6 +696,37 @@ class QuizParticipant {
         if (revealDiv) {
             revealDiv.remove();
         }
+    }
+
+    showVoiceError(error) {
+        console.error('[VOICE DEBUG] Showing voice error to user:', error);
+
+        let message = 'Voice recognition failed. ';
+        switch (error.error) {
+            case 'not-allowed':
+                message += 'Microphone access denied. Please allow microphone permissions and try again.';
+                break;
+            case 'no-speech':
+                message += 'No speech detected. Please speak clearly into your microphone.';
+                break;
+            case 'audio-capture':
+                message += 'Microphone not found or not accessible.';
+                break;
+            case 'network':
+                message += 'Network error occurred. Check your connection.';
+                break;
+            case 'service-not-allowed':
+                message += 'Speech recognition service not allowed. This may require HTTPS.';
+                break;
+            default:
+                message += `Error: ${error.error || 'Unknown error'}. Please try typing your answer instead.`;
+        }
+
+        // Show error in status or as an alert
+        this.updateStatus(`Voice Error: ${message}`);
+
+        // Also show as alert for immediate attention
+        alert(message);
     }
 }
 

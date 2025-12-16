@@ -2,7 +2,7 @@ import sys
 sys.path.insert(0, '/Users/ashish/work/code/python/all-hands-game')
 
 import pytest
-from backend.main import compute_numeric_score, compute_semantic_score, cluster_word_cloud_answers
+from backend.main import compute_numeric_score, compute_semantic_score, cluster_word_cloud_answers, extract_number_from_text
 
 def test_compute_numeric_score():
     # Exact match
@@ -29,6 +29,26 @@ def test_compute_semantic_score():
     score, sim = compute_semantic_score("pig", "elephant")
     assert score == 0
     assert sim < 0.7
+
+def test_extract_number_from_text():
+    # Test direct numbers
+    assert extract_number_from_text("150") == 150.0
+    assert extract_number_from_text("75.5") == 75.5
+
+    # Test written numbers
+    assert extract_number_from_text("eight") == 8.0
+    assert extract_number_from_text("seven") == 7.0
+    assert extract_number_from_text("twenty") == 20.0
+
+    # Test phrases with numbers
+    assert extract_number_from_text("eight days") == 8.0
+    assert extract_number_from_text("seven days") == 7.0
+    assert extract_number_from_text("one thousand five hundred") == 1500.0
+
+    # Test invalid inputs
+    assert extract_number_from_text("hello world") is None
+    assert extract_number_from_text("") is None
+    assert extract_number_from_text("   ") is None
 
 def test_cluster_word_cloud_answers():
     answers = [

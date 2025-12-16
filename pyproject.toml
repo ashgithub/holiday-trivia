@@ -4,11 +4,19 @@ version = "0.1.0"
 description = "All-Hands Quiz Game with real-time multiplayer support"
 requires-python = ">=3.9"
 dependencies = [
+    # Backend dependencies
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "websockets==12.0",
+    "sqlalchemy==2.0.23",
+    "alembic==1.12.1",
+    "python-multipart==0.0.6",
+    "sentence-transformers>=0.4",
+    "word2number>=1.1",
+    "pyyaml>=6.0",
+    # Test dependencies
     "pytest>=8.4.2",
 ]
-
-[tool.uv.workspace]
-members = ["backend"]
 
 [tool.uv]
 dev-dependencies = [
