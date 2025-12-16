@@ -143,7 +143,8 @@ class QuizAdmin {
     // ===== WEBSOCKET =====
     setupWebSocket() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/admin`;
+        const rootPath = window.ROOT_PATH.replace(/\/$/, ''); // Remove trailing slash
+        const wsUrl = `${protocol}//${window.location.host}${rootPath}/ws/admin`;
 
         this.ws = new WebSocket(wsUrl);
 

@@ -69,7 +69,8 @@ class QuizParticipant {
 
     setupWebSocket() {
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/participant`;
+        const rootPath = window.ROOT_PATH.replace(/\/$/, ''); // Remove trailing slash
+        const wsUrl = `${protocol}//${window.location.host}${rootPath}/ws/participant`;
 
         this.ws = new WebSocket(wsUrl);
 
