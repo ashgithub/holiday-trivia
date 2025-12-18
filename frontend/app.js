@@ -337,8 +337,7 @@ class QuizParticipant {
         const msg = document.getElementById('wof-winner-msg') || document.createElement('div');
         msg.id = 'wof-winner-msg';
         msg.className = 'wof-winner-msg';
-        msg.innerHTML = `<h3>Winner: ${this.escapeHtml(data.winner)}</h3>
-          <div>The answer was: <strong>${this.escapeHtml(data.answer)}</strong></div>`;
+        msg.innerHTML = `<h3>Winner: ${this.escapeHtml(data.winner)}</h3>`;
         document.getElementById('question-container').appendChild(msg);
         // Lock input if present
         let inp = document.getElementById('wof-input');

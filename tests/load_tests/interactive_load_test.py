@@ -76,6 +76,7 @@ class SimulatedParticipant:
                     [random.uniform(0.5, 2), random.uniform(2, 4), random.uniform(4, 8)],
                     weights=[0.6, 0.3, 0.1]  # 60% fast, 30% medium, 10% slow
                 )[0]
+                self.current_question["_simulated_thinking_time"] = thinking_time
                 await asyncio.sleep(thinking_time)
 
                 # Submit answer
@@ -123,9 +124,17 @@ class SimulatedParticipant:
 
         correct_answer = self.current_question.get("correct_answer", "")
 
-        # Randomly make 50-75% of answers correct for realistic testing
-        correct_percentage = random.uniform(0.5, 0.75)
-        is_correct = random.random() < correct_percentage
+        if question_type == "wheel_of_fortune":
+            # Make probability of correct guess scale with "tiles revealed" ~ time waited
+            t = self.current_question.get("_simulated_thinking_time", 0.5)
+            # Rescale: thinking_time simulates how much of WOF is exposed (0 at .5s, 1 at 8s)
+            tnorm = (min(max(t, 0.5), 8.0)-0.5)/7.5
+            probability_correct = min(0.01 + 0.6 * tnorm, 0.6)
+            is_correct = random.random() < probability_correct
+        else:
+            # Randomly make 3-5% of answers correct for realistic testing
+            correct_percentage = random.uniform(0.03, 0.05)
+            is_correct = random.random() < correct_percentage
 
         if question_type == "word_cloud":
             # Word cloud is subjective - always generate diverse responses
@@ -149,31 +158,59 @@ class SimulatedParticipant:
             if is_correct and correct_answer:
                 answer = correct_answer
             else:
-                # Generate wrong answers that are NOT close to the correct numerical answer
+                # Generate progressive distribution of wrong answers based on distance from correct
                 try:
                     correct_num = float(correct_answer)
-                    # Generate numbers in ranges that avoid being close to correct answer
-                    # Close is defined as within 20% or 10 units, whichever is larger
-                    margin = max(10, abs(correct_num) * 0.2)
 
-                    # Generate wrong numbers in 3 ranges: below, above, and far above
-                    ranges = [
-                        (1, max(1, correct_num - margin - 50)),  # Well below
-                        (correct_num + margin + 1, correct_num + margin + 100),  # Well above
-                        (correct_num + margin + 200, correct_num + margin + 500)  # Far above
+                    # Create progressive distance bands with realistic distribution
+                    # 5% answers within 5% of correct, 10% within 10%, etc.
+                    distance_weights = [
+                        (0.05, 0.05),   # 5% of answers within 5% of correct
+                        (0.05, 0.10),   # 10% of answers within 10% of correct
+                        (0.15, 0.20),   # 15% of answers within 20% of correct
+                        (0.25, 0.50),   # 25% of answers within 50% of correct
+                        (0.40, 2.0),    # 40% of answers 50%-200% away from correct
                     ]
 
-                    # Filter out invalid ranges
-                    valid_ranges = [(start, end) for start, end in ranges if start <= end]
+                    # Choose a distance band based on weights
+                    chosen_band = random.choices(
+                        distance_weights,
+                        weights=[band[1] for band in distance_weights]
+                    )[0]
 
-                    if valid_ranges:
-                        # Choose a range and generate a number in it
-                        chosen_range = random.choice(valid_ranges)
-                        wrong_num = random.randint(int(chosen_range[0]), int(chosen_range[1]))
-                        answer = str(wrong_num)
+                    min_distance, max_distance = chosen_band
+
+                    # Calculate actual value ranges for this band
+                    abs_min_distance = min_distance * abs(correct_num) if correct_num != 0 else min_distance
+                    abs_max_distance = max_distance * abs(correct_num) if correct_num != 0 else max_distance
+
+                    # Ensure minimum distance of at least 1 unit
+                    abs_min_distance = max(1, abs_min_distance)
+                    abs_max_distance = max(abs_min_distance + 1, abs_max_distance)
+
+                    # Generate number in the chosen distance band (both above and below)
+                    if random.random() < 0.5:  # 50% chance above or below
+                        # Above correct answer
+                        min_val = correct_num + abs_min_distance
+                        max_val = correct_num + abs_max_distance
                     else:
-                        # Fallback if no valid ranges
-                        answer = str(random.randint(100, 1000))
+                        # Below correct answer (ensure positive)
+                        min_val = max(1, correct_num - abs_max_distance)
+                        max_val = max(1, correct_num - abs_min_distance)
+
+                    # Ensure valid range
+                    if min_val <= max_val:
+                        wrong_num = random.randint(int(min_val), int(max_val))
+                    else:
+                        # Fallback for edge cases
+                        offset = random.randint(int(abs_min_distance), int(abs_max_distance))
+                        if random.random() < 0.5:
+                            wrong_num = int(correct_num + offset)
+                        else:
+                            wrong_num = max(1, int(correct_num - offset))
+
+                    answer = str(wrong_num)
+
                 except (ValueError, TypeError):
                     # If correct_answer is not numeric, generate generic wrong answers
                     wrong_answers = ["wrong", "incorrect", "no idea", "idk", "pass", "skip"]

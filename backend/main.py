@@ -714,16 +714,14 @@ async def participant_websocket(websocket: WebSocket):
                         if is_correct and wof_winner:
                             await broadcast_wof_state(current_question.correct_answer or "", finished=True, winner=wof_winner)
                             # Notify all clients that the round is done and who won
-                            await admin_manager.broadcast({
-                                "type": "wof_winner",
-                                "winner": wof_winner,
-                                "answer": current_question.correct_answer
-                            })
-                            await participant_manager.broadcast({
-                                "type": "wof_winner",
-                                "winner": wof_winner,
-                                "answer": current_question.correct_answer
-                            })
+await admin_manager.broadcast({
+    "type": "wof_winner",
+    "winner": wof_winner
+})
+await participant_manager.broadcast({
+    "type": "wof_winner",
+    "winner": wof_winner
+})
 
                         # Continue to normal answer processing for live results display
                         # (don't skip with continue)

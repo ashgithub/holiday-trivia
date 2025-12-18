@@ -1114,8 +1114,7 @@ toggleMCQOptions(showMCQ) {
         const msg = document.getElementById('wof-winner-msg') || document.createElement('div');
         msg.id = 'wof-winner-msg';
         msg.className = 'wof-winner-msg';
-        msg.innerHTML = `<h3>Winner: ${this.escapeHtml(data.winner)}</h3>
-          <div>The answer was: <strong>${this.escapeHtml(data.answer)}</strong></div>`;
+        msg.innerHTML = `<h3>Winner: ${this.escapeHtml(data.winner)}</h3>`;
         this.dom.adminInterface.appendChild(msg);
         this.updateStatus(`Winner: ${data.winner}`);
     }
