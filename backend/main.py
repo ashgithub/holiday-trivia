@@ -651,10 +651,11 @@ async def participant_websocket(websocket: WebSocket):
 
                 if data["type"] == "answer":
                     global word_cloud_scored, wof_winner, wof_reveal_task
+                    game_id = getattr(current_game, "id", None)
                     existing = db.query(Answer).filter(
                         Answer.user_id == participant.id,
                         Answer.question_id == data["question_id"],
-                        Answer.game_id == current_game.id if current_game else None
+                        Answer.game_id == game_id
                     ).first()
                     
                     is_word_cloud = current_question and current_question.type == "word_cloud"
@@ -667,7 +668,7 @@ async def participant_websocket(websocket: WebSocket):
                         # Move winner guard ABOVE all update/insert logic!
                         if wof_winner and participant.name == wof_winner:
                             # Never update, score, or write further answers for winner
-                            return
+                            continue
 
                         # Accept full phrase guess, ignore case and whitespace; don't allow partial answers
                         guess = (data["answer"] or "").strip().lower()
@@ -702,7 +703,7 @@ async def participant_websocket(websocket: WebSocket):
                             answer_obj = Answer(
                                 user_id=participant.id,
                                 question_id=data["question_id"],
-                                game_id=current_game.id if current_game else None,
+                                game_id=game_id,
                                 content=data["answer"],
                                 is_correct=is_correct,
                                 score=score,
@@ -710,6 +711,8 @@ async def participant_websocket(websocket: WebSocket):
                             )
                             db.add(answer_obj)
                         db.commit()
+                        if not existing:
+                            existing = answer_obj
 
                         if is_correct and wof_winner:
                             # Do not broadcast a "finished"/fully revealed phrase! Only send the winner.
@@ -727,7 +730,7 @@ async def participant_websocket(websocket: WebSocket):
                     # ---- END OF WOF LOGIC ----
 
                     # CUSTOM: For word_cloud, always accept and ignore is_correct/scoring at this stage
-                    if current_question and data["question_id"] == current_question.id and not is_word_cloud:
+                    if current_question and data["question_id"] == current_question.id and not is_word_cloud and not is_wof:
                         if current_question.type == "fill_in_the_blank":
                             # Use numerical scoring for fill_in_the_blank
                             score = compute_numeric_score(
@@ -755,31 +758,33 @@ async def participant_websocket(websocket: WebSocket):
                                 score = 0
                             print(f"[EXACT DEBUG] {current_question.type} scoring: user='{data['answer']}', correct='{current_question.correct_answer}', is_correct={is_correct}, score={score}")
 
-                    if existing and (not existing.is_correct or is_word_cloud):
-                        # Update existing answer
-                        existing.content = data["answer"]
-                        existing.is_correct = is_correct
-                        existing.score = score
-                        existing.retry_count += 1
-                        existing.timestamp = datetime.utcnow()
-                    else:
-                        # Insert new answer
-                        answer = Answer(
-                            user_id=participant.id,
-                            question_id=data["question_id"],
-                            game_id=current_game.id if current_game else None,
-                            content=data["answer"],
-                            is_correct=is_correct,
-                            score=score,
-                            retry_count=1
-                        )
-                        db.add(answer)
+                    if not is_wof:
+                        if existing and (not existing.is_correct or is_word_cloud):
+                            # Update existing answer
+                            existing.content = data["answer"]
+                            existing.is_correct = is_correct
+                            existing.score = score
+                            existing.retry_count += 1
+                            existing.timestamp = datetime.utcnow()
+                        else:
+                            # Insert new answer
+                            answer = Answer(
+                                user_id=participant.id,
+                                question_id=data["question_id"],
+                                game_id=current_game.id if current_game else None,
+                                content=data["answer"],
+                                is_correct=is_correct,
+                                score=score,
+                                retry_count=1
+                            )
+                            db.add(answer)
 
-                    db.commit()
+                        db.commit()
 
+                    game_id = getattr(current_game, "id", None)
                     user_answers = db.query(Answer).filter(
                         Answer.user_id == participant.id,
-                        Answer.game_id == current_game.id if current_game else None
+                        Answer.game_id == game_id
                     ).all()
                     total_score = sum(ans.score for ans in user_answers)
 
@@ -823,9 +828,11 @@ async def participant_websocket(websocket: WebSocket):
                     # --- NEW: Auto-scoring for word_cloud when all have answered ---
                     if is_word_cloud and not word_cloud_scored:
                         total_participants = participant_manager.get_participant_count()
+                        question_id = getattr(current_question, "id", None)
+                        game_id = getattr(current_game, "id", None)
                         submitted_count = db.query(Answer).filter(
-                            Answer.question_id == current_question.id,
-                            Answer.game_id == current_game.id if current_game else None
+                            Answer.question_id == question_id,
+                            Answer.game_id == game_id
                         ).count()
                         if submitted_count >= total_participants:
                             await score_word_cloud_and_reveal(db)
