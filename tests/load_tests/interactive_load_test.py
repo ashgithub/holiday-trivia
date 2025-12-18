@@ -70,8 +70,13 @@ class SimulatedParticipant:
                 question_type = self.current_question.get("type", "fill_in_the_blank")
                 print(f"❓ {self.user_name} received {question_type} question: {self.current_question['content'][:50]}...")
 
-                # Simulate thinking time (1-5 seconds)
-                await asyncio.sleep(random.uniform(1, 5))
+                # Simulate realistic thinking time (0.5-8 seconds with varied distribution)
+                # Most people answer quickly (1-3s), some take longer (4-8s), few very slow
+                thinking_time = random.choices(
+                    [random.uniform(0.5, 2), random.uniform(2, 4), random.uniform(4, 8)],
+                    weights=[0.6, 0.3, 0.1]  # 60% fast, 30% medium, 10% slow
+                )[0]
+                await asyncio.sleep(thinking_time)
 
                 # Submit answer
                 await self.submit_answer()
@@ -111,45 +116,74 @@ class SimulatedParticipant:
             print(f"Error sending answer for {self.user_name}: {e}")
 
     def _generate_answer_for_type(self, question_type: str) -> str:
-        """Generate appropriate answers for each question type"""
+        """Generate appropriate answers for each question type with 75% correctness"""
 
         # Use user_id as seed for consistent but varied answers
         random.seed(self.user_id)
 
+        # 75% chance of correct answer, 25% chance of wrong but realistic answer
+        is_correct = random.random() < 0.75
+
         if question_type == "word_cloud":
+            # Word cloud is subjective - always generate diverse responses
             answer = self._generate_word_cloud_answer()
         elif question_type == "multiple_choice":
-            # Select from available options
             options = self.current_question.get("options", ["A", "B", "C", "D"])
-            answer = random.choice(options)
+            correct_answer = self.current_question.get("correct_answer", options[0])
+            if is_correct:
+                answer = correct_answer
+            else:
+                # Choose wrong option
+                wrong_options = [opt for opt in options if opt != correct_answer]
+                answer = random.choice(wrong_options) if wrong_options else options[0]
         elif question_type == "fill_in_the_blank":
-            # Generate realistic fill-in-the-blank answers
-            answers = [
-                "Paris", "London", "New York", "Tokyo", "Sydney",
-                "Christmas tree", "Team collaboration", "Innovation",
-                "Success", "Leadership", "Holiday spirit", "Family time",
-                "150", "75", "42", "100", "25"  # Numeric answers
-            ]
-            answer = random.choice(answers)
+            correct_answer = self.current_question.get("correct_answer", "")
+            if is_correct and correct_answer:
+                answer = correct_answer
+            else:
+                # Generate realistic wrong answers
+                wrong_answers = [
+                    "100", "200", "1000", "250", "750",  # Different numbers
+                    "Paris", "London", "New York", "Tokyo", "Sydney",  # Cities
+                    "Christmas tree", "Team collaboration", "Innovation"  # Other themes
+                ]
+                answer = random.choice(wrong_answers)
         elif question_type == "pictionary":
-            # Descriptive answers for drawing questions
-            answers = [
-                "house", "tree", "car", "dog", "cat", "sun", "moon",
-                "mountain", "river", "ocean", "flower", "bird", "fish",
-                "Christmas tree", "snowman", "reindeer", "santa claus",
-                "gingerbread man", "stocking", "present", "candle"
-            ]
-            answer = random.choice(answers)
+            correct_answer = self.current_question.get("correct_answer") or ""  # Handle None values
+            if is_correct and correct_answer:
+                answer = correct_answer
+            else:
+                # Generate plausible wrong answers for drawings
+                wrong_answers = [
+                    "house", "tree", "car", "dog", "cat", "sun", "moon",
+                    "mountain", "river", "ocean", "flower", "bird", "fish",
+                    "Christmas tree", "snowman", "reindeer", "santa claus"
+                ]
+                # Avoid the correct answer if possible (only if correct_answer is not empty)
+                if correct_answer:
+                    filtered_answers = [a for a in wrong_answers if a.lower() != correct_answer.lower()]
+                    answer = random.choice(filtered_answers if filtered_answers else wrong_answers)
+                else:
+                    answer = random.choice(wrong_answers)
         elif question_type == "wheel_of_fortune":
-            # For wheel of fortune, participants guess the full phrase
-            # Since we don't know the actual phrase, provide varied guesses
-            answers = [
-                "merry christmas", "happy holidays", "season greetings",
-                "joy to the world", "silent night", "jingle bells",
-                "winter wonderland", "holiday cheer", "peace on earth",
-                "goodwill toward men", "deck the halls", "we wish you"
-            ]
-            answer = random.choice(answers)
+            correct_answer = self.current_question.get("correct_answer") or ""  # Handle None values
+            if is_correct and correct_answer:
+                answer = correct_answer
+            else:
+                # Generate plausible wrong phrase guesses
+                wrong_answers = [
+                    "merry christmas", "happy holidays", "season greetings",
+                    "joy to the world", "silent night", "jingle bells",
+                    "winter wonderland", "holiday cheer", "peace on earth",
+                    "goodwill toward men", "deck the halls", "we wish you",
+                    "travel adventure", "team journey", "cloud computing"
+                ]
+                # Avoid the correct answer if possible (only if correct_answer is not empty)
+                if correct_answer:
+                    filtered_answers = [a for a in wrong_answers if a.lower() != correct_answer.lower()]
+                    answer = random.choice(filtered_answers if filtered_answers else wrong_answers)
+                else:
+                    answer = random.choice(wrong_answers)
         else:
             # Fallback for unknown question types
             answer = f"Sample answer {random.randint(1, 10)}"
@@ -196,11 +230,11 @@ class InteractiveLoadTester:
             self.participants.append(participant)
 
     def start(self):
-        """Start the load test"""
+        """Start the load test with realistic staggered connections"""
         print(f"🚀 Starting Interactive Load Test with {self.num_users} users")
         print("Supports all question types: word_cloud, multiple_choice, fill_in_the_blank, pictionary, wheel_of_fortune")
         print("Connect to http://localhost:8000/admin to control the quiz")
-        print("Users will join automatically and respond to questions")
+        print("Users will join with realistic timing and respond to questions")
         print()
 
         self.running = True
@@ -210,9 +244,26 @@ class InteractiveLoadTester:
         self.status_thread.daemon = True
         self.status_thread.start()
 
-        # Start all participants
+        # Start participants with staggered connections
         async def run_all():
-            tasks = [p.connect_and_listen() for p in self.participants]
+            async def connect_with_delay(participant, delay):
+                """Connect a participant after waiting for their individual delay"""
+                if delay > 0:
+                    await asyncio.sleep(delay)
+                await participant.connect_and_listen()
+
+            # Calculate delays for all users (spread over 10 seconds)
+            tasks = []
+            for i, participant in enumerate(self.participants):
+                base_delay = (i / (self.num_users - 1)) * 10 if self.num_users > 1 else 0
+                delay = base_delay + random.uniform(-0.5, 0.5)  # Add some randomness
+                delay = max(0, delay)  # Ensure non-negative
+
+                # Create task that will wait its delay then connect
+                task = asyncio.create_task(connect_with_delay(participant, delay))
+                tasks.append(task)
+
+            # Start all tasks simultaneously - each waits their own delay
             await asyncio.gather(*tasks, return_exceptions=True)
 
         # Run in background
