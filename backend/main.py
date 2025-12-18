@@ -515,25 +515,42 @@ async def debug():
 async def list_databases():
     """List available database files in the database folder"""
     try:
+        # Debug: Show current working directory and paths
+        import os
+        cwd = os.getcwd()
+        print(f"[DEBUG] Current working directory: {cwd}")
+
         db_dir = Path("./database")
+        print(f"[DEBUG] Checking database directory: {db_dir.absolute()}")
+        print(f"[DEBUG] Database directory exists: {db_dir.exists()}")
+
         if not db_dir.exists():
+            print("[DEBUG] Database directory not found")
             return {"databases": []}
 
         # Get all .db files in the database directory
         db_files = []
-        for file_path in db_dir.glob("*.db"):
+        db_file_paths = list(db_dir.glob("*.db"))
+        print(f"[DEBUG] Found {len(db_file_paths)} .db files: {[str(p) for p in db_file_paths]}")
+
+        for file_path in db_file_paths:
             if file_path.is_file():
+                size = file_path.stat().st_size
+                print(f"[DEBUG] File: {file_path.name}, Size: {size} bytes")
                 db_files.append({
                     "filename": file_path.name,
                     "path": f"database/{file_path.name}",
-                    "size": file_path.stat().st_size
+                    "size": size
                 })
 
         # Sort by filename
         db_files.sort(key=lambda x: x["filename"])
-
+        print(f"[DEBUG] Returning {len(db_files)} database files")
         return {"databases": db_files}
     except Exception as e:
+        import traceback
+        print(f"[DEBUG] Error in list_databases: {e}")
+        print(f"[DEBUG] Traceback: {traceback.format_exc()}")
         return {"error": str(e), "databases": []}
 
 # Serve HTML pages at root level
