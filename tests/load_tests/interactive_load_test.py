@@ -17,7 +17,7 @@ class SimulatedParticipant:
     """Simulates a single quiz participant"""
 
 
-    def __init__(self, user_id: int, server_url: str = "ws://localhost:8000/ws/participant"):
+    def __init__(self, user_id: int, server_url: str = "wss://venus.aisandbox.ugbu.oraclepdemos.com/trivia/ws/participant"):
         self.user_id = user_id
         self.user_name = f"TestUser_{user_id:03d}"
         self.server_url = server_url

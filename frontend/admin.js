@@ -1009,11 +1009,18 @@ toggleMCQOptions(showMCQ) {
             case 'time_expired':
                 soundManager.timerExpired();
                 this.setButtonState(this.dom.revealAnswerBtn, false);
+                // For WOF questions, automatically reveal the answer when timer expires
+                if (this.quizState.currentQuestion && this.quizState.currentQuestion.type === 'wheel_of_fortune') {
+                    this.sendMessage({ type: 'reveal_answer' });
+                }
                 break;
         }
     }
 
     handleQuestionPushed(data) {
+        // Update current question state for timer expiration handling
+        this.quizState.currentQuestion = data.question;
+
         // Remove old winner message (keep the static WoF board)
         const prevWinner = document.getElementById('wof-winner-msg');
         if (prevWinner) prevWinner.remove();
@@ -1248,24 +1255,37 @@ toggleMCQOptions(showMCQ) {
     }
 
     showWordCloud(wordCloudData) {
-        // Remove any existing reveal/word cloud displays
-        const prev = document.getElementById('admin-reveal');
-        if (prev) prev.remove();
+        // Hide the WOF board area first
+        const wofBoardArea = this.dom.wofBoardArea;
+        const drawingArea = this.dom.drawingArea;
 
+        // Hide WOF board and drawing area
+        wofBoardArea.classList.add('hidden');
+        drawingArea.classList.add('hidden');
+
+        // Clear the WOF board area and use it for word cloud
+        const boardDiv = wofBoardArea.querySelector('.wof-tiles');
+        if (boardDiv) {
+            boardDiv.innerHTML = '';
+        }
+
+        // Create word cloud in the large central area
         const wcDiv = document.createElement('div');
-        wcDiv.id = 'admin-reveal';
-        wcDiv.className = 'reveal-answer';
-        wcDiv.innerHTML = `<h3>Word Cloud</h3>`;
+        wcDiv.id = 'word-cloud-display';
+        wcDiv.className = 'word-cloud-central';
+        wcDiv.innerHTML = `<h3 class="word-cloud-title">Word Cloud Results</h3>`;
 
-        // Compute sizing (map frequency to font size: linear 1..max -> e.g. 18..56px)
-        const maxSize = 56, minSize = 18;
+        // Compute sizing for the larger area (bigger fonts)
+        const maxSize = 72, minSize = 24;
         const max = Math.max(...wordCloudData.map(w => w.size), 1);
 
         wcDiv.style.display = 'flex';
         wcDiv.style.flexWrap = 'wrap';
         wcDiv.style.alignItems = 'center';
-        wcDiv.style.gap = '12px';
-        wcDiv.style.margin = '24px 0';
+        wcDiv.style.justifyContent = 'center';
+        wcDiv.style.gap = '16px';
+        wcDiv.style.padding = '40px';
+        wcDiv.style.minHeight = '400px';
 
         wordCloudData.sort((a, b) => b.size - a.size);
 
@@ -1276,24 +1296,41 @@ toggleMCQOptions(showMCQ) {
             const sizePx = minSize + Math.round((max > 1 ? (word.size - 1) / (max - 1) : 0) * (maxSize - minSize));
             span.textContent = word.text;
             span.style.fontSize = `${sizePx}px`;
-            span.style.fontWeight = (sizePx > minSize + 8) ? 'bold' : 'normal';
-            span.style.padding = '4px 8px';
-            span.style.background = '#eff6ff';
-            span.style.borderRadius = '8px';
+            span.style.fontWeight = (sizePx > minSize + 12) ? 'bold' : 'normal';
+            span.style.padding = '8px 16px';
+            span.style.background = 'linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%)';
+            span.style.borderRadius = '12px';
+            span.style.border = '2px solid #bfdbfe';
+            span.style.color = '#1e40af';
+            span.style.textShadow = '0 1px 2px rgba(0,0,0,0.1)';
+            span.style.transition = 'transform 0.2s ease, box-shadow 0.2s ease';
+            span.style.cursor = 'default';
 
             // Set tooltip and debug it
             span.title = `User count: ${word.size}`;
             console.log('[WORDCLOUD DEBUG] Set tooltip for', word.text, ':', span.title);
 
-            // Add hover event listener for debugging
+            // Add hover effects
             span.addEventListener('mouseenter', () => {
+                span.style.transform = 'scale(1.1)';
+                span.style.boxShadow = '0 4px 12px rgba(59, 130, 246, 0.3)';
                 console.log('[WORDCLOUD DEBUG] Hovering over', word.text, '- tooltip should show:', span.title);
+            });
+
+            span.addEventListener('mouseleave', () => {
+                span.style.transform = 'scale(1)';
+                span.style.boxShadow = 'none';
             });
 
             wcDiv.appendChild(span);
         });
 
-        this.dom.answersDisplay.appendChild(wcDiv);
+        // Show the WOF board area with word cloud
+        wofBoardArea.classList.remove('hidden');
+        if (boardDiv) {
+            boardDiv.appendChild(wcDiv);
+        }
+
         this.updateStatus('Word cloud generated and revealed');
     }
 
