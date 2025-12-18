@@ -286,7 +286,7 @@ class QuizAdmin {
     async exportQuestions() {
         try {
             this.showExportStatus('Exporting questions...', 'info');
-            const response = await fetch('/api/questions/export', {
+            const response = await fetch('./api/questions/export', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -378,7 +378,7 @@ class QuizAdmin {
                 }
             }
 
-            const response = await fetch('/api/questions/import', {
+            const response = await fetch('./api/questions/import', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
