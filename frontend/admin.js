@@ -1405,7 +1405,7 @@ toggleMCQOptions(showMCQ) {
     // ===== DATABASE MANAGEMENT =====
     async loadDatabaseList() {
         try {
-            const response = await fetch('/api/databases');
+            const response = await fetch('./api/databases');
             const data = await response.json();
 
             if (data.databases && Array.isArray(data.databases)) {
