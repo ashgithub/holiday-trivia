@@ -468,7 +468,7 @@ canvas {
 
 .quiz-control-content {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: minmax(300px, 1fr) minmax(500px, 2fr) minmax(300px, 1fr);
     gap: 20px;
 }
 
@@ -790,8 +790,9 @@ canvas {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .admin-content {
+    .quiz-control-content {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     #answer-inputs {
@@ -806,6 +807,29 @@ canvas {
     canvas {
         width: 100%;
         height: auto;
+    }
+}
+
+/* Wide Screen Support */
+@media (min-width: 1400px) {
+    .quiz-control-content {
+        grid-template-columns: minmax(350px, 1fr) minmax(700px, 2.5fr) minmax(350px, 1fr);
+    }
+}
+
+@media (min-width: 1600px) {
+    .quiz-control-content {
+        grid-template-columns: minmax(400px, 1fr) minmax(900px, 3fr) minmax(400px, 1fr);
+    }
+}
+
+@media (min-width: 1920px) {
+    #app {
+        max-width: 1800px;
+    }
+
+    .quiz-control-content {
+        grid-template-columns: minmax(450px, 1fr) minmax(1100px, 3.5fr) minmax(450px, 1fr);
     }
 }
 
