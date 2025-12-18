@@ -671,10 +671,8 @@ async def participant_websocket(websocket: WebSocket):
 
                         if is_correct and not wof_winner:
                             wof_winner = participant.name
-                            # Kill the letter-reveal engine if still running
-                            if wof_reveal_task:
-                                wof_reveal_task.cancel()
-                                wof_reveal_task = None
+                            # Do NOT stop the tile-reveal engine: allow it to run to completion, so others can see the tiles reveal and play along
+                            # (wof_reveal_task continues running)
                             # Do NOT reveal all tiles at this point: let the board continue revealing gradually, or finish naturally on timer, not instantly
 
                         # Always record the answer for live results display
