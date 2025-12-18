@@ -139,6 +139,13 @@ def compute_top10_proportional_scores(db, question_id, game_id, correct_answer):
             ans.score = proportional_score
             ans.is_correct = False
 
+        # Set score = 0 for all other non-exact answers (not in top 10)
+        top_10_ids = {ans.id for ans, _ in top_10}
+        for ans, _ in non_exact_answers:
+            if ans.id not in top_10_ids:
+                ans.score = 0
+                ans.is_correct = False
+
         db.commit()
 
     except Exception as e:

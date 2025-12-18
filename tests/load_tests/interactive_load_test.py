@@ -123,9 +123,9 @@ class SimulatedParticipant:
 
         correct_answer = self.current_question.get("correct_answer", "")
 
-        # Guarantee correct answers from first 10 users for each question type
-        # This ensures we always have correct answers in load tests
-        is_correct = (self.user_id <= 10) or (random.random() < 0.75)
+        # Randomly make 50-75% of answers correct for realistic testing
+        correct_percentage = random.uniform(0.5, 0.75)
+        is_correct = random.random() < correct_percentage
 
         if question_type == "word_cloud":
             # Word cloud is subjective - always generate diverse responses
@@ -134,28 +134,50 @@ class SimulatedParticipant:
             else:
                 answer = self._generate_word_cloud_answer()
         elif question_type == "multiple_choice":
-            options = self.current_question.get("options", ["A", "B", "C", "D"])
+            options = self.current_question.get("options", [])
             if is_correct and correct_answer:
                 answer = correct_answer
             else:
-                # Choose wrong option - need to get actual wrong options
-                # For now, use generic wrong answers since we don't have options in current_question
-                wrong_options = ["Wrong option 1", "Wrong option 2", "Wrong option 3"]
-                answer = random.choice(wrong_options)
-        elif question_type == "fill_in_the_blank":
-            # Use real correct answer: "500" for holiday lights question
-            if is_correct and correct_answer:
-                answer = correct_answer  # "500"
-            else:
-                # Generate realistic wrong answers based on the actual question
-                # For "___ million holiday lights" question, generate nearby numbers
-                if "holiday lights" in self.current_question.get("content", "").lower():
-                    # Generate numbers close to 500
-                    wrong_numbers = ["400", "450", "550", "600", "1000", "250", "750", "300", "700"]
-                    answer = random.choice(wrong_numbers)
+                # Choose wrong option from actual available options
+                wrong_options = [opt for opt in options if opt != correct_answer]
+                if wrong_options:
+                    answer = random.choice(wrong_options)
                 else:
-                    # Fallback for other fill-in-the-blank questions
-                    answer = str(random.randint(100, 1000))
+                    # Fallback if no wrong options available
+                    answer = f"Wrong option {random.randint(1, 3)}"
+        elif question_type == "fill_in_the_blank":
+            if is_correct and correct_answer:
+                answer = correct_answer
+            else:
+                # Generate wrong answers that are NOT close to the correct numerical answer
+                try:
+                    correct_num = float(correct_answer)
+                    # Generate numbers in ranges that avoid being close to correct answer
+                    # Close is defined as within 20% or 10 units, whichever is larger
+                    margin = max(10, abs(correct_num) * 0.2)
+
+                    # Generate wrong numbers in 3 ranges: below, above, and far above
+                    ranges = [
+                        (1, max(1, correct_num - margin - 50)),  # Well below
+                        (correct_num + margin + 1, correct_num + margin + 100),  # Well above
+                        (correct_num + margin + 200, correct_num + margin + 500)  # Far above
+                    ]
+
+                    # Filter out invalid ranges
+                    valid_ranges = [(start, end) for start, end in ranges if start <= end]
+
+                    if valid_ranges:
+                        # Choose a range and generate a number in it
+                        chosen_range = random.choice(valid_ranges)
+                        wrong_num = random.randint(int(chosen_range[0]), int(chosen_range[1]))
+                        answer = str(wrong_num)
+                    else:
+                        # Fallback if no valid ranges
+                        answer = str(random.randint(100, 1000))
+                except (ValueError, TypeError):
+                    # If correct_answer is not numeric, generate generic wrong answers
+                    wrong_answers = ["wrong", "incorrect", "no idea", "idk", "pass", "skip"]
+                    answer = random.choice(wrong_answers)
         elif question_type == "pictionary":
             # Use real correct answer: "cloud" for the drawing
             if is_correct and correct_answer:
