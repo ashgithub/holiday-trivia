@@ -5,15 +5,27 @@ import pytest
 from backend.main import compute_numeric_score, compute_semantic_score, cluster_word_cloud_answers, extract_number_from_text
 
 def test_compute_numeric_score():
-    # Exact match
+    # Exact match always gets full points
     assert compute_numeric_score("150", "150") == 30
-    # Close: diff=5, tolerance=1.5, so partial score 10
-    assert compute_numeric_score("150", "155") == 10
-    # Closer: diff=2, not within 1.5 tolerance, so decay to 22
-    assert compute_numeric_score("150", "152") == 22
-    # Far: diff=50, decay to 0
-    assert compute_numeric_score("150", "100") == 0
-    # Non-numeric
+
+    # Non-exact matches get temporary closeness scores (will be adjusted by proportional scoring)
+    # These scores are based on closeness but won't be the final scores
+    score_155 = compute_numeric_score("150", "155")  # diff=5
+    score_152 = compute_numeric_score("150", "152")  # diff=2
+    score_100 = compute_numeric_score("150", "100")  # diff=50
+
+    # Closer answers should get higher temporary scores than farther ones
+    assert score_152 > score_155  # diff=2 should be closer than diff=5
+    assert score_155 > score_100  # diff=5 should be closer than diff=50
+
+    # Very close should get reasonable scores
+    assert score_152 > 20  # diff=2 should be quite high
+    assert score_155 > 5   # diff=5 should be moderate
+
+    # Very far should get low scores
+    assert score_100 < 5   # diff=50 should be very low
+
+    # Non-numeric should get 0
     assert compute_numeric_score("150", "abc") == 0
 
 def test_compute_semantic_score():

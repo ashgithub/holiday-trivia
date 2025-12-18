@@ -58,7 +58,7 @@ def save_settings(settings):
 SETTINGS = load_settings()
 
 def compute_numeric_score(correct_str: str, user_str: str, max_score: int = 30) -> int:
-    """Compute score for numeric fill_in_the_blank based on closeness."""
+    """Compute score for numeric fill_in_the_blank based on exact match or closeness ranking."""
     try:
         correct_num = extract_number_from_text(correct_str)
         if correct_num is None:
@@ -68,20 +68,81 @@ def compute_numeric_score(correct_str: str, user_str: str, max_score: int = 30) 
         if user_num is None:
             return 0  # Couldn't extract a number from user input
 
-        diff = abs(user_num - correct_num)
-        # Dynamic factor: 1% tolerance for scaling (e.g., for 150, diff=1.5 -> full, diff=15 -> 0)
-        tolerance = correct_num * 0.01 if correct_num > 0 else 1.0
-        if diff == 0:
+        # Exact match always gets full points
+        if user_num == correct_num:
             return max_score
-        elif diff <= tolerance:
-            return max_score  # Within tolerance: full
-        else:
-            # Linear decay: score = max_score * (1 - (diff / (5 * tolerance)))
-            decay_factor = diff / (5 * tolerance)  # 5x tolerance for full decay
-            score = max(0, int(max_score * (1 - decay_factor)))
-            return score
+
+        # For non-exact matches, this will be called later for ranking
+        # Return a small score based on closeness for now (will be adjusted by ranking)
+        diff = abs(user_num - correct_num)
+        # Return inverse of difference (closer = higher score, but not full)
+        # This will be used for initial ranking, then adjusted proportionally
+        closeness_score = max(1, int(max_score / (diff + 1)))
+        return min(closeness_score, max_score - 1)  # Never full points for non-exact
     except Exception:
         return 0
+
+def compute_top10_proportional_scores(db, question_id, game_id, correct_answer):
+    """
+    Compute proportional scores for the top 10 closest non-exact answers.
+    All exact matches get 30 points regardless of timing.
+    """
+    try:
+        correct_num = extract_number_from_text(correct_answer)
+        if correct_num is None:
+            return
+
+        # Get all answers for this question that are not exact matches
+        answers = db.query(Answer).filter(
+            Answer.question_id == question_id,
+            Answer.game_id == game_id
+        ).all()
+
+        non_exact_answers = []
+        exact_answer_ids = []
+
+        for ans in answers:
+            user_num = extract_number_from_text(ans.content)
+            if user_num is None:
+                continue
+            if user_num == correct_num:
+                # Exact match - ensure it gets 30 points
+                ans.score = 30
+                ans.is_correct = True
+                exact_answer_ids.append(ans.id)
+            else:
+                # Non-exact - calculate difference for ranking
+                diff = abs(user_num - correct_num)
+                non_exact_answers.append((ans, diff))
+
+        # Sort non-exact answers by difference (closest first)
+        non_exact_answers.sort(key=lambda x: x[1])
+
+        # Take top 10 closest
+        top_10 = non_exact_answers[:10]
+
+        if not top_10:
+            return
+
+        # Assign proportional scores to top 10
+        # Closer answers get higher proportional scores
+        max_diff = max(diff for _, diff in top_10) if top_10 else 1
+
+        for i, (ans, diff) in enumerate(top_10):
+            if max_diff == 0:
+                proportional_score = 25  # All equally close
+            else:
+                # Closer (smaller diff) gets higher score
+                closeness_ratio = 1 - (diff / max_diff)
+                proportional_score = int(25 * closeness_ratio) + 1  # 1-25 points
+
+            ans.score = proportional_score
+            ans.is_correct = False
+
+        db.commit()
+
+    except Exception as e:
+        print(f"Error computing top 10 proportional scores: {e}")
 
 def extract_number_from_text(text: str) -> float:
     """Extract numerical value from text containing written numbers or digits."""
@@ -578,12 +639,13 @@ async def participant_websocket(websocket: WebSocket):
                     score = 0
 
                     # ---- WHEEL OF FORTUNE LOGIC ----
-                    if is_wof and current_question and data["question_id"] == current_question.id and not wof_winner:
+                    if is_wof and current_question and data["question_id"] == current_question.id:
                         # Accept full phrase guess, ignore case and whitespace; don't allow partial answers
                         guess = (data["answer"] or "").strip().lower()
                         answer = (current_question.correct_answer or "").strip().lower()
-                        if guess == answer:
-                            is_correct = True
+                        is_correct = (guess == answer)
+
+                        if is_correct and not wof_winner:
                             wof_winner = participant.name
                             # Kill the letter-reveal engine if still running
                             if wof_reveal_task:
@@ -593,42 +655,40 @@ async def participant_websocket(websocket: WebSocket):
                             if wof_revealed_indices is not None:
                                 for idx in range(len(wof_revealed_indices)):
                                     wof_revealed_indices[idx] = True
-                            # Score = seconds remaining (from main timer, or max if timer is not running)
+
+                        # Always record the answer for live results display
+                        # Score = seconds remaining for correct answers, 0 for incorrect
+                        if is_correct:
                             seconds_remaining = 30
                             if question_start_time is not None:
                                 elapsed_time = asyncio.get_event_loop().time() - question_start_time
                                 seconds_remaining = max(0, 30 - int(elapsed_time))
                             score = seconds_remaining
+                        else:
+                            score = 0
 
-                            # Insert a new Answer or update previous (to track leaderboard as normal)
-                            if existing:
-                                existing.content = data["answer"]
-                                existing.is_correct = True
-                                existing.score = score
-                                existing.retry_count += 1
-                                existing.timestamp = datetime.utcnow()
-                            else:
-                                answer_obj = Answer(
-                                    user_id=participant.id,
-                                    question_id=data["question_id"],
-                                    game_id=current_game.id if current_game else None,
-                                    content=data["answer"],
-                                    is_correct=True,
-                                    score=score,
-                                    retry_count=1
-                                )
-                                db.add(answer_obj)
-                            db.commit()
+                        # Insert a new Answer or update previous
+                        if existing:
+                            existing.content = data["answer"]
+                            existing.is_correct = is_correct
+                            existing.score = score
+                            existing.retry_count += 1
+                            existing.timestamp = datetime.utcnow()
+                        else:
+                            answer_obj = Answer(
+                                user_id=participant.id,
+                                question_id=data["question_id"],
+                                game_id=current_game.id if current_game else None,
+                                content=data["answer"],
+                                is_correct=is_correct,
+                                score=score,
+                                retry_count=1
+                            )
+                            db.add(answer_obj)
+                        db.commit()
 
+                        if is_correct and wof_winner:
                             await broadcast_wof_state(current_question.correct_answer or "", finished=True, winner=wof_winner)
-                            await participant_manager.send_personal_message({
-                                "type": "personal_feedback",
-                                "correct": True,
-                                "score": score,
-                                "total_score": score,  # optionally sum, for now single-question
-                                "retry_count": existing.retry_count+1 if existing else 1,
-                                "allow_multiple": False
-                            }, connection_id)
                             # Notify all clients that the round is done and who won
                             await admin_manager.broadcast({
                                 "type": "wof_winner",
@@ -640,18 +700,9 @@ async def participant_websocket(websocket: WebSocket):
                                 "winner": wof_winner,
                                 "answer": current_question.correct_answer
                             })
-                            continue  # Don't do normal answer/leaderboard logic
 
-                        # Wrong guess – feedback only
-                        await participant_manager.send_personal_message({
-                            "type": "personal_feedback",
-                            "correct": False,
-                            "score": 0,
-                            "total_score": 0,
-                            "retry_count": existing.retry_count+1 if existing else 1,
-                            "allow_multiple": True
-                        }, connection_id)
-                        continue  # Do not record incorrect guesses for leaderboard (if desired)
+                        # Continue to normal answer processing for live results display
+                        # (don't skip with continue)
                     # ---- END OF WOF LOGIC ----
 
                     # CUSTOM: For word_cloud, always accept and ignore is_correct/scoring at this stage
@@ -1043,8 +1094,26 @@ async def admin_websocket(websocket: WebSocket):
                     # --- Begin word_cloud answer clustering and reveal ---
                     if current_question.type == "word_cloud":
                         await score_word_cloud_and_reveal(db, admin_connection_id=connection_id)
+                    elif current_question.type == "fill_in_the_blank":
+                        # Special handling for fill_in_the_blank: compute top 10 proportional scores
+                        compute_top10_proportional_scores(
+                            db,
+                            current_question.id,
+                            current_game.id if current_game else None,
+                            current_question.correct_answer
+                        )
+                        # Then reveal as normal
+                        reveal_payload = {
+                            "type": "answer_revealed",
+                            "correct_answer": current_question.correct_answer or "",
+                            "question_id": current_question.id,
+                            "question_type": current_question.type
+                        }
+                        await admin_manager.broadcast(reveal_payload)
+                        await participant_manager.broadcast(reveal_payload)
+                        await admin_manager.send_personal_message({"type": "reveal_confirmed"}, connection_id)
                     else:
-                        # DEFAULT: legacy reveal behavior for non-word_cloud questions
+                        # DEFAULT: legacy reveal behavior for other question types
                         reveal_payload = {
                             "type": "answer_revealed",
                             "correct_answer": current_question.correct_answer or "",
@@ -1384,20 +1453,28 @@ async def score_word_cloud_and_reveal(db, admin_connection_id=None):
     cluster_map, answer_to_cluster = cluster_word_cloud_answers(answers)
     total_participants = len(answers)
     for ans in answer_objs:
-        cluster_id = answer_to_cluster.get(ans.user_id)
-        cluster_size = len(cluster_map[cluster_id]["users"]) if cluster_id is not None else 1
-        ans.score = int(round(30 * (cluster_size / total_participants))) if total_participants > 0 else 0
+        # No scoring for word clouds - they are warmup questions
+        ans.score = 0
         ans.is_correct = False
     db.commit()
-    # Prepare for admin word cloud
+    # Prepare for admin word cloud - show individual user counts per word
+    # Count occurrences of each word (not cluster sizes)
+    word_counts = {}
+    for ans in answer_objs:
+        word = ans.content.strip().lower()
+        if word:
+            word_counts[word] = word_counts.get(word, 0) + 1
+
     word_cloud = [
         {
-            "text": cluster["rep"],
-            "size": len(cluster["users"]),
-            "answers": cluster["answers"]
+            "text": word,
+            "size": count,  # Individual user count, not cluster size
+            "answers": [word]  # Just the word itself
         }
-        for cluster in cluster_map.values()
+        for word, count in word_counts.items()
     ]
+    # Sort by count descending for display
+    word_cloud.sort(key=lambda x: x["size"], reverse=True)
     for ans in answer_objs:
         cluster_id = answer_to_cluster.get(ans.user_id)
         cluster_size = len(cluster_map[cluster_id]["users"]) if cluster_id is not None else 1
