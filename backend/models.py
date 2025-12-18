@@ -8,7 +8,11 @@ SQLALCHEMY_DATABASE_URL = "sqlite:///./database/warmup_trivia.db"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
-    connect_args={"check_same_thread": False}  # Only for SQLite
+    connect_args={"check_same_thread": False},  # Only for SQLite
+    pool_size=150,  # Base pool: 150 connections for 150 users
+    max_overflow=50,  # Overflow: +50 more = 200 total (extra safe)
+    pool_timeout=60,  # Wait up to 60s for connection
+    pool_recycle=3600  # Recycle connections every hour
 )
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -23,7 +27,11 @@ def switch_database(new_db_path: str):
     # Create new engine and session factory
     new_engine = create_engine(
         new_url,
-        connect_args={"check_same_thread": False}
+        connect_args={"check_same_thread": False},
+        pool_size=150,  # Same pool settings for switched databases
+        max_overflow=50,
+        pool_timeout=60,
+        pool_recycle=3600
     )
 
     # Test connection
