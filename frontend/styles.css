@@ -558,10 +558,13 @@ canvas {
 /* Leaderboard Table */
 #leaderboard-table-container {
     overflow-x: auto;
+    margin: 0;
+    padding: 0;
 }
 
 #leaderboard-table {
     width: 100%;
+    margin: 0;
     border-collapse: collapse;
     background: var(--snow-white);
     border-radius: 8px;
