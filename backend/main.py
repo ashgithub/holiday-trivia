@@ -1226,7 +1226,7 @@ async def wof_phrase_reveal_engine(phrase):
     try:
         if wof_revealed_indices is None:
             return
-        while not wof_winner and not all(wof_revealed_indices):
+        while not all(wof_revealed_indices):
             # Find all indices that are still hidden (not revealed and are letters)
             hidden_indices = []
             for idx, revealed in enumerate(wof_revealed_indices):
