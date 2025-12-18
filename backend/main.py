@@ -664,10 +664,10 @@ async def participant_websocket(websocket: WebSocket):
 
                     # ---- WHEEL OF FORTUNE LOGIC ----
                     if is_wof and current_question and data["question_id"] == current_question.id:
-                        # EXTRA GUARD: If participant already is the wof_winner for this question, ignore further answers/scoring
+                        # Move winner guard ABOVE all update/insert logic!
                         if wof_winner and participant.name == wof_winner:
-                            # Don't allow winner to be scored, updated, or appear in live answers again for this WOF round
-                            return  # silently ignore, do NOT update, insert, or feedback
+                            # Never update, score, or write further answers for winner
+                            return
 
                         # Accept full phrase guess, ignore case and whitespace; don't allow partial answers
                         guess = (data["answer"] or "").strip().lower()
