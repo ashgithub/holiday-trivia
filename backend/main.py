@@ -917,7 +917,7 @@ async def admin_websocket(websocket: WebSocket):
                                 "content": current_question.content,
                                 "options": json.loads(current_question.answers) if current_question.answers else None,
                                 "allow_multiple": getattr(current_question, "allow_multiple", True),
-                                "correct_answer": current_question.correct_answer if current_question.type == "wheel_of_fortune" else None,
+                                "correct_answer": current_question.correct_answer,  # Send for all question types for load testing
                             },
                             "progress": {"current": current_question_index, "total": total_questions},
                         }
