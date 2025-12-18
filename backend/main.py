@@ -675,10 +675,7 @@ async def participant_websocket(websocket: WebSocket):
                             if wof_reveal_task:
                                 wof_reveal_task.cancel()
                                 wof_reveal_task = None
-                            # Mark all tiles revealed
-                            if wof_revealed_indices is not None:
-                                for idx in range(len(wof_revealed_indices)):
-                                    wof_revealed_indices[idx] = True
+                            # Do NOT reveal all tiles at this point: let the board continue revealing gradually, or finish naturally on timer, not instantly
 
                         # Always record the answer for live results display
                         # Score = seconds remaining for correct answers, 0 for incorrect
@@ -712,8 +709,7 @@ async def participant_websocket(websocket: WebSocket):
                         db.commit()
 
                         if is_correct and wof_winner:
-                            await broadcast_wof_state(current_question.correct_answer or "", finished=True, winner=wof_winner)
-                            # Notify all clients that the round is done and who won
+                            # Do not broadcast a "finished"/fully revealed phrase! Only send the winner.
                             await admin_manager.broadcast({
                                 "type": "wof_winner",
                                 "winner": wof_winner
