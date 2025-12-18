@@ -116,74 +116,69 @@ class SimulatedParticipant:
             print(f"Error sending answer for {self.user_name}: {e}")
 
     def _generate_answer_for_type(self, question_type: str) -> str:
-        """Generate appropriate answers for each question type with 75% correctness"""
+        """Generate appropriate answers for each question type using real correct answers"""
 
         # Use user_id as seed for consistent but varied answers
         random.seed(self.user_id)
 
-        # 75% chance of correct answer, 25% chance of wrong but realistic answer
-        is_correct = random.random() < 0.75
+        correct_answer = self.current_question.get("correct_answer", "")
+
+        # Guarantee correct answers from first 10 users for each question type
+        # This ensures we always have correct answers in load tests
+        is_correct = (self.user_id <= 10) or (random.random() < 0.75)
 
         if question_type == "word_cloud":
             # Word cloud is subjective - always generate diverse responses
-            answer = self._generate_word_cloud_answer()
+            if is_correct and correct_answer and correct_answer != "auto-scored":
+                answer = correct_answer
+            else:
+                answer = self._generate_word_cloud_answer()
         elif question_type == "multiple_choice":
             options = self.current_question.get("options", ["A", "B", "C", "D"])
-            correct_answer = self.current_question.get("correct_answer", options[0])
-            if is_correct:
-                answer = correct_answer
-            else:
-                # Choose wrong option
-                wrong_options = [opt for opt in options if opt != correct_answer]
-                answer = random.choice(wrong_options) if wrong_options else options[0]
-        elif question_type == "fill_in_the_blank":
-            correct_answer = self.current_question.get("correct_answer", "")
             if is_correct and correct_answer:
                 answer = correct_answer
             else:
-                # Generate realistic wrong answers
+                # Choose wrong option - need to get actual wrong options
+                # For now, use generic wrong answers since we don't have options in current_question
+                wrong_options = ["Wrong option 1", "Wrong option 2", "Wrong option 3"]
+                answer = random.choice(wrong_options)
+        elif question_type == "fill_in_the_blank":
+            # Use real correct answer: "500" for holiday lights question
+            if is_correct and correct_answer:
+                answer = correct_answer  # "500"
+            else:
+                # Generate realistic wrong answers based on the actual question
+                # For "___ million holiday lights" question, generate nearby numbers
+                if "holiday lights" in self.current_question.get("content", "").lower():
+                    # Generate numbers close to 500
+                    wrong_numbers = ["400", "450", "550", "600", "1000", "250", "750", "300", "700"]
+                    answer = random.choice(wrong_numbers)
+                else:
+                    # Fallback for other fill-in-the-blank questions
+                    answer = str(random.randint(100, 1000))
+        elif question_type == "pictionary":
+            # Use real correct answer: "cloud" for the drawing
+            if is_correct and correct_answer:
+                answer = correct_answer  # "cloud"
+            else:
+                # Generate plausible wrong answers for cloud-themed drawing
                 wrong_answers = [
-                    "100", "200", "1000", "250", "750",  # Different numbers
-                    "Paris", "London", "New York", "Tokyo", "Sydney",  # Cities
-                    "Christmas tree", "Team collaboration", "Innovation"  # Other themes
+                    "sky", "plane", "travel", "flight", "airplane", "mountain",
+                    "ocean", "water", "sun", "moon", "star", "bird", "wing"
                 ]
                 answer = random.choice(wrong_answers)
-        elif question_type == "pictionary":
-            correct_answer = self.current_question.get("correct_answer") or ""  # Handle None values
-            if is_correct and correct_answer:
-                answer = correct_answer
-            else:
-                # Generate plausible wrong answers for drawings
-                wrong_answers = [
-                    "house", "tree", "car", "dog", "cat", "sun", "moon",
-                    "mountain", "river", "ocean", "flower", "bird", "fish",
-                    "Christmas tree", "snowman", "reindeer", "santa claus"
-                ]
-                # Avoid the correct answer if possible (only if correct_answer is not empty)
-                if correct_answer:
-                    filtered_answers = [a for a in wrong_answers if a.lower() != correct_answer.lower()]
-                    answer = random.choice(filtered_answers if filtered_answers else wrong_answers)
-                else:
-                    answer = random.choice(wrong_answers)
         elif question_type == "wheel_of_fortune":
-            correct_answer = self.current_question.get("correct_answer") or ""  # Handle None values
+            # Use real correct answer: "Holiday Cloud Journey"
             if is_correct and correct_answer:
-                answer = correct_answer
+                answer = correct_answer  # "Holiday Cloud Journey"
             else:
-                # Generate plausible wrong phrase guesses
+                # Generate plausible wrong phrase guesses for travel/teamwork theme
                 wrong_answers = [
-                    "merry christmas", "happy holidays", "season greetings",
-                    "joy to the world", "silent night", "jingle bells",
-                    "winter wonderland", "holiday cheer", "peace on earth",
-                    "goodwill toward men", "deck the halls", "we wish you",
-                    "travel adventure", "team journey", "cloud computing"
+                    "Holiday Team Journey", "Cloud Travel Adventure", "Holiday Travel Team",
+                    "Cloud Team Holiday", "Journey Cloud Holiday", "Team Holiday Cloud",
+                    "Travel Holiday Cloud", "Holiday Cloud Travel", "Cloud Holiday Team"
                 ]
-                # Avoid the correct answer if possible (only if correct_answer is not empty)
-                if correct_answer:
-                    filtered_answers = [a for a in wrong_answers if a.lower() != correct_answer.lower()]
-                    answer = random.choice(filtered_answers if filtered_answers else wrong_answers)
-                else:
-                    answer = random.choice(wrong_answers)
+                answer = random.choice(wrong_answers)
         else:
             # Fallback for unknown question types
             answer = f"Sample answer {random.randint(1, 10)}"
