@@ -1271,6 +1271,8 @@ toggleMCQOptions(showMCQ) {
 
         wordCloudData.forEach(word => {
             const span = document.createElement('span');
+            console.log('[WORDCLOUD DEBUG] Processing word:', word.text, 'size:', word.size);
+
             const sizePx = minSize + Math.round((max > 1 ? (word.size - 1) / (max - 1) : 0) * (maxSize - minSize));
             span.textContent = word.text;
             span.style.fontSize = `${sizePx}px`;
@@ -1278,7 +1280,16 @@ toggleMCQOptions(showMCQ) {
             span.style.padding = '4px 8px';
             span.style.background = '#eff6ff';
             span.style.borderRadius = '8px';
-            span.title = `Occurrences: ${word.size}`;
+
+            // Set tooltip and debug it
+            span.title = `User count: ${word.size}`;
+            console.log('[WORDCLOUD DEBUG] Set tooltip for', word.text, ':', span.title);
+
+            // Add hover event listener for debugging
+            span.addEventListener('mouseenter', () => {
+                console.log('[WORDCLOUD DEBUG] Hovering over', word.text, '- tooltip should show:', span.title);
+            });
+
             wcDiv.appendChild(span);
         });
 
