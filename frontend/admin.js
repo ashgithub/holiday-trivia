@@ -964,7 +964,7 @@ toggleMCQOptions(showMCQ) {
             case 'answer_received':
                 soundManager.answerSubmitted();
                 this.updateAnswersList(data);
-                if (data.leaderboard && data.leaderboard.length > 0) {
+                if (data.leaderboard && data.leaderboard.length > 0 && data.question_type !== 'word_cloud') {
                     this.updateLeaderboard(data.leaderboard);
                 }
                 break;

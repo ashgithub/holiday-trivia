@@ -805,11 +805,13 @@ async def participant_websocket(websocket: WebSocket):
 
                     # Notify admin of updated answers
                     answers, _ = await get_current_answers(db)
-                    leaderboard = await get_cumulative_scores(db)
+                    # Don't update leaderboard for word cloud questions (no scoring)
+                    is_word_cloud = current_question and current_question.type == "word_cloud"
+                    leaderboard = [] if is_word_cloud else await get_cumulative_scores(db)
                     print(f"[SCORING DEBUG] Broadcasting to admin: {len(answers)} answers, leaderboard has {len(leaderboard)} entries")
                     await admin_manager.broadcast({
                         "type": "answer_received",
-                        "question_type": current_question.type if current_question else None,
+                        "question_type": getattr(current_question, 'type', None),
                         "answers": answers,
                         "leaderboard": leaderboard
                     })

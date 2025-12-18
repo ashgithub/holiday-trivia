@@ -470,6 +470,23 @@ canvas {
     display: grid;
     grid-template-columns: minmax(300px, 1fr) minmax(500px, 2fr) minmax(300px, 1fr);
     gap: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+#current-question-display {
+    grid-column: 1 / -1;
+    text-align: center;
+}
+
+/* Center all top elements to match the grid width */
+.status-dashboard,
+.tab-navigation,
+.admin-controls,
+#wof-board-area,
+#drawing-area {
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .control-section {
