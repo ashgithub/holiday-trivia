@@ -1,6 +1,18 @@
 # Quiz Game Settings
 # This file persists across server restarts
 
+# Theme configuration
+theme:
+  name: "Goodbye Chona!"
+  emoji: "👋"
+  welcome_title: "Thanks for the Memories, Chona!"
+  admin_title: "Farewell Celebration Hub"
+  background_image: "chona.png"
+
+# Question auto-loading
+questions:
+  auto_load_file: "doc/chona_questions.json"  # Set to enable auto-loading on startup
+
 # Wheel of Fortune settings
 wof_tile_duration: 4.0  # seconds per tile reveal
 

@@ -7,14 +7,19 @@
     <script>
       window.ROOT_PATH = "{{ root_path or '/' }}";
     </script>
-    <title>All-Hands Holiday Trivia - Participant</title>
+    <title>{{ theme.name }} - Participant</title>
+    <style>
+        :root {
+            --background-image: {{ theme.background_css }};
+        }
+    </style>
     <link rel="stylesheet" href="assets/styles.css?v=20241211">
 </head>
 <body>
     <div class="bg-overlay"></div>
     <div id="app">
         <header>
-            <h1>🎄 All-Hands Holiday Trivia 🎄</h1>
+            <h1>{{ theme.emoji }} {{ theme.name }} {{ theme.emoji }}</h1>
             <div id="status">Connecting...</div>
         </header>
 
@@ -22,11 +27,11 @@
             <!-- Name Entry Screen -->
             <div id="name-entry-screen">
                 <div class="name-entry-container">
-                    <h2>🎄 Welcome to All-Hands Holiday Trivia! 🎄</h2>
-                    <p>Enter your name to join the holiday trivia:</p>
+                    <h2>{{ theme.welcome_title }}</h2>
+                    <p>Enter your name to join the trivia:</p>
                     <div class="name-input-group">
                         <input type="text" id="participant-name" placeholder="Your name" maxlength="50">
-                        <button id="join-btn" class="btn btn-primary">Join Holiday Trivia</button>
+                        <button id="join-btn" class="btn btn-primary">Join {{ theme.name.split()[1] }}</button>
                     </div>
                     <div id="name-error" class="error-message hidden">Please enter your name</div>
                 </div>

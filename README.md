@@ -1,6 +1,6 @@
-# All-Hands Holiday Trivia 🎄
+# Office Trivia 🏢
 
-An interactive real-time holiday trivia game for Zoom all-hands meetings with up to 150 participants. Features multiple question types, live drawing, voice input, comprehensive admin controls, and Christmas-themed UI.
+An interactive real-time trivia game for Zoom all-hands meetings with up to 150 participants. Features multiple question types, live drawing, voice input, comprehensive admin controls, and professional UI.
 
 ## Features
 
@@ -8,7 +8,7 @@ An interactive real-time holiday trivia game for Zoom all-hands meetings with up
 - **Real-time Interaction**: WebSocket-based communication for instant responses
 - **Voice Input**: Browser-native speech-to-text support
 - **Live Drawing**: Real-time collaborative drawing for quiz master
-- **Christmas Theme**: Festive UI with subtle holiday styling
+- **Professional UI**: Clean interface optimized for business meetings
 - **Scalable**: Supports up to 150 concurrent participants
 - **Advanced Admin Panel**: Password-protected quiz master controls with question management
 - **Question Library**: Categorized question management with summary statistics
@@ -169,7 +169,7 @@ all-hands-game/
 ├── frontend/
 │   ├── index.html           # Participant page with voice input
 │   ├── admin.html           # Quiz master page with controls
-│   ├── styles.css           # Christmas-themed styles with animations
+│   ├── styles.css           # Professional styles with animations
 │   ├── app.js               # Participant client logic
 │   └── admin.js             # Admin client with question management
 ├── tests/

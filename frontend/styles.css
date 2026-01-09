@@ -16,6 +16,7 @@
     --text-dark: #2c3e50;
     --bg-light: rgba(248,249,250,0.9);
     --shadow: rgba(0, 0, 0, 0.1);
+    --background-image: url('xmas.jpeg');
 }
 
 * {
@@ -26,7 +27,7 @@
 
 body {
     font-family: 'Arial', sans-serif;
-    background: url('xmas.jpeg') no-repeat center center fixed;
+    background: var(--background-image) no-repeat center center fixed;
     background-size: cover;
     color: var(--text-dark);
     line-height: 1.6;

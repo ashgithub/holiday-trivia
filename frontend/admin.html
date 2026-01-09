@@ -7,21 +7,26 @@
     <script>
       window.ROOT_PATH = "{{ root_path or '/' }}";
     </script>
-    <title>All-Hands Holiday Trivia - Admin</title>
+    <title>{{ theme.name }} - Admin</title>
+    <style>
+        :root {
+            --background-image: {{ theme.background_css }};
+        }
+    </style>
     <link rel="stylesheet" href="assets/styles.css?v=20241211">
 </head>
 <body>
     <div class="bg-overlay"></div>
     <div id="app">
         <header>
-            <h1>🎄 Holiday Trivia Master Control Panel 🎄</h1>
+            <h1>{{ theme.emoji }} {{ theme.admin_title }} {{ theme.emoji }}</h1>
             <div id="status">Connecting...</div>
         </header>
 
         <!-- Password Protection -->
         <div id="login-screen">
             <div class="login-container">
-                <h2>Holiday Trivia Master Login</h2>
+                <h2>Trivia Master Login</h2>
                 <input type="password" id="password-input" placeholder="Enter password">
                 <button id="login-btn" class="btn btn-primary">Login</button>
                 <div id="login-error" class="error hidden">Incorrect password</div>
@@ -45,7 +50,7 @@
 
             <!-- Tab Navigation -->
             <div class="tab-navigation">
-                <button id="quiz-control-tab" class="tab-btn active">Holiday Trivia Control</button>
+                <button id="quiz-control-tab" class="tab-btn active">Trivia Control</button>
                 <button id="question-management-tab" class="tab-btn">Question Management</button>
                 <button id="data-management-tab" class="tab-btn">Data Management</button>
                 <button id="settings-tab" class="tab-btn">Settings</button>
@@ -54,9 +59,9 @@
             <!-- Tab Content -->
             <div id="quiz-control-content" class="tab-content active">
                 <div class="admin-controls">
-                    <button id="start-quiz-btn" class="btn btn-success">Start Holiday Trivia</button>
+                    <button id="start-quiz-btn" class="btn btn-success">Start Trivia</button>
                     <button id="next-question-btn" class="btn btn-primary" disabled>Push Next Question</button>
-                    <button id="end-quiz-btn" class="btn btn-danger" disabled>End Holiday Trivia</button>
+                    <button id="end-quiz-btn" class="btn btn-danger" disabled>End Trivia</button>
                 </div>
 
                 <!-- Prominent Display Area for WoF and Drawing -->
@@ -226,12 +231,12 @@
                     <div id="database-info" class="database-info">
                         <p>Current database: <span id="current-db">quiz_game.db</span></p>
                         <p>Questions: <span id="db-question-count">0</span></p>
-                        <p class="warning-text">⚠️ Switching databases will end any active holiday trivia session</p>
+                        <p class="warning-text">⚠️ Switching databases will end any active trivia session</p>
                     </div>
                 </div>
 
                 <div class="settings-section festive-panel">
-                    <h3>Holiday Trivia Settings</h3>
+                    <h3>Trivia Settings</h3>
                     <div class="setting-item">
                         <label for="question-timer">Question Timer (seconds):</label>
                         <input type="number" id="question-timer" value="30" min="10" max="120">

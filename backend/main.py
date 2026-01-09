@@ -326,6 +326,12 @@ async def cleanup_database():
 async def lifespan(app: FastAPI):
     # Startup: Clean database and start background status updates
     await cleanup_database()
+
+    # Auto-load questions if configured
+    auto_load_file = SETTINGS.get("questions", {}).get("auto_load_file")
+    if auto_load_file:
+        await auto_load_questions(auto_load_file)
+
     status_task = asyncio.create_task(send_admin_status_updates())
     yield
     # Shutdown: Cancel background task
@@ -334,6 +340,65 @@ async def lifespan(app: FastAPI):
         await status_task
     except asyncio.CancelledError:
         pass
+
+async def auto_load_questions(file_path: str):
+    """Auto-load questions from specified file on startup"""
+    try:
+        # Check if file exists
+        full_path = Path(__file__).parent.parent / file_path
+        if not full_path.exists():
+            print(f"Warning: Auto-load file not found: {full_path}")
+            return
+
+        # Read and parse JSON
+        with open(full_path, 'r') as f:
+            questions_data = json.load(f)
+
+        if not isinstance(questions_data, list):
+            print(f"Error: Auto-load file must contain a JSON array: {full_path}")
+            return
+
+        # Import questions
+        db = SessionLocal()
+        try:
+            imported = 0
+            # Clear existing questions
+            db.query(Question).delete()
+            db.commit()
+
+            for question_data in questions_data:
+                # Basic validation
+                required_fields = ["type", "content", "correct_answer"]
+                if not all(field in question_data and question_data[field] for field in required_fields):
+                    continue
+
+                if question_data["type"] not in ALLOWED_QUESTION_TYPES:
+                    continue
+
+                # Create new question
+                new_question = Question(
+                    type=question_data["type"],
+                    content=question_data["content"],
+                    correct_answer=question_data["correct_answer"],
+                    allow_multiple=question_data.get("allow_multiple", True),
+                    answers=json.dumps(question_data["answers"]) if question_data.get("answers") else None,
+                    order=question_data.get("order", imported)
+                )
+
+                db.add(new_question)
+                imported += 1
+
+            db.commit()
+            print(f"Auto-loaded {imported} questions from {full_path}")
+
+        except Exception as e:
+            print(f"Error auto-loading questions: {e}")
+            db.rollback()
+        finally:
+            db.close()
+
+    except Exception as e:
+        print(f"Error reading auto-load file {file_path}: {e}")
 
 # Update FastAPI app with lifespan
 app = FastAPI(title="All-Hands Quiz Game", version="0.1.0", lifespan=lifespan)
@@ -364,6 +429,11 @@ async def root():
 async def health_check():
     """Health check endpoint"""
     return {"status": "healthy"}
+
+@app.get("/api/theme")
+async def get_theme():
+    """Get theme configuration"""
+    return SETTINGS.get("theme", {})
 
 # Question Import/Export API Endpoints
 @app.post("/api/questions/export")
@@ -567,9 +637,20 @@ async def participant_page(request: Request):
     scope_root_path = request.scope.get("root_path", "")
     app_root_path = request.app.root_path
     print(f"[DEBUG] Participant page - scope root_path: '{scope_root_path}', app root_path: '{app_root_path}'")
+
+    # Prepare theme data with background image
+    theme = SETTINGS.get("theme", {})
+    theme_data = dict(theme)  # Copy theme dict
+
+    # Add background image CSS
+    if "background_image" in theme_data:
+        theme_data["background_css"] = f"url('{theme_data['background_image']}')"
+    else:
+        theme_data["background_css"] = "url('xmas.jpeg')"  # Default fallback
+
     return templates.TemplateResponse(
         "index.html",
-        {"request": request, "root_path": scope_root_path}
+        {"request": request, "root_path": scope_root_path, "theme": theme_data}
     )
 
 @app.get("/admin")
@@ -578,9 +659,20 @@ async def admin_page(request: Request):
     scope_root_path = request.scope.get("root_path", "")
     app_root_path = request.app.root_path
     print(f"[DEBUG] Admin page - scope root_path: '{scope_root_path}', app root_path: '{app_root_path}'")
+
+    # Prepare theme data with background image
+    theme = SETTINGS.get("theme", {})
+    theme_data = dict(theme)  # Copy theme dict
+
+    # Add background image CSS
+    if "background_image" in theme_data:
+        theme_data["background_css"] = f"url('{theme_data['background_image']}')"
+    else:
+        theme_data["background_css"] = "url('xmas.jpeg')"  # Default fallback
+
     return templates.TemplateResponse(
         "admin.html",
-        {"request": request, "root_path": scope_root_path}
+        {"request": request, "root_path": scope_root_path, "theme": theme_data}
     )
 
 # WebSocket endpoints
