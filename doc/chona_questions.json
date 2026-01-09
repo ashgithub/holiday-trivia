@@ -59,8 +59,8 @@
   {
     "id": 5,
     "type": "fill_in_the_blank",
-    "content": "Chona is a morning person, her bed-time is typically _____  PM   (eg 9:59 )",
-    "correct_answer": "8:00",
+    "content": "Chona is a morning person. Thus, her bed-time is typically __ :00 PM   (eg 2 )",
+    "correct_answer": "8",
     "allow_multiple": true,
     "order": 5,
     "created_at": "2025-12-18T07:13:17.154101"
