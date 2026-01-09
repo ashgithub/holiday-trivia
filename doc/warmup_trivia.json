@@ -1,0 +1,43 @@
+[
+  {
+    "type": "fill_in_the_blank",
+    "content": "There are approximately ___ million holiday lights displayed around the world during year-end celebrations.",
+    "correct_answer": "500",
+    "allow_multiple": true,
+    "order": 0
+  },
+  {
+    "type": "multiple_choice",
+    "content": "When visiting Oracle offices worldwide, which document is essential for international travel?",
+    "correct_answer": "Valid passport",
+    "allow_multiple": false,
+    "order": 1,
+    "answers": [
+      "Valid passport",
+      "Beach ball",
+      "Office plant",
+      "Snow globe"
+    ]
+  },
+  {
+    "type": "pictionary",
+    "content": "Guess the drawing (theme: year-end travel and cloud)",
+    "correct_answer": "cloud",
+    "allow_multiple": true,
+    "order": 2
+  },
+  {
+    "type": "word_cloud",
+    "content": "Share a favorite way you relax during the year-end break (1–3 words):",
+    "correct_answer": "auto-scored",
+    "allow_multiple": true,
+    "order": 3
+  },
+  {
+    "type": "wheel_of_fortune",
+    "content": "Guess the phrase about travel and teamwork:",
+    "correct_answer": "Holiday Cloud Journey",
+    "allow_multiple": true,
+    "order": 4
+  }
+]

@@ -62,7 +62,6 @@ tmp/
 temp/
 
 # Documentation
-doc/
 *.doc
 *.docx
 ~$*

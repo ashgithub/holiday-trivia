@@ -1,0 +1,110 @@
+[
+  {
+    "id": 1,
+    "type": "fill_in_the_blank",
+    "content": "The Jewish festival Hanukkah lasts for ___ days.",
+    "correct_answer": "8",
+    "allow_multiple": true,
+    "order": 3,
+    "created_at": "2025-12-18T07:13:17.153354"
+  },
+  {
+    "id": 2,
+    "type": "fill_in_the_blank",
+    "content": "Approximately ___ million diyas lit during Diwali celebrations in India? ",
+    "correct_answer": "1500",
+    "allow_multiple": true,
+    "order": 4,
+    "created_at": "2025-12-18T07:13:17.154101"
+  },
+  {
+    "id": 3,
+    "type": "fill_in_the_blank",
+    "content": "Santa's sleigh flies _____ million miles  to deliver presents to all the children in the world? (Guess the closest number)",
+    "correct_answer": "75",
+    "allow_multiple": true,
+    "order": 2,
+    "created_at": "2025-12-18T07:13:17.154218"
+  },
+  {
+    "id": 4,
+    "type": "multiple_choice",
+    "content": "Which country is famous for the tradition of eating KFC on Christmas Day? ___",
+    "correct_answer": "Japan",
+    "allow_multiple": true,
+    "order": 6,
+    "created_at": "2025-12-18T07:13:17.154309",
+    "answers": [
+      "Japan",
+      "USA",
+      "Canada",
+      "England"
+    ]
+  },
+  {
+    "id": 5,
+    "type": "multiple_choice",
+    "content": "In which month does the Chinese New Year typically fall?",
+    "correct_answer": "January or February",
+    "allow_multiple": false,
+    "order": 7,
+    "created_at": "2025-12-18T07:13:17.154390",
+    "answers": [
+      "January or February",
+      "June or July",
+      "September or October",
+      "November or December"
+    ]
+  },
+  {
+    "id": 6,
+    "type": "multiple_choice",
+    "content": "What is the name of the Islamic holiday celebrating the end of Ramadan?",
+    "correct_answer": "Eid al-Fitr",
+    "allow_multiple": false,
+    "order": 5,
+    "created_at": "2025-12-18T07:13:17.154472",
+    "answers": [
+      "Eid al-Adha",
+      "Ashura",
+      "Eid al-Fitr",
+      "Mawlid"
+    ]
+  },
+  {
+    "id": 8,
+    "type": "word_cloud",
+    "content": "Share a favorite holiday tradition from any culture (1-3 words).",
+    "correct_answer": "auto-scored",
+    "allow_multiple": true,
+    "order": 0,
+    "created_at": "2025-12-18T07:13:17.154632"
+  },
+  {
+    "id": 9,
+    "type": "word_cloud",
+    "content": "Name a holiday food you enjoy (1-3 words).",
+    "correct_answer": "auto-scored",
+    "allow_multiple": true,
+    "order": 1,
+    "created_at": "2025-12-18T07:13:17.154710"
+  },
+  {
+    "id": 10,
+    "type": "wheel_of_fortune",
+    "content": "Guess the phrase about global celebrations:",
+    "correct_answer": "Holiday Lights Festival",
+    "allow_multiple": true,
+    "order": 8,
+    "created_at": "2025-12-18T07:13:17.154811"
+  },
+  {
+    "id": 11,
+    "type": "wheel_of_fortune",
+    "content": "Guess the phrase about New Year symbols:",
+    "correct_answer": "Lucky Pig Tradition",
+    "allow_multiple": true,
+    "order": 9,
+    "created_at": "2025-12-18T07:13:17.154895"
+  }
+]
